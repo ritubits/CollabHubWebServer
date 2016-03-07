@@ -1,0 +1,29 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+	<display-name>Archetype Created Web Application</display-name>
+	<context-param>
+		<param-name>ipAddTomcat</param-name>
+		<param-value>localhost:8080</param-value>
+	</context-param>
+	<context-param>
+		<param-name>ipAddSQL</param-name>
+		<param-value>localhost:3306</param-value>
+	</context-param>
+	<context-param>
+		<param-name>DEBUG</param-name>
+		<param-value>TRUE</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>EchoServlet</servlet-name>
+		<display-name>EchoServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.EchoServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>EchoServlet</servlet-name>
+		<url-pattern>/echo</url-pattern>
+	</servlet-mapping>
+</web-app>
