@@ -68,11 +68,21 @@ public class CloneRemoteRepo implements Runnable {
 
 				copyToProjectRepo(filePath, con);
 
+				CreateDependencyGraph dbGraph= new CreateDependencyGraph();
+			    try {
+			    	System.out.println("Going to create DB");
+					dbGraph.initializeDB();
+
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 				// delet contents of the directory filePath
 				removeDirectory(filePath);
 
 				// change this to 20 minutes
-				Thread.sleep(60 * 1000);// 1min
+				Thread.sleep(60 * 3000);// 1min
 
 			}// for
 		}// try
@@ -97,6 +107,7 @@ public class CloneRemoteRepo implements Runnable {
 			// create graph and delete the folder
 			// create table here
 			createArtifactTable(conn);
+			System.out.println("Going yo create DB");
 
 		} catch (IOException e) {
 			e.printStackTrace();
