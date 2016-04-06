@@ -11,34 +11,33 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
+			<version>4.11</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.38</version>
 		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j-kernel</artifactId>
-			<version>2.3.3</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo4j</artifactId>
-			<version>2.3.3</version>
-		</dependency>
+	<dependency>
+		<groupId>org.neo4j</groupId>
+		<artifactId>neo4j-kernel</artifactId>
+		<version>2.3.3</version>
+	</dependency>
+	<dependency>
+	<groupId>org.neo4j</groupId>
+	<artifactId>neo4j</artifactId>
+	<version>2.3.3</version>
+	</dependency>
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
 			<artifactId>org.eclipse.core.resources</artifactId>
 			<version>3.7.100</version>
 		</dependency>
-		<dependency>
+	<dependency>
 		<groupId>org.eclipse.jdt</groupId>
-		<artifactId>core</artifactId>
-		<version>3.3.0-v_771</version>
-		</dependency>		
+		<artifactId>org.eclipse.jdt.core</artifactId>
+		<version>3.7.1</version>
+	</dependency>	
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
