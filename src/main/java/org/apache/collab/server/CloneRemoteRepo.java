@@ -71,7 +71,7 @@ public class CloneRemoteRepo implements Runnable {
 				CreateDependencyGraph dbGraph= new CreateDependencyGraph();
 			    try {
 			    	System.out.println("Going to create DB");
-					dbGraph.initializeDB();
+					dbGraph.initializeDB(SRC_URL, projectName);
 
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
