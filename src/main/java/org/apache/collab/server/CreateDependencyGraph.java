@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Set;
-
+import java.util.HashMap;
+import java.lang.reflect.Modifier;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -36,11 +38,18 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import java.lang.reflect.TypeVariable;
+
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 //import org.eclipse.jface.text.Document;
+
+
+
 
 
 
@@ -138,9 +147,27 @@ public class CreateDependencyGraph {
      				 //print filename
      				 System.out.println("In file: "+ f.getName());
      				 
-     				 //add class node with fileName f.getName()
-     				 cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, f.getName(), "default", "default","default", "default");
+     				 //add class node with fileName f.getName()- java
+     				 int index = (f.getName()).indexOf(".java");      	
+     				 String className= (f.getName()).substring(0, index);
+     				 System.out.println("Canonical Paths:: "+ f.getCanonicalPath());
+     				 
+     				 System.out.println("Class Modifiers:: "+Modifier.toString(f.getClass().getModifiers()));
+     				 
+     				TypeVariable[] tv = f.getClass().getTypeParameters();
+     			    if (tv.length != 0) {
      				
+     				for (TypeVariable t : tv)
+     					System.out.println(" Type Parameters "+ t.getName());
+     				
+     			    } else {
+     				System.out.println("No type parameters");
+     			    }
+     				 //add class parameters
+     				 
+     				 cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, className, "default", "default","default", "default");
+   	  	           	 System.out.println("cNode Id: "+cNode.getId());
+   	  	           	
      				 CompilationUnit cu = parse(readFileToString(filePath));
      				 //for each file, get its Methods and add nodes
      				 getMethodGraph(cu, dpGraph, graphDb, cNode);
@@ -174,17 +201,7 @@ public class CreateDependencyGraph {
         return rootNode;
     }
 
-    
-		public   void createGraphAST(File[] files) throws Exception
-		{
-			
-		//	rootNode= createGraphAST();	
-			
-		
-		
-		}//end of createGraphAST
-
-		//read file content into a string
+	//read file content into a string
 		public static String readFileToString(String filePath) throws IOException 
 		{
 			StringBuilder fileData = new StringBuilder(1000);
@@ -215,6 +232,7 @@ public class CreateDependencyGraph {
 			 parser.setCompilerOptions(options);
 			 
 			final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+			//Document document= new Document(cu.getSource());
 
 			return cu;
 			
@@ -246,10 +264,19 @@ public class CreateDependencyGraph {
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				    System.out.println(node.getName());
-  				    mName= node.getName().toString();
+  				    System.out.println("MethodName:: "+node.getName());
+  				  System.out.println("Canonical MethodName:: "+node.getClass().getCanonicalName());
+
+  				    int mod =node.getModifiers(); //get the int value of modifier
+  			//	 System.out.println("Body:: "+node.getBody().toString());
+  				 //print each statement
+  			//	 System.out.println("Body::"+getMethodBodyString(node.getBody()));
+  				
+  				    mName= cNode.getProperty("name")+"."+node.getName().toString();
   				    // add method node
-  				    dpGraph.addMethodNode(graphDb, cNode, mName, "default", "default", "default",   "default",  "default",  "default");
+  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString());
+  	  	            System.out.println("mNodeId: "+mNode.getId());
+  				    
   				    return false; // do not continue 
   				  }
   			 
@@ -266,6 +293,21 @@ public class CreateDependencyGraph {
 	 {
      	//parsing files
 
+	 }
+	 
+	 public String getMethodBodyString(Block methodBlock)
+	 {
+		 String methodBody=null;
+		 
+		 Block block= methodBlock;
+			if (block != null) {
+				List<Statement> statements= block.statements();
+			//	if (statements.size() > 0) {
+			//		Statement last= statements.get(statements.size() - 1);
+				methodBody= statements.toString();
+			//	}
+			}
+			return methodBody;
 	 }
     void shutDown(GraphDatabaseService graphDb)
     {
