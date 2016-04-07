@@ -19,16 +19,13 @@ public class dependencyGraphNodes {
     	CONNECTING, DEPENDENCY;
     }
     
-    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String className, String accessSpecifier, String finalType, String implType, String staticType)
+    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String className, String modifiers)
     {
     	Node classNode = graphDb.createNode(dGraphNodeType.CLASS);
     	classNode.addLabel(dGraphNodeType.CLASS);
     	classNode.setProperty( "name", className );
     	classNode.setProperty( "nodeType", "CLASS" );
-    	classNode.setProperty( "accessSpecifier", accessSpecifier );
-    	classNode.setProperty( "finalType", finalType );
-    	classNode.setProperty( "implType", implType );
-    	classNode.setProperty( "staticType", staticType );
+    	classNode.setProperty( "modifier", modifiers );
      	relationship = classNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" );        
         return classNode;

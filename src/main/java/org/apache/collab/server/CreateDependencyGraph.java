@@ -150,11 +150,17 @@ public class CreateDependencyGraph {
      				 //add class node with fileName f.getName()- java
      				 int index = (f.getName()).indexOf(".java");      	
      				 String className= (f.getName()).substring(0, index);
-     				 System.out.println("Canonical Paths:: "+ f.getCanonicalPath());
      				 
-     				 System.out.println("Class Modifiers:: "+Modifier.toString(f.getClass().getModifiers()));
-     				 
-     				TypeVariable[] tv = f.getClass().getTypeParameters();
+
+   
+   	  	           	
+     				CompilationUnit cu = parse(readFileToString(filePath));
+     				System.out.println("cu.imports:: "+cu.imports());
+     				System.out.println("cu.types:: "+cu.types());
+     			//	System.out.println("cu.modifiers:: "+Modifier.toString(cu.));
+     				System.out.println("cu.package:: "+cu.getPackage());
+     			//	cu.getAST().
+     		/*		TypeVariable[] tv = f.getClass().getTypeParameters();
      			    if (tv.length != 0) {
      				
      				for (TypeVariable t : tv)
@@ -162,18 +168,18 @@ public class CreateDependencyGraph {
      				
      			    } else {
      				System.out.println("No type parameters");
-     			    }
-     				 //add class parameters
+     			    }*/
      				 
-     				 cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, className, "default", "default","default", "default");
-   	  	           	 System.out.println("cNode Id: "+cNode.getId());
-   	  	           	
-     				 CompilationUnit cu = parse(readFileToString(filePath));
-     				 //for each file, get its Methods and add nodes
+     				 //add class parameters// create class node    				 
+    				 cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, className, "default");
+  	  	       //    	 System.out.println("cNode Id: "+cNode.getId());
+  	  	           	 
+     			    //for each file, get its Methods and add nodes
      				 getMethodGraph(cu, dpGraph, graphDb, cNode);
      				 
-     				 //pass the entire AST of a file to create the dependency graph
-     				 //dpGraph.createDependencyGraph(cu, graphDb, rootNode,f.getName());
+      			    //for each file, get its attributes and add nodes
+      				 getAttributeGraph(cu, dpGraph, graphDb, cNode);
+      				 
      			 }
      		//	 System.out.println("here123");
      		 }
@@ -257,16 +263,12 @@ public class CreateDependencyGraph {
     public  void getMethodGraph(final CompilationUnit cu, final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final Node cNode) {
 		
   		cu.accept(new ASTVisitor() {
-   
-  			Set names = new HashSet();
   			String mName= null;
-  			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
+  			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();  		
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				    System.out.println("MethodName:: "+node.getName());
-  				  System.out.println("Canonical MethodName:: "+node.getClass().getCanonicalName());
-
+  				    System.out.println("MethodName:: "+node.getName());  				  
   				    int mod =node.getModifiers(); //get the int value of modifier
   			//	 System.out.println("Body:: "+node.getBody().toString());
   				 //print each statement
@@ -275,8 +277,7 @@ public class CreateDependencyGraph {
   				    mName= cNode.getProperty("name")+"."+node.getName().toString();
   				    // add method node
   				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString());
-  	  	            System.out.println("mNodeId: "+mNode.getId());
-  				    
+  	  	       //     System.out.println("mNodeId: "+mNode.getId());  				    
   				    return false; // do not continue 
   				  }
   			 
@@ -289,6 +290,10 @@ public class CreateDependencyGraph {
   	} 		
     
 	 
+    public  void getAttributeGraph(final CompilationUnit cu, final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final Node cNode) {
+    	
+    }
+    
 	 public void parseFiles(File[] files)
 	 {
      	//parsing files
