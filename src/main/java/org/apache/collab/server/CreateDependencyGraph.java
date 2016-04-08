@@ -11,12 +11,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
+
 import org.eclipse.jface.text.Document;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -40,6 +43,7 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+
 import java.lang.reflect.TypeVariable;
 
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -47,6 +51,8 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 //import org.eclipse.jface.text.Document;
+
+
 
 
 
@@ -148,31 +154,59 @@ public class CreateDependencyGraph {
      				 System.out.println("In file: "+ f.getName());
      				 
      				 //add class node with fileName f.getName()- java
-     				 int index = (f.getName()).indexOf(".java");      	
-     				 String className= (f.getName()).substring(0, index);
-     				 
-
-   
+     				 int index = (f.getName()).indexOf(".java");      	   
    	  	           	
      				CompilationUnit cu = parse(readFileToString(filePath));
-     				System.out.println("cu.imports:: "+cu.imports());
-     				System.out.println("cu.types:: "+cu.types());
-     			//	System.out.println("cu.modifiers:: "+Modifier.toString(cu.));
-     				System.out.println("cu.package:: "+cu.getPackage());
-     			//	cu.getAST().
-     		/*		TypeVariable[] tv = f.getClass().getTypeParameters();
-     			    if (tv.length != 0) {
-     				
-     				for (TypeVariable t : tv)
-     					System.out.println(" Type Parameters "+ t.getName());
-     				
-     			    } else {
-     				System.out.println("No type parameters");
-     			    }*/
-     				 
+     				String className= null;
+     				String packName = null;
+     				if (cu.getPackage()!=null)
+     				{
+     					System.out.println("package name is not null");
+     					packName = parsePackageName(cu.getPackage().toString());
+     				className= packName+"."+(f.getName()).substring(0, index);
+     				}
+     				else 
+     					{
+     					className= (f.getName()).substring(0, index);
+     					packName ="null";
+     					}
+     			//	System.out.println("cu.types:: "+cu.types());
+     				List<TypeDeclaration> types= cu.types();
+     				String modifier=null;
+     				Boolean isInterface= false;
+     				for (TypeDeclaration t: types)
+     				{
+     					modifier= Modifier.toString(t.getModifiers());
+     					System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
+     					FieldDeclaration[] fieldArr = t.getFields();
+     					
+     					for (FieldDeclaration fArr: fieldArr)
+     					{
+     						List<VariableDeclarationFragment> frag = fArr.fragments();
+     						System.out.println("Fragments:: "+fArr.fragments());
+     						//fArr.getType();
+     						for (VariableDeclarationFragment fragEach: frag)
+         					{
+     							System.out.println("fragName::"+fragEach.getName());
+     					//		fragEach.
+     							
+         					}
+     						
+     					}
+     				//	System.out.println("fieldArr::"+fieldArr.toString());
+     					isInterface= t.isInterface();
+     					System.out.println("Interface::"+t.isInterface());
+     					//create interface node instead of class nodes
+     					//can have attributes
+     					//can have methods with no body
+     				}
+
      				 //add class parameters// create class node    				 
-    				 cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, className, "default");
-  	  	       //    	 System.out.println("cNode Id: "+cNode.getId());
+    				if (isInterface)
+    				{
+    					cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, className, cu.imports().toString(), packName, modifier);
+    				}
+    				else cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, className, cu.imports().toString(), packName, modifier);
   	  	           	 
      			    //for each file, get its Methods and add nodes
      				 getMethodGraph(cu, dpGraph, graphDb, cNode);
@@ -268,7 +302,7 @@ public class CreateDependencyGraph {
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				    System.out.println("MethodName:: "+node.getName());  				  
+  				//    System.out.println("MethodName:: "+node.getName());  				  
   				    int mod =node.getModifiers(); //get the int value of modifier
   			//	 System.out.println("Body:: "+node.getBody().toString());
   				 //print each statement
@@ -277,7 +311,7 @@ public class CreateDependencyGraph {
   				    mName= cNode.getProperty("name")+"."+node.getName().toString();
   				    // add method node
   				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString());
-  	  	       //     System.out.println("mNodeId: "+mNode.getId());  				    
+				    
   				    return false; // do not continue 
   				  }
   			 
@@ -285,6 +319,16 @@ public class CreateDependencyGraph {
   				    return methods;
   				  }
   			 
+  			public boolean visit(FieldDeclaration fd){
+				Object o = fd.fragments().get(0);
+				if(o instanceof VariableDeclarationFragment){
+					String s = ((VariableDeclarationFragment) o).getName().toString();
+				//	if(s.toUpperCase().equals(s))
+				//	System.out.println("-------------field: " + s);
+				}
+
+				return false;
+			}
   			});
    
   	} 		
@@ -292,6 +336,25 @@ public class CreateDependencyGraph {
 	 
     public  void getAttributeGraph(final CompilationUnit cu, final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final Node cNode) {
     	
+    	cu.accept(new ASTVisitor() {
+    		 
+    		Set names = new HashSet();
+			public boolean visit(VariableDeclarationFragment node) {
+				SimpleName name = node.getName();
+				this.names.add(name.getIdentifier());
+				System.out.println("Declaration of '"+name+"' at line"+cu.getLineNumber(name.getStartPosition()));
+				System.out.println("Fully Qualified Name::"+name.getFullyQualifiedName());
+				return false; // do not continue to avoid usage info
+			}
+ 
+/*			public boolean visit(SimpleName node) {
+				if (this.names.contains(node.getIdentifier())) {
+		//		System.out.println("Usage of '" + node + "' at line " +	cu.getLineNumber(node.getStartPosition()));
+				}
+				return true;
+			}*/
+ 
+		});
     }
     
 	 public void parseFiles(File[] files)
@@ -314,14 +377,23 @@ public class CreateDependencyGraph {
 			}
 			return methodBody;
 	 }
+	 
+	 public String parsePackageName(String pName)
+	 {
+		 String packName=null;
+		 int index = pName.indexOf(" ")+1;
+		 packName= pName.substring(index, pName.length()-2);
+//		 System.out.println("PackageName:::"+packName);
+		 return packName;				 
+	 }
     void shutDown(GraphDatabaseService graphDb)
     {
         System.out.println("line 227");
         System.out.println( "Shutting down database ..." );
-        // START SNIPPET: shutdownServer
+
         graphDb.shutdown();
         System.out.println( "DB server shuting down complete" );
-        // END SNIPPET: shutdownServer
+
     }
     
     private void clearDb() {

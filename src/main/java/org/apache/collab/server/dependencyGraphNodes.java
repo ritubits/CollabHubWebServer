@@ -5,11 +5,12 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Node;
+import java.util.HashMap;
 
 public class dependencyGraphNodes {
 
     public  static enum dGraphNodeType implements Label {
-    	PROJECT, PACKAGE, CLASS, METHOD, ATTRIBUTE;
+    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
     }  
     
     Relationship relationship;
@@ -19,20 +20,62 @@ public class dependencyGraphNodes {
     	CONNECTING, DEPENDENCY;
     }
     
-    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String className, String modifiers)
+    HashMap<Long, String> nodeHashMap = new HashMap<Long, String>();
+    HashMap<Long, String> edgeHashMap = new HashMap<Long, String>();
+    
+    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String className, String imports, String packageName, String modifier)
     {
+//    	System.out.println("Creating Class Node::"+className);
     	Node classNode = graphDb.createNode(dGraphNodeType.CLASS);
     	classNode.addLabel(dGraphNodeType.CLASS);
     	classNode.setProperty( "name", className );
     	classNode.setProperty( "nodeType", "CLASS" );
-    	classNode.setProperty( "modifier", modifiers );
+    	classNode.setProperty( "modifier", modifier );
+    	classNode.setProperty( "imports", imports );
+    	classNode.setProperty( "packageName", packageName );
+//    	System.out.println("cNode Id:"+classNode.getId());
+    	nodeHashMap.put(classNode.getId(), className);
+    	 
      	relationship = classNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
-        relationship.setProperty( "edgeType", "OWNER" );        
+        relationship.setProperty( "edgeType", "OWNER" ); 
+        
+        //later set this something else if required //summation of class name and package node name
+        relationship.setProperty( "name", classNode.getProperty("name").toString());
+ //       System.out.println("relationship Id:"+relationship.getId());
+//        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
+        edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+        
         return classNode;
+    }
+    
+    public Node addConnectingInterfaceNode(GraphDatabaseService graphDb, Node pNode, String interfaceName, String imports, String packageName, String modifier)
+    {
+//    	System.out.println("Creating Class Node::"+className);
+    	Node interfaceNode = graphDb.createNode(dGraphNodeType.INTERFACE);
+    	interfaceNode.addLabel(dGraphNodeType.INTERFACE);
+    	interfaceNode.setProperty( "name", interfaceName );
+    	interfaceNode.setProperty( "nodeType", "INTERFACE" );
+    	interfaceNode.setProperty( "modifier", modifier );
+    	interfaceNode.setProperty( "imports", imports );
+    	interfaceNode.setProperty( "packageName", packageName );
+ //   	System.out.println("cNode Id:"+classNode.getId());
+    	nodeHashMap.put(interfaceNode.getId(), interfaceName);
+    	 
+     	relationship = interfaceNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
+        relationship.setProperty( "edgeType", "OWNER" ); 
+        
+        //later set this something else if required //summation of class name and package node name
+        relationship.setProperty( "name", interfaceNode.getProperty("name").toString());
+//        System.out.println("relationship Id:"+relationship.getId());
+//        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
+        edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+        
+        return interfaceNode;
     }
     
     public Node addMethodNode(GraphDatabaseService graphDb, Node cNode, String methodName, String modifier, String returnType, String parameterList)
     {
+ //   	System.out.println("Creating Method Node::"+methodName);
     	Node mNode = graphDb.createNode(dGraphNodeType.METHOD);
     	mNode.addLabel(dGraphNodeType.METHOD);
     	mNode.setProperty( "name", methodName );
@@ -40,8 +83,18 @@ public class dependencyGraphNodes {
     	mNode.setProperty( "modifier", modifier );
     	mNode.setProperty( "returnType", returnType );  	
     	mNode.setProperty( "parameterList", parameterList );
+
+//    	System.out.println("mNode Id:"+mNode.getId());
+    	nodeHashMap.put(mNode.getId(), methodName);
+    	
      	relationship = mNode.createRelationshipTo( cNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" );
+        relationship.setProperty( "name", methodName+"::"+cNode.getProperty("name").toString());
+        
+//        System.out.println("relationship Id:"+relationship.getId());
+//        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
+    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+    	
         return mNode;
     }
     
