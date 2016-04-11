@@ -23,8 +23,9 @@ public class dependencyGraphNodes {
     HashMap<Long, String> nodeHashMap = new HashMap<Long, String>();
     HashMap<Long, String> edgeHashMap = new HashMap<Long, String>();
     
-    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String className, String imports, String packageName, String modifier)
+    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String className, String imports, String packageName, String modifier, String extend)
     {
+    
 //    	System.out.println("Creating Class Node::"+className);
     	Node classNode = graphDb.createNode(dGraphNodeType.CLASS);
     	classNode.addLabel(dGraphNodeType.CLASS);
@@ -34,8 +35,9 @@ public class dependencyGraphNodes {
     	classNode.setProperty( "modifier", modifier );
     	classNode.setProperty( "imports", imports );
     	classNode.setProperty( "packageName", packageName );
+    	classNode.setProperty( "extend", extend );
 //    	System.out.println("cNode Id:"+classNode.getId());
-    	nodeHashMap.put(classNode.getId(), className);
+    	nodeHashMap.put(classNode.getId(), smallClassName);//adding canonical name
     	 
      	relationship = classNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
@@ -44,7 +46,7 @@ public class dependencyGraphNodes {
         relationship.setProperty( "name", classNode.getProperty("canonicalName").toString());
  //       System.out.println("relationship Id:"+relationship.getId());
 //        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
-        edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+        edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());//adding canonical name
         
         return classNode;
     }
@@ -61,7 +63,7 @@ public class dependencyGraphNodes {
     	interfaceNode.setProperty( "imports", imports );
     	interfaceNode.setProperty( "packageName", packageName );
  //   	System.out.println("cNode Id:"+classNode.getId());
-    	nodeHashMap.put(interfaceNode.getId(), interfaceName);
+    	nodeHashMap.put(interfaceNode.getId(), smallClassName);
     	 
      	relationship = interfaceNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
@@ -88,7 +90,7 @@ public class dependencyGraphNodes {
     	mNode.setProperty( "parameterList", parameterList );
 
 //    	System.out.println("mNode Id:"+mNode.getId());
-    	nodeHashMap.put(mNode.getId(), methodName);
+    	nodeHashMap.put(mNode.getId(), smallMethodName);
     	
      	relationship = mNode.createRelationshipTo( cNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" );
@@ -99,6 +101,67 @@ public class dependencyGraphNodes {
     	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
     	
         return mNode;
+    }
+    
+    public Node addAttributeNode(GraphDatabaseService graphDb, Node cNode, String smallAttributeName, String attributeName, String modifier, String dataType, String initializer)
+    {
+ //   	System.out.println("Creating Method Node::"+methodName);
+    	Node aNode = graphDb.createNode(dGraphNodeType.ATTRIBUTE);
+    	aNode.addLabel(dGraphNodeType.ATTRIBUTE);
+    	aNode.setProperty( "name", smallAttributeName );
+    	aNode.setProperty( "canonicalName", attributeName );
+    	aNode.setProperty( "nodeType", "ATTRIBUTE" );
+    	aNode.setProperty( "modifier", modifier );
+    	aNode.setProperty( "dataType", dataType );  	
+    	aNode.setProperty( "initializer", initializer );
+
+    	nodeHashMap.put(aNode.getId(), smallAttributeName);//adding canonical name
+    	
+     	relationship = aNode.createRelationshipTo( cNode, RelTypes.CONNECTING );
+     
+        relationship.setProperty( "edgeType", "OWNER" );
+        relationship.setProperty( "name", attributeName+"::"+cNode.getProperty("canonicalName").toString());
+        
+//        System.out.println("relationship Id:"+relationship.getId());
+//        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
+    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+    	
+        return aNode;
+    }
+    
+    
+    public void addDependencyEdge(GraphDatabaseService graphDb, Long superClassID, Long subClassID)    
+    {
+    	//adding edge from superclass id to sub class it
+    	Node subClassNode =	graphDb.getNodeById(subClassID);
+    	Node superClassNode =	graphDb.getNodeById(superClassID);
+    	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+superClassNode.getProperty("name"));
+    	    	
+     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
+        relationship.setProperty( "edgeType", "EXTENDS" );
+        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
+    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+    	
+    }
+    
+    public HashMap getNodeHashMap()
+    {
+    	return nodeHashMap;
+    }
+    
+    public void addToNodeHashMap()
+    {
+    	
+    }
+    
+    public HashMap getEdgeHashMap()
+    {
+    	return edgeHashMap;
+    }
+    
+    public void addToEdgeHashMap()
+    {
+    	
     }
     
 }

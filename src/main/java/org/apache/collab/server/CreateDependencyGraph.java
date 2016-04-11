@@ -6,8 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
@@ -22,6 +21,7 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
@@ -29,31 +29,23 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.io.fs.FileUtils;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import java.lang.reflect.TypeVariable;
 
-import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.Statement;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 //import org.eclipse.jface.text.Document;
+
+
+
+
+
 
 
 
@@ -121,25 +113,40 @@ public class CreateDependencyGraph {
 				e.printStackTrace();
 			}
 	    	System.out.println("Out of DB");
-				
 		}
 
-	public Node createDB(File[] files) throws Exception
-    {
+	    public Node createDB(File[] files) throws Exception
+	    {
+	      Transaction tx =null;
+	        try 
+	        {
+	        	 System.out.println("creating transaction object");
+	        	 tx= graphDb.beginTx();
 
-
-      Transaction tx =null;
-        
-        // START SNIPPET: transaction
-        try 
+	        	 createConnectingGraph(files);
+	        	 createDependencyGraph(files);
+        	System.out.println("created graph");
+            // START SNIPPET: transaction
+            tx.success();
+        }
+        catch (Exception e)
         {
-            // Database operations go here
-            // END SNIPPET: transaction
-            // START SNIPPET: addData
+        	if ( tx != null )
+            throw e;
+        	e.printStackTrace();
+        }
+        finally {
         	
-        	 System.out.println("creating transaction object");
-        	 
-        	 tx= graphDb.beginTx();
+        	 if (tx != null) {
+        		 tx.close();
+        		 System.out.println("Closing transaction object");        		 
+             }        	            
+        }         
+        return rootNode;
+	    }
+
+	public void createConnectingGraph(File[] files) throws Exception
+    {
 
         	rootNode = graphDb.createNode(dGraphNodeType.PROJECT);
       
@@ -154,10 +161,10 @@ public class CreateDependencyGraph {
          	Node cNode= null;
          	for (File f : files ) {
      			 filePath = f.getAbsolutePath();
-     			System.out.println(filePath);
+     		//	System.out.println(filePath);
      			 if(f.isFile() && (f.getName().contains(".java"))){
      				 //print filename
-     				 System.out.println("In file: "+ f.getName());
+     			//	 System.out.println("In file: "+ f.getName());
      				 
      				 //add class node with fileName f.getName()- java
      				 int index = (f.getName()).indexOf(".java");      	   
@@ -181,86 +188,149 @@ public class CreateDependencyGraph {
      				List<TypeDeclaration> types= cu.types();
      				String modifier=null;
      				Boolean isInterface= false;
+     				String extend=null;     
      				for (TypeDeclaration t: types)
-     				{
+     				{     	
+     					System.out.println("Creating Class");
+     					isInterface= t.isInterface();   
      					modifier= Modifier.toString(t.getModifiers());
+     					Type superClass= t.getSuperclassType();
+     					if (superClass !=null) extend= superClass.toString();
+     					
+     					System.out.println("SuperClassType::"+extend);	
+     					
+        				if (isInterface)
+        				{
+        					cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        				}
+        				else cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend);
+        				
      					//System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
      					FieldDeclaration[] fieldArr = t.getFields();
-     					
+     					String attributeModifier=null;
+     					String attributeType=null;
      					for (FieldDeclaration fArr: fieldArr)
-     					{
-     						
-     						System.out.println("field type::"+fArr.getType());
-     						System.out.println("field modifiers::"+Modifier.toString(fArr.getModifiers()));
+     					{     						     					
+     						attributeType = fArr.getType().toString();
+     					//	System.out.println("field type::"+attributeType);
+     						attributeModifier= Modifier.toString(fArr.getModifiers());
+     					//	System.out.println("field modifiers::"+Modifier.toString(fArr.getModifiers()));
      						
      						List<VariableDeclarationFragment> frag = fArr.fragments();
-     						//System.out.println("Fragments:: "+fArr.fragments());
-     						//fArr.getType();
      	  					int i=0;
+     	  					String initializer=null;
+     	  					String smallAttributeName =null;
+     	  					String attributeName=null;
+     	  					Node aNode=null;
      						for (VariableDeclarationFragment fd: frag)
      						{
-     							//Object o = ((List<VariableDeclarationFragment>) fd).get(i);
      							Object o = fArr.fragments().get(i);
      							i++;
      													
      							if(o instanceof VariableDeclarationFragment){
-     								SimpleName s = ((VariableDeclarationFragment) o).getName();
+     								smallAttributeName = ((VariableDeclarationFragment) o).getName().toString();
      								ChildPropertyDescriptor s2 = ((VariableDeclarationFragment) o).getNameProperty();
 
-     								Expression s3 = ((VariableDeclarationFragment) o).getInitializer();						
+     								Expression s3 = ((VariableDeclarationFragment) o).getInitializer();
+     								if (s3!=null) initializer = s3.toString();
      								int s4 = ((VariableDeclarationFragment) o).getExtraDimensions();
      								
-     								System.out.println("SimpleName()::"+s);
-     								System.out.println("getInitializer::"+s3);
-
-
-     							//	if(s.toUpperCase().equals(s))
-     							//	System.out.println("-------------field: " + s);
-     							}	
-    					
-     					}
-
-     					isInterface= t.isInterface();
-     					}
-     				}
- 					//create interface node instead of class nodes
- 					//can have attributes
- 					//can have methods with no body
-     				 //add class parameters// create class node    				 
-    				if (isInterface)
-    				{
-    					cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
-    				}
-    				else cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
-  	  	           	 
+     						//		System.out.println("SimpleName()::"+smallAttributeName);
+     								attributeName= className+"."+smallAttributeName;
+     						//		System.out.println("getInitializer::"+s3);
+     								
+     								aNode= dpGraph.addAttributeNode(graphDb, cNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+     								}	//if    					
+     							}//for variable declaration     					
+     					}//field declaration
+     				}//type declaration
      			    //for each file, get its Methods and add nodes
-     				 getMethodGraph(cu, dpGraph, graphDb, cNode);
-     				 
-      			    //for each file, get its attributes and add nodes
-      			//	 getAttributeGraph(cu, dpGraph, graphDb, cNode);      				
-     			 }
-     		 }
-        	System.out.println("created graph");
-            // START SNIPPET: transaction
-            tx.success();
-        }
-        catch (Exception e)
-        {
-        	if ( tx != null )
-            throw e;
-        	e.printStackTrace();
-        }
-        finally {
-        	
-        	 if (tx != null) {
-        		 tx.close();
-        		 System.out.println("Closing transaction object");        		 
-             }        	            
-        }         
-        return rootNode;
-    }
+     				 getMethodGraph(cu, dpGraph, graphDb, cNode);      				
+     			 }// for all java files
+     		 }//for all files
+    }//for createCOnnectingGraph
 
-	//read file content into a string
+
+	public void createDependencyGraph(File[] files) throws Exception
+    {
+		//read file content into a string
+		//call createGraphAST for each file
+	    HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
+	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
+	    
+	    System.out.println("Creating Dependency Graph");
+     	String filePath = null;
+     	Node cNode= null;
+     	for (File f : files ) {
+ 			 filePath = f.getAbsolutePath();
+ 			System.out.println(filePath);
+ 			 if(f.isFile() && (f.getName().contains(".java"))){
+ 				 //print filename
+ 				 System.out.println("In file: "+ f.getName());
+ 				 
+ 				 //add class node with fileName f.getName()- java
+ 				 int index = (f.getName()).indexOf(".java");      	   
+	  	           	
+ 				CompilationUnit cu = parse(readFileToString(filePath));
+ 				String className= null;
+ 				String smallClassName= (f.getName()).substring(0, index);;
+ 				String packName = null;
+ 				if (cu.getPackage()!=null)
+ 				{
+ 					//System.out.println("package name is not null");
+ 					packName = parsePackageName(cu.getPackage().toString());
+ 					className= packName+"."+(f.getName()).substring(0, index);
+ 				}
+ 				else 
+ 					{
+ 					className= (f.getName()).substring(0, index);
+ 					packName ="null";
+ 					}
+ 			//	System.out.println("cu.types:: "+cu.types());
+ 				List<TypeDeclaration> types= cu.types();
+ 				String modifier=null;
+ 				Boolean isInterface= false;
+ 				Long idSuperNode=(long) -1;  
+ 				Long idCurrentClassNode=(long) -1; 
+ 				for (TypeDeclaration t: types)
+ 				{     	
+ 					isInterface= t.isInterface();   
+ 					Type superClass= t.getSuperclassType();
+ 					System.out.println("SuperClassType::"+superClass);	
+ 					
+ 					if (superClass !=null)
+ 					{
+ 						//search for Class node in hashmap
+ 						System.out.println("Searching for superClassNode::"+superClass);
+ 						idSuperNode= searchClassNode(superClass.toString(), nodeHashMap);
+ 						if (idSuperNode != -1)
+ 						{
+ 							//super class node found
+ 							//create dependency edge from current node to super class node
+ 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
+ 							
+ 							dpGraph.addDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
+ 						}
+ 					}
+ 				}
+ 			 }
+     	}
+    }//dependency Grpah
+	
+	public Long searchClassNode(String className, HashMap <Long,String> nodeHashMap)
+	{
+		//get id of class name in nodeHashMap else return -1
+		Long id = (long) -1;
+
+			    for (Map.Entry<Long, String> entry : nodeHashMap.entrySet()) {
+			        if (Objects.equals(className, entry.getValue())) {
+			            id= entry.getKey();
+			            break;
+			        }
+			    }
+				return id;		
+	}
+	
 		public static String readFileToString(String filePath) throws IOException 
 		{
 			StringBuilder fileData = new StringBuilder(1000);
