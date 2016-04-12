@@ -201,7 +201,7 @@ public class dependencyGraphNodes {
     	//adding edge from superclass id to sub class it
     	Node subClassNode =	graphDb.getNodeById(subClassID);
     	Node superClassNode =	graphDb.getNodeById(superClassID);
-   // 	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+superClassNode.getProperty("name"));
+    	System.out.println("Adding edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
     	    	
      	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
         relationship.setProperty( "edgeType", "USES" );

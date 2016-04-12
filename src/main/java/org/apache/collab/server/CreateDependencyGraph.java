@@ -18,9 +18,12 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ChildPropertyDescriptor;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -74,6 +77,10 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 
 
+
+
+
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -92,6 +99,15 @@ public class CreateDependencyGraph {
 	    public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
+	    
+	    public  static enum dMethodNodeType implements Label {
+	    	VariableDeclarationNode, PACKAGE;
+	    }  
+	    
+	    public static enum methodRelTypes implements RelationshipType
+	    {
+	    	BODY;
+	    }
 	    
 	    public static enum RelTypes implements RelationshipType
 	    {
@@ -285,7 +301,8 @@ public class CreateDependencyGraph {
 		//call createGraphAST for each file
 	    HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
 	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
-	    
+	    HashMap<Long, String> methodHashMap = dpGraph.methodHashMap;
+	    		
 	    System.out.println("Creating Dependency Graph");
      	String filePath = null;
      	Node cNode= null;
@@ -368,7 +385,7 @@ public class CreateDependencyGraph {
  			 }// if(f.isFile() && (f.getName().contains(".java"))){
      	}//for (File f : files ) {
      	
-			
+/*****************************************************************************/			
 			//create uses dependency between class and class based on type of attribute node
 			//obtain all class nodes from graph
 			Node attributeNode;
@@ -403,7 +420,43 @@ public class CreateDependencyGraph {
 						}//if (idinterfaceNode != -1)
 				}
 			}
-    }//dependency Grpah
+			
+/*****************************************************************************/
+			//create uses dependency between method and class based on type of attribute node
+			//obtain all attribute nodes from graph
+			Node attributeNode1;
+			String attributeType1;		
+			Node attributeMethodNode;
+			Long attributeMethodNodeId= (long) -1;
+			Long otherClassNodeId= (long) -1;
+			
+			ResourceIterator<Node> methodANodes= graphDb.findNodes(dMethodNodeType.VariableDeclarationNode);
+			while (methodANodes.hasNext() )
+			{
+				attributeNode1= methodANodes.next();
+				attributeType1= (String)attributeNode1.getProperty("dataType");
+			//	System.out.println("dataType::"+attributeType);
+				relations=attributeNode1.getRelationships(methodRelTypes.BODY);
+				
+				for (Relationship r: relations)
+				{
+					attributeMethodNode=r.getOtherNode(attributeNode1);
+				//	System.out.println("classNode::"+ownerClassNode.getProperty("name"));
+					attributeMethodNodeId= attributeMethodNode.getId();
+				//	System.out.println("classNodeID::"+ownerClassNode.getId());
+					//System.out.println("classNode::"+r.getOtherNode(attributeNode));
+					otherClassNodeId= searchClassNode(attributeType1, nodeHashMap);
+					if (otherClassNodeId != -1)
+						{
+							//class node found
+							//create dependency edge from current method node to class node
+						//uses relationship							
+							dpGraph.addUsesDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId);
+						}//if (idinterfaceNode != -1)
+				}
+			}
+/*****************************************************************************/
+    }//dependency Graph
 	
 	public Long searchClassNode(String className, HashMap <Long,String> nodeHashMap)
 	{
@@ -540,8 +593,31 @@ public class CreateDependencyGraph {
 						}
 					return false;
 				}
+	  			
+	  	public boolean visit(IfStatement node){
+	  				//store entire statement as body
+	  		//get attributes created
+	  		//get class instance creations
+	  				return false;
+	  			}
 		 });
 	 }
+	 
+	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu, final Node cNode)
+	 {
+		 // visit each method invocation node
+		 cu.accept(new ASTVisitor()
+		 {
+	  			public boolean visit(ClassInstanceCreation node){
+	  				return false;
+	  			}
+	  			
+	  			public boolean visit(MethodInvocation node){
+	  				return false;
+	  			}
+		 });
+	 }
+	 
 	 public String getMethodBodyString(Block methodBlock)
 	 {
 		 String methodBody=null;
