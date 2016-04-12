@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
 
+import org.apache.collab.server.dependencyGraphNodes.RelTypes;
+import org.apache.collab.server.dependencyGraphNodes.dGraphNodeType;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -20,15 +22,20 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.io.fs.FileUtils;
@@ -41,6 +48,14 @@ import java.lang.reflect.TypeVariable;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 //import org.eclipse.jface.text.Document;
+
+
+
+
+
+
+
+
 
 
 
@@ -75,11 +90,13 @@ public class CreateDependencyGraph {
 	    
 	    
 	    public  static enum dGraphNodeType implements Label {
-	    	PROJECT, PACKAGE, CLASS, METHOD, ATTRIBUTE;
+	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
 	    
-
-	    
+	    public static enum RelTypes implements RelationshipType
+	    {
+	    	CONNECTING, DEPENDENCY;
+	    }
 	    public static void main(String args[]) {
 
 	       	CreateDependencyGraph db= new CreateDependencyGraph();
@@ -164,7 +181,7 @@ public class CreateDependencyGraph {
      		//	System.out.println(filePath);
      			 if(f.isFile() && (f.getName().contains(".java"))){
      				 //print filename
-     			//	 System.out.println("In file: "+ f.getName());
+     				 System.out.println("In file: "+ f.getName());
      				 
      				 //add class node with fileName f.getName()- java
      				 int index = (f.getName()).indexOf(".java");      	   
@@ -189,6 +206,7 @@ public class CreateDependencyGraph {
      				String modifier=null;
      				Boolean isInterface= false;
      				String extend=null;     
+     				String implemented=null;  
      				for (TypeDeclaration t: types)
      				{     	
      					System.out.println("Creating Class");
@@ -197,13 +215,23 @@ public class CreateDependencyGraph {
      					Type superClass= t.getSuperclassType();
      					if (superClass !=null) extend= superClass.toString();
      					
-     					System.out.println("SuperClassType::"+extend);	
+     				//	System.out.println("SuperClassType::"+extend);	
+     					List implementedList= t.superInterfaceTypes();
+     				//	System.out.println("SuperImplemented::"+implementedList);
      					
+     					if (!implementedList.isEmpty())
+     					{
+     						implemented = implementedList.toString();
+     					}
+     					else 
+     						{implemented ="[null]";
+     					//	System.out.println("Implemented list is null");
+     						}
         				if (isInterface)
         				{
         					cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
         				}
-        				else cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend);
+        				else cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
         				
      					//System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
      					FieldDeclaration[] fieldArr = t.getFields();
@@ -263,10 +291,10 @@ public class CreateDependencyGraph {
      	Node cNode= null;
      	for (File f : files ) {
  			 filePath = f.getAbsolutePath();
- 			System.out.println(filePath);
+ 		//	System.out.println(filePath);
  			 if(f.isFile() && (f.getName().contains(".java"))){
  				 //print filename
- 				 System.out.println("In file: "+ f.getName());
+ 		//		 System.out.println("In file: "+ f.getName());
  				 
  				 //add class node with fileName f.getName()- java
  				 int index = (f.getName()).indexOf(".java");      	   
@@ -296,12 +324,12 @@ public class CreateDependencyGraph {
  				{     	
  					isInterface= t.isInterface();   
  					Type superClass= t.getSuperclassType();
- 					System.out.println("SuperClassType::"+superClass);	
+ 				//	System.out.println("SuperClassType::"+superClass);	
  					
  					if (superClass !=null)
  					{
  						//search for Class node in hashmap
- 						System.out.println("Searching for superClassNode::"+superClass);
+ 				//		System.out.println("Searching for superClassNode::"+superClass);
  						idSuperNode= searchClassNode(superClass.toString(), nodeHashMap);
  						if (idSuperNode != -1)
  						{
@@ -309,12 +337,72 @@ public class CreateDependencyGraph {
  							//create dependency edge from current node to super class node
  							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  							
- 							dpGraph.addDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
+ 							dpGraph.addExtendsDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
  						}
- 					}
- 				}
- 			 }
-     	}
+ 					}//if (superClass !=null)
+ 					
+ 				//	System.out.println("SuperInterfaceType::"+t.superInterfaceTypes());
+ 					List<SimpleType> interfacesImplemented= t.superInterfaceTypes();
+ 					//iterate over list and search for all nodes and add depedency edges
+ 					Long idinterfaceNode= (long) -1;
+ 					if (!interfacesImplemented.isEmpty())
+ 					{
+ 						//code goes here....
+ 						for (SimpleType interfaces: interfacesImplemented)
+ 						{
+ 						//	System.out.println("Interfaces::"+interfaces);
+ 							//search for the existence of interface in graph
+ 							idinterfaceNode= searchClassNode(interfaces.toString(), nodeHashMap);
+ 							if (idinterfaceNode != -1)
+ 	 						{
+ 	 							//interface node found
+ 	 							//create dependency edge from current node to interface node
+ 	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
+ 	 							
+ 	 							dpGraph.addImplementsDependencyEdge(graphDb, idinterfaceNode, idCurrentClassNode);
+ 	 						}//if (idinterfaceNode != -1)
+ 						}//for (SimpleType interfaces: interfacesImplemented)
+ 						
+ 					}//if (!interfacesImplemented.isEmpty()) 					
+ 				}//for (TypeDeclaration t: types)
+ 			 }// if(f.isFile() && (f.getName().contains(".java"))){
+     	}//for (File f : files ) {
+     	
+			
+			//create uses dependency between class and class based on type of attribute node
+			//obtain all class nodes from graph
+			Node attributeNode;
+			String attributeType;
+			Iterable<Relationship> relations;
+			Node ownerClassNode;
+			Long attributeNodeClassId= (long) -1;
+			Long otherNodeClassId= (long) -1;
+			
+			ResourceIterator<Node> aNodes= graphDb.findNodes(dGraphNodeType.ATTRIBUTE);
+			while (aNodes.hasNext() )
+			{
+				attributeNode= aNodes.next();
+				attributeType= (String)attributeNode.getProperty("dataType");
+			//	System.out.println("dataType::"+attributeType);
+				relations=attributeNode.getRelationships(RelTypes.CONNECTING);
+				
+				for (Relationship r: relations)
+				{
+					ownerClassNode=r.getOtherNode(attributeNode);
+				//	System.out.println("classNode::"+ownerClassNode.getProperty("name"));
+					attributeNodeClassId= ownerClassNode.getId();
+				//	System.out.println("classNodeID::"+ownerClassNode.getId());
+					//System.out.println("classNode::"+r.getOtherNode(attributeNode));
+					otherNodeClassId= searchClassNode(attributeType, nodeHashMap);
+					if (otherNodeClassId != -1)
+						{
+							//class node found
+							//create dependency edge from current class node to class node
+						//uses relationship							
+							dpGraph.addUsesDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId);
+						}//if (idinterfaceNode != -1)
+				}
+			}
     }//dependency Grpah
 	
 	public Long searchClassNode(String className, HashMap <Long,String> nodeHashMap)
@@ -389,114 +477,83 @@ public class CreateDependencyGraph {
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				//    System.out.println("MethodName:: "+node.getName());  				  
+  				    System.out.println("MethodName:: "+node.getName());  				  
   				    int mod =node.getModifiers(); //get the int value of modifier
-  			//	 System.out.println("Body:: "+node.getBody().toString());
-  				 //print each statement
-  			//	 System.out.println("Body::"+getMethodBodyString(node.getBody()));
+  				 
   				  smallMethodName = node.getName().toString();
   				    mName= cNode.getProperty("canonicalName")+"."+smallMethodName;
   				    // add method node
   				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString());
-				    
+  				  if (node.getBody() !=null) visitMethodBlock(dpGraph,graphDb, node.getBody(), mNode);
   				    return false; // do not continue 
   				  }
   			 
   			 public List<MethodDeclaration> getMethods() {
   				    return methods;
   				  }
-  			 
-  	/*		public boolean visit(FieldDeclaration fd){
-				Object o = fd.fragments().get(0);
-				if(o instanceof VariableDeclarationFragment){
-					String s = ((VariableDeclarationFragment) o).getName().getFullyQualifiedName();
-					System.out.println("Variable::"+s);
-				//	if(s.toUpperCase().equals(s))
-				//	System.out.println("-------------field: " + s);
-				}
-
-				return false;
-			}*/
   			});
-   
   	} 		
-    
-	 
-  //  public  void getAttributeGraph(final CompilationUnit cu, final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final Node cNode) {
-    	public  void getAttributeVisitor(final CompilationUnit cu) {
-    	cu.accept(new ASTVisitor() {
-    		 
-    		Set names = new HashSet();
-/*			public boolean visit(VariableDeclarationFragment node) {
-				SimpleName name = node.getName();
-				this.names.add(name.getIdentifier());
-				System.out.println("Declaration of '"+name+"' at line"+cu.getLineNumber(name.getStartPosition()));
-				System.out.println("Fully Qualified Name::"+name.getFullyQualifiedName());
-				return false; // do not continue to avoid usage info
-			}*/
- 
-/*			public boolean visit(SimpleName node) {
-				if (this.names.contains(node.getIdentifier())) {
-		//		System.out.println("Usage of '" + node + "' at line " +	cu.getLineNumber(node.getStartPosition()));
-				}
-				return true;
-			}*/
-			
-  			public boolean visit(FieldDeclaration fd){
-  				List<VariableDeclarationFragment> fieldArr= fd.fragments();
-
-  					int i=0;
-					for (VariableDeclarationFragment fArr: fieldArr)
-					{
-						Object o = fd.fragments().get(i);
-						i++;
-												
-						if(o instanceof VariableDeclarationFragment){
-							SimpleName s = ((VariableDeclarationFragment) o).getName();
-							ChildPropertyDescriptor s2 = ((VariableDeclarationFragment) o).getNameProperty();
-
-							Expression s3 = ((VariableDeclarationFragment) o).getInitializer();						
-							int s4 = ((VariableDeclarationFragment) o).getExtraDimensions();
-							
-							System.out.println("SimpleName()::"+s);
-							System.out.println("getInitializer::"+s3);
-
-
-						//	if(s.toUpperCase().equals(s))
-						//	System.out.println("-------------field: " + s);
-						}	
-					}
-				return false;
-			}
- 
- /* 			public boolean visit(SingleVariableDeclaration  node){
-  				SimpleName name = node.getName();
-				//this.names.add(name.getIdentifier());
-				System.out.println("SingleVariableDeclaration::modifier()::"+Modifier.toString(node.getModifiers()));
-				System.out.println("SingleVariableDeclaration::name::"+node.getName());
-				System.out.println("SingleVariableDeclaration::initializer::"+node.getInitializer());
-				
-				return false;
-			}*/
-		});
-    }
     
 	 public void parseFiles(File[] files)
 	 {
      	//parsing files
 
 	 }
-	 
+	
+	 public void visitMethodBlock(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, Block methodBlock, final Node mNode)
+	 {
+		 methodBlock.accept(new ASTVisitor()
+		 {
+	  			public boolean visit(VariableDeclarationStatement node){
+	  				
+						String attributeType = node.getType().toString();
+						System.out.println("Variable::"+attributeType);
+						
+						String attributeModifier = Modifier.toString(node.getModifiers());
+						System.out.println("Modifier::"+attributeModifier);
+						
+						List<VariableDeclarationFragment> fd= node.fragments();
+	  					int i=0;
+						for (VariableDeclarationFragment fArr: fd)
+						{
+							Object o = node.fragments().get(i);
+							i++;
+													
+							if(o instanceof VariableDeclarationFragment){
+								String smallAttributeName = ((VariableDeclarationFragment) o).getName().toString();
+								String attributeName= mNode.getProperty("canonicalName")+"."+smallAttributeName;
+								ChildPropertyDescriptor s2 = ((VariableDeclarationFragment) o).getNameProperty();
+
+								Expression s = ((VariableDeclarationFragment) o).getInitializer();						
+								String initializer = null;
+								if (s!= null)  initializer = ((VariableDeclarationFragment) o).getInitializer().toString();
+								else initializer = "null";
+								//int s4 = ((VariableDeclarationFragment) o).getExtraDimensions();
+								
+								System.out.println("SimpleName()::"+smallAttributeName);
+								System.out.println("CompleteName::"+attributeName);
+								System.out.println("getInitializer::"+initializer);
+								
+								//create VariableDeclarationNode
+								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+							}	
+						}
+					return false;
+				}
+		 });
+	 }
 	 public String getMethodBodyString(Block methodBlock)
 	 {
 		 String methodBody=null;
 		 
 		 Block block= methodBlock;
+		 
 			if (block != null) {
 				List<Statement> statements= block.statements();
 			//	if (statements.size() > 0) {
 			//		Statement last= statements.get(statements.size() - 1);
 				methodBody= statements.toString();
+				
 			//	}
 			}
 			return methodBody;
