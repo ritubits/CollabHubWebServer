@@ -4,16 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
-
-import org.apache.collab.server.dependencyGraphNodes.RelTypes;
-import org.apache.collab.server.dependencyGraphNodes.dGraphNodeType;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -24,9 +18,8 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -40,47 +33,11 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.io.fs.FileUtils;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-
-import java.lang.reflect.TypeVariable;
-
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-//import org.eclipse.jface.text.Document;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +51,7 @@ public class CreateDependencyGraph {
 	 
 	      GraphDatabaseService graphDb;
 	      Node rootNode;
-	    
+	    String tryBody=null;
 	    
 	    public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
@@ -311,7 +268,7 @@ public class CreateDependencyGraph {
  		//	System.out.println(filePath);
  			 if(f.isFile() && (f.getName().contains(".java"))){
  				 //print filename
- 		//		 System.out.println("In file: "+ f.getName());
+ 				 System.out.println("In file: "+ f.getName());
  				 
  				 //add class node with fileName f.getName()- java
  				 int index = (f.getName()).indexOf(".java");      	   
@@ -382,6 +339,9 @@ public class CreateDependencyGraph {
  						
  					}//if (!interfacesImplemented.isEmpty()) 					
  				}//for (TypeDeclaration t: types)
+ 				
+ 				//create calls edges
+ 				visitFileAST(dpGraph, graphDb, cu);
  			 }// if(f.isFile() && (f.getName().contains(".java"))){
      	}//for (File f : files ) {
      	
@@ -526,6 +486,7 @@ public class CreateDependencyGraph {
   		cu.accept(new ASTVisitor() {
   			String mName= null;
   			String smallMethodName= null;
+  			String methodBody=null;
   			List<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();  		
   			
   			public boolean visit(MethodDeclaration node) {
@@ -535,8 +496,11 @@ public class CreateDependencyGraph {
   				 
   				  smallMethodName = node.getName().toString();
   				    mName= cNode.getProperty("canonicalName")+"."+smallMethodName;
+  				    
+  				  if (node.getBody() !=null) methodBody= transformMethodBody(cu, node.getBody());
+  				  else methodBody="null";
   				    // add method node
-  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString());
+  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString(), methodBody);
   				  if (node.getBody() !=null) visitMethodBlock(dpGraph,graphDb, node.getBody(), mNode);
   				    return false; // do not continue 
   				  }
@@ -560,10 +524,10 @@ public class CreateDependencyGraph {
 	  			public boolean visit(VariableDeclarationStatement node){
 	  				
 						String attributeType = node.getType().toString();
-						System.out.println("Variable::"+attributeType);
+					//	System.out.println("Variable::"+attributeType);
 						
 						String attributeModifier = Modifier.toString(node.getModifiers());
-						System.out.println("Modifier::"+attributeModifier);
+					//	System.out.println("Modifier::"+attributeModifier);
 						
 						List<VariableDeclarationFragment> fd= node.fragments();
 	  					int i=0;
@@ -583,9 +547,9 @@ public class CreateDependencyGraph {
 								else initializer = "null";
 								//int s4 = ((VariableDeclarationFragment) o).getExtraDimensions();
 								
-								System.out.println("SimpleName()::"+smallAttributeName);
-								System.out.println("CompleteName::"+attributeName);
-								System.out.println("getInitializer::"+initializer);
+						//		System.out.println("SimpleName()::"+smallAttributeName);
+						//		System.out.println("CompleteName::"+attributeName);
+						//		System.out.println("getInitializer::"+initializer);
 								
 								//create VariableDeclarationNode
 								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
@@ -593,45 +557,95 @@ public class CreateDependencyGraph {
 						}
 					return false;
 				}
-	  			
-	  	public boolean visit(IfStatement node){
-	  				//store entire statement as body
-	  		//get attributes created
-	  		//get class instance creations
-	  				return false;
-	  			}
 		 });
 	 }
 	 
-	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu, final Node cNode)
+	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu)
 	 {
 		 // visit each method invocation node
 		 cu.accept(new ASTVisitor()
 		 {
 	  			public boolean visit(ClassInstanceCreation node){
+	  				System.out.println("ClassInstanceCreation: "+node.getType());
 	  				return false;
 	  			}
 	  			
 	  			public boolean visit(MethodInvocation node){
+	  				System.out.println("MethodInvocation: "+node.getName());
 	  				return false;
 	  			}
 		 });
 	 }
 	 
-	 public String getMethodBodyString(Block methodBlock)
+	 public String transformMethodBody(final CompilationUnit cu, Block methodBlock)
 	 {
 		 String methodBody=null;
 		 
 		 Block block= methodBlock;
 		 
-			if (block != null) {
+			if (block != null) {			
+				 int lineNumber = cu.getLineNumber(block.getStartPosition()) - 1;
+
+		//		System.out.println("Line no:: "+lineNumber); 
 				List<Statement> statements= block.statements();
-			//	if (statements.size() > 0) {
-			//		Statement last= statements.get(statements.size() - 1);
-				methodBody= statements.toString();
-				
-			//	}
+
+				int i=0;
+				String str=null;
+
+				for (Statement st: statements)
+					{
+
+						if (st!=null)
+						{
+							str= block.statements().get(i).toString();
+							if (st instanceof TryStatement)
+							{
+							
+							st.accept(new ASTVisitor() {
+								 
+								String body=null;
+								Block finallyBlock;
+								List catchBody =null; 
+								String strTry=null;
+								public boolean visit(TryStatement node) {
+		
+								//	System.out.println("TryBlock: " + node.getBody());
+									body = "try"+node.getBody();
+									finallyBlock= node.getFinally();
+									catchBody= node.catchClauses();
+									if (finallyBlock ==null && catchBody !=null)
+										strTry= body+ catchBody.toString();
+									else 
+										if (finallyBlock !=null && catchBody !=null)
+											strTry= body+ catchBody.toString() + finallyBlock.statements().toString();
+									
+									//	System.out.println("TryBlock: " + strTry);
+									tryBody= strTry;
+									return true;
+									
+								}
+					 
+							});}
+							
+							if (tryBody ==null)
+							{
+								if (methodBody == null) methodBody = "["+lineNumber+"]:"+ str;
+								else methodBody= methodBody + "["+lineNumber+"]:"+ str;
+							}
+							else
+							{
+								if (methodBody == null) methodBody = "["+lineNumber+"]:"+ tryBody;
+								else methodBody= methodBody + "["+lineNumber+"]:"+ tryBody;
+								//need to increment line No and parse trybody
+							}
+								
+							lineNumber++;
+							i++;
+							tryBody=null;
+						}
+					}				
 			}
+		//	System.out.println("Transformed:: "+methodBody);
 			return methodBody;
 	 }
 	 

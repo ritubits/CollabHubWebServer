@@ -1,10 +1,12 @@
 package org.apache.collab.server;
 
+import org.apache.collab.server.CreateDependencyGraph.RelTypes;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Node;
+
 import java.util.HashMap;
 
 public class dependencyGraphNodes {
@@ -90,7 +92,7 @@ public class dependencyGraphNodes {
         return interfaceNode;
     }
     
-    public Node addMethodNode(GraphDatabaseService graphDb, Node cNode, String smallMethodName, String methodName, String modifier, String returnType, String parameterList)
+    public Node addMethodNode(GraphDatabaseService graphDb, Node cNode, String smallMethodName, String methodName, String modifier, String returnType, String parameterList, String body)
     {
  //   	System.out.println("Creating Method Node::"+methodName);
     	Node mNode = graphDb.createNode(dGraphNodeType.METHOD);
@@ -101,7 +103,8 @@ public class dependencyGraphNodes {
     	mNode.setProperty( "modifier", modifier );
     	mNode.setProperty( "returnType", returnType );  	
     	mNode.setProperty( "parameterList", parameterList );
-
+    	mNode.setProperty( "body", body );
+    	
 //    	System.out.println("mNode Id:"+mNode.getId());
     	nodeHashMap.put(mNode.getId(), smallMethodName);
     	
@@ -201,13 +204,36 @@ public class dependencyGraphNodes {
     	//adding edge from superclass id to sub class it
     	Node subClassNode =	graphDb.getNodeById(subClassID);
     	Node superClassNode =	graphDb.getNodeById(superClassID);
-    	System.out.println("Adding edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
-    	    	
-     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
-        relationship.setProperty( "edgeType", "USES" );
-        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
-    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
     	
+    	//returns true if node exists
+    	Boolean exists= checkDependencyEdgeExists(graphDb, subClassNode,superClassNode, "USES" );
+    //	System.out.println("Adding edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
+    	 
+    	if (!exists)
+    	{
+	     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
+	        relationship.setProperty( "edgeType", "USES" );
+	        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
+	    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+    	}
+    	
+    }
+    
+    public boolean checkDependencyEdgeExists(GraphDatabaseService graphDb, Node subClassNode, Node superClassNode, String edgeType )
+    {
+    	Iterable<Relationship> relations;
+    	relations=subClassNode.getRelationships(RelTypes.DEPENDENCY);
+    	Long otherClassID = (long) -1;
+    	for (Relationship r: relations)
+		{
+    		otherClassID=r.getOtherNode(subClassNode).getId();
+    		if (otherClassID == superClassNode.getId() && (r.getProperty("edgeType") == edgeType))
+    		{
+    			//edge exists
+    			return true;
+    		}
+		}
+    	return false;
     }
     
     public HashMap getNodeHashMap()
