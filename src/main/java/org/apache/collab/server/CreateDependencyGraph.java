@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
+
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ChildPropertyDescriptor;
@@ -38,6 +40,9 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+
+import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -572,11 +577,23 @@ public class CreateDependencyGraph {
 	  			
 	  			public boolean visit(MethodInvocation node){
 	  				System.out.println("MethodInvocation: "+node.getName());
+	  				
+	  				//get parent nodes till you reach the MethodDeclaration node
+	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
+	  				System.out.println("MethodDeclarationName: "+parentMethodDeclarationNode.getName());
 	  				return false;
 	  			}
 		 });
 	 }
 	 
+	 public ASTNode getParentMethodDeclarationNode(ASTNode node)
+	 {
+		 if (node instanceof  MethodDeclaration)
+			 return (ASTNode)(node);
+		 else return (getParentMethodDeclarationNode(node.getParent()));
+	
+			 
+	 }
 	 public String transformMethodBody(final CompilationUnit cu, Block methodBlock)
 	 {
 		 String methodBody=null;
