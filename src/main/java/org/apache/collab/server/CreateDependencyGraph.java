@@ -18,8 +18,11 @@ import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
@@ -36,6 +39,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.fs.FileUtils;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Statement;
@@ -164,7 +168,7 @@ public class CreateDependencyGraph {
      				 //add class node with fileName f.getName()- java
      				 int index = (f.getName()).indexOf(".java");      	   
    	  	           	
-     				CompilationUnit cu = parse(readFileToString(filePath));
+     				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
      				String className= null;
      				String smallClassName= (f.getName()).substring(0, index);;
      				String packName = null;
@@ -268,6 +272,9 @@ public class CreateDependencyGraph {
 	    System.out.println("Creating Dependency Graph");
      	String filePath = null;
      	Node cNode= null;
+     	String className= null;
+    	String smallClassName= null;
+			String packName = null;
      	for (File f : files ) {
  			 filePath = f.getAbsolutePath();
  		//	System.out.println(filePath);
@@ -278,10 +285,10 @@ public class CreateDependencyGraph {
  				 //add class node with fileName f.getName()- java
  				 int index = (f.getName()).indexOf(".java");      	   
 	  	           	
- 				CompilationUnit cu = parse(readFileToString(filePath));
- 				String className= null;
- 				String smallClassName= (f.getName()).substring(0, index);;
- 				String packName = null;
+ 				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
+ 				
+ 				smallClassName= (f.getName()).substring(0, index);;
+ 				packName = null;
  				if (cu.getPackage()!=null)
  				{
  					//System.out.println("package name is not null");
@@ -346,7 +353,8 @@ public class CreateDependencyGraph {
  				}//for (TypeDeclaration t: types)
  				
  				//create calls edges
- 				visitFileAST(dpGraph, graphDb, cu);
+ 				System.out.println("ClassName:::"+className);
+ 				visitFileAST(dpGraph, graphDb, cu, className);
  			 }// if(f.isFile() && (f.getName().contains(".java"))){
      	}//for (File f : files ) {
      	
@@ -381,7 +389,7 @@ public class CreateDependencyGraph {
 							//class node found
 							//create dependency edge from current class node to class node
 						//uses relationship							
-							dpGraph.addUsesDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId);
+							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
 			}
@@ -416,7 +424,7 @@ public class CreateDependencyGraph {
 							//class node found
 							//create dependency edge from current method node to class node
 						//uses relationship							
-							dpGraph.addUsesDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId);
+							dpGraph.addDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
 			}
@@ -455,18 +463,30 @@ public class CreateDependencyGraph {
 		}
 		
 		//use ASTParse to parse string
-		public static CompilationUnit parse(String str) {
+		public static CompilationUnit parse(String str, String fileName) {
 			// each str contains the str content of a single java file
-			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			ASTParser parser = ASTParser.newParser(AST.JLS4);
+			
+			parser.setUnitName(fileName); 
+			String[] sources = { "" };
+			String[] classpath = { "" };
+			//setEnvironment for resolve bindings even if the args is empty
+			parser.setEnvironment(classpath, sources, new String[] { "UTF-8" }, true);
+			
 			parser.setSource(str.toCharArray());
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+			parser.setResolveBindings(true);
+			parser.setBindingsRecovery(true);
+
+	
 	 
 			 // In order to parse 1.5 code, some compiler options need to be set to 1.5
 			 Map options = JavaCore.getOptions();
-			 JavaCore.setComplianceOptions(JavaCore.VERSION_1_5, options);
+			 JavaCore.setComplianceOptions(JavaCore.VERSION_1_6,options);
 			 parser.setCompilerOptions(options);
 			 
 			final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
 			//Document document= new Document(cu.getSource());
 			return cu;					
 		}
@@ -496,7 +516,9 @@ public class CreateDependencyGraph {
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				    System.out.println("MethodName:: "+node.getName());  				  
+  				    System.out.println("MethodName:: "+node.getName());
+  				 //   if (node.getName().equals("addToNodeHashMap")) 
+  				 //   	System.out.println("MethodBody:: "+node.getBody());
   				    int mod =node.getModifiers(); //get the int value of modifier
   				 
   				  smallMethodName = node.getName().toString();
@@ -505,7 +527,17 @@ public class CreateDependencyGraph {
   				  if (node.getBody() !=null) methodBody= transformMethodBody(cu, node.getBody());
   				  else methodBody="null";
   				    // add method node
-  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), node.getReturnType2().toString(),  node.parameters().toString(), methodBody);
+  				  String param=null;
+  				List parameterList= node.parameters();
+  				if (parameterList.isEmpty()) param = parameterList.toString();
+  				else param = "null";
+  				
+  				String returnTypeString=null;
+  				Type returnType= node.getReturnType2();
+  				if (returnType !=null) returnTypeString = returnType.toString();
+  				else returnTypeString = "null";
+  				
+  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), returnTypeString,  param, methodBody);
   				  if (node.getBody() !=null) visitMethodBlock(dpGraph,graphDb, node.getBody(), mNode);
   				    return false; // do not continue 
   				  }
@@ -515,12 +547,7 @@ public class CreateDependencyGraph {
   				  }
   			});
   	} 		
-    
-	 public void parseFiles(File[] files)
-	 {
-     	//parsing files
 
-	 }
 	
 	 public void visitMethodBlock(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, Block methodBlock, final Node mNode)
 	 {
@@ -565,32 +592,88 @@ public class CreateDependencyGraph {
 		 });
 	 }
 	 
-	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu)
+	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu, final String className)
 	 {
 		 // visit each method invocation node
 		 cu.accept(new ASTVisitor()
-		 {
+		 {			
+			 String currentMethodName=null;
+			 String invokedMethodName=null;	
+			 String currentParentName=null;
+		 			
 	  			public boolean visit(ClassInstanceCreation node){
 	  				System.out.println("ClassInstanceCreation: "+node.getType());
-	  				return false;
+	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
+	  				if (parentMethodDeclarationNode !=null)
+	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
+	  				else
+	  					currentParentName = className;
+	  				System.out.println("currentParentName: "+currentParentName);
+	  				return true;
 	  			}
 	  			
 	  			public boolean visit(MethodInvocation node){
-	  				System.out.println("MethodInvocation: "+node.getName());
-	  				
+	  			//	System.out.println("MethodInvocation Identifier: "+ node.getName().getIdentifier());
+	  				Expression expression = node.getExpression();
+                    if (expression != null) {
+                        ITypeBinding typeBinding = expression.resolveTypeBinding();
+                       
+                        if (typeBinding != null) {
+                        	 IType type = (IType)typeBinding.getJavaElement();
+ 
+                   //         System.out.println("Type: " + typeBinding.getQualifiedName());
+                            invokedMethodName = typeBinding.getQualifiedName()+"."+node.getName();
+                        }
+                    }
+                    
+            /*        IMethodBinding binding = node.resolveMethodBinding();
+                    if (binding != null) {
+                    	 ITypeBinding type = binding.getDeclaringClass();
+                        if (type != null) {
+                            System.out.println("Decl: " + type.getName());
+                        }
+                    }*/                                    
+             //       System.out.println("invokedMethodName: " +invokedMethodName);
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
-	  				System.out.println("MethodDeclarationName: "+parentMethodDeclarationNode.getName());
-	  				return false;
+	  				currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
+	  		//		System.out.println("currentMethodName: "+currentMethodName);
+	  	
+	  				//create calls edge from currentMethodName to invokedMethodName
+	  				Long invokeMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", invokedMethodName);
+	  				Long currentMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentMethodName);
+	  				
+	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
+	  				dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
+	  				return true;
 	  			}
 		 });
 	 }
+	 
+	 public Long searchNode(final GraphDatabaseService graphDb, Label nodeType, String key, String nodeName )
+	 {
+		 //returns the id of the last node found
+		 //assumes only one such node exists found
+		 //modify to search on the canonical name
+		Long nodeId = (long)-1;
+		ResourceIterator<Node> nodes= graphDb.findNodes(nodeType, key, nodeName);
+		while (nodes.hasNext() )
+		{
+			nodeId= nodes.next().getId();
+		}
+		return nodeId;					
+	 }
+	 
 	 
 	 public ASTNode getParentMethodDeclarationNode(ASTNode node)
 	 {
 		 if (node instanceof  MethodDeclaration)
 			 return (ASTNode)(node);
-		 else return (getParentMethodDeclarationNode(node.getParent()));
+		 else 
+			 { if (node != null)
+				 return (getParentMethodDeclarationNode(node.getParent()));
+			 else return null;
+			 }
 	
 			 
 	 }
@@ -611,15 +694,12 @@ public class CreateDependencyGraph {
 
 				for (Statement st: statements)
 					{
-
 						if (st!=null)
 						{
 							str= block.statements().get(i).toString();
 							if (st instanceof TryStatement)
-							{
-							
-							st.accept(new ASTVisitor() {
-								 
+							{							
+							st.accept(new ASTVisitor() {								 
 								String body=null;
 								Block finallyBlock;
 								List catchBody =null; 
@@ -662,7 +742,8 @@ public class CreateDependencyGraph {
 						}
 					}				
 			}
-		//	System.out.println("Transformed:: "+methodBody);
+			if (methodBody == null) return "null";
+			else
 			return methodBody;
 	 }
 	 
@@ -691,4 +772,14 @@ public class CreateDependencyGraph {
 			throw new RuntimeException(e);
 		}
 	}
+    
+	   public String[] parseToStringArray(String eFiles)
+	    {	    	    	
+			final String[] temp2;						
+			  String delimiter1 = "[,]";			  
+			  temp2 = eFiles.split(delimiter1);
+			  System.out.println("From strat: "+temp2);		
+			     	
+	    	return temp2;
+	    }
 }

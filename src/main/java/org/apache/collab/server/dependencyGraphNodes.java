@@ -49,7 +49,8 @@ public class dependencyGraphNodes {
     	classNode.setProperty( "modifier", modifier );
     	classNode.setProperty( "imports", imports );
     	classNode.setProperty( "packageName", packageName );
-    	classNode.setProperty( "extends", extend );
+    	if (extend!=null)  	classNode.setProperty( "extends", extend );
+    	else classNode.setProperty( "extends", "null" );
     	classNode.setProperty( "implements", implemented );
 //    	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(classNode.getId(), smallClassName);//adding canonical name
@@ -103,6 +104,7 @@ public class dependencyGraphNodes {
     	mNode.setProperty( "modifier", modifier );
     	mNode.setProperty( "returnType", returnType );  	
     	mNode.setProperty( "parameterList", parameterList );
+    	//System.out.println("Method ")
     	mNode.setProperty( "body", body );
     	
 //    	System.out.println("mNode Id:"+mNode.getId());
@@ -129,7 +131,8 @@ public class dependencyGraphNodes {
     	aNode.setProperty( "nodeType", "ATTRIBUTE" );
     	aNode.setProperty( "modifier", modifier );
     	aNode.setProperty( "dataType", dataType );  	
-    	aNode.setProperty( "initializer", initializer );
+    	if (initializer !=null)    	aNode.setProperty( "initializer", initializer );
+    	else aNode.setProperty( "initializer", "null" );
     	
     	nodeHashMap.put(aNode.getId(), smallAttributeName);//adding canonical name
     	
@@ -199,7 +202,7 @@ public class dependencyGraphNodes {
     	
     }
     
-    public void addUsesDependencyEdge(GraphDatabaseService graphDb, Long superClassID, Long subClassID)    
+    public void addDependencyEdge(GraphDatabaseService graphDb, Long superClassID, Long subClassID, String edgeType)    
     {
     	//adding edge from superclass id to sub class it
     	Node subClassNode =	graphDb.getNodeById(subClassID);
@@ -212,7 +215,7 @@ public class dependencyGraphNodes {
     	if (!exists)
     	{
 	     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
-	        relationship.setProperty( "edgeType", "USES" );
+	        relationship.setProperty( "edgeType", edgeType );
 	        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
 	    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
     	}
