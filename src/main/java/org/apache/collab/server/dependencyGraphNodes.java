@@ -209,8 +209,8 @@ public class dependencyGraphNodes {
     	Node superClassNode =	graphDb.getNodeById(superClassID);
     	
     	//returns true if node exists
-    	Boolean exists= checkDependencyEdgeExists(graphDb, subClassNode,superClassNode, "USES" );
-    //	System.out.println("Adding edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
+    	Boolean exists= checkDependencyEdgeExists(graphDb, subClassNode,superClassNode, edgeType );
+   	System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
     	 
     	if (!exists)
     	{

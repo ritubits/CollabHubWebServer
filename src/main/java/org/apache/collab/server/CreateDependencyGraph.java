@@ -388,7 +388,8 @@ public class CreateDependencyGraph {
 						{
 							//class node found
 							//create dependency edge from current class node to class node
-						//uses relationship							
+						//uses relationship		
+						System.out.println("Creating edge from Class to class for attribute node");
 							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -477,6 +478,7 @@ public class CreateDependencyGraph {
 			parser.setKind(ASTParser.K_COMPILATION_UNIT);
 			parser.setResolveBindings(true);
 			parser.setBindingsRecovery(true);
+			
 
 	
 	 
@@ -602,13 +604,48 @@ public class CreateDependencyGraph {
 			 String currentParentName=null;
 		 			
 	  			public boolean visit(ClassInstanceCreation node){
-	  				System.out.println("ClassInstanceCreation: "+node.getType());
+	  				
+	  				String classInstanceCreation=node.getType().toString();
+                    ITypeBinding typeBinding = node.resolveTypeBinding();
+                    if (typeBinding != null) {
+                   	 IType type = (IType)typeBinding.getJavaElement();
+
+                 //      System.out.println("Type Qualified Name: " + typeBinding.getQualifiedName());
+                 //      System.out.println("Type Binary Name: " + typeBinding.getBinaryName());
+		 		//		System.out.println("Type Name: " + typeBinding.getName());
+		 				
+		 				//if (typeBinding.getBinaryName() !=null) classInstanceCreation= typeBinding.getBinaryName();
+		 			//	else 
+		 					if (typeBinding.getQualifiedName()!=null) classInstanceCreation= typeBinding.getQualifiedName();
+		 			//	System.out.println("Type getDeclaringClass: " + typeBinding.getDeclaringClass());
+                    }
+                    
+      /*              IMethodBinding binding = node.resolveConstructorBinding();
+                    if (binding != null) {
+                    	 ITypeBinding type = binding.getDeclaringClass();
+                        if (type != null) {
+                            System.out.println("Decl ClassInstanceCreation: " + type.getName());
+                        }
+                    } */
+              //      System.out.println("ClassInstanceCreation: "+classInstanceCreation);
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
 	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
 	  				else
 	  					currentParentName = className;
-	  				System.out.println("currentParentName: "+currentParentName);
+	  			//	System.out.println("currentParentName: "+currentParentName);
+	  				//create node from currentParentname to node.getType() if exists
+	  				
+	  				Long invokeClassNodeId = searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", classInstanceCreation);
+	  				Long currentNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentParentName);
+	  				
+	  				if (currentNodeId == (long)-1) currentNodeId= searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", currentParentName);
+	  				
+	  				if ((invokeClassNodeId != (long) -1) && (currentNodeId != (long) -1))
+	  				{
+	  					System.out.println("Creating edge from ClassInstanceCreation");
+	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
+	  				}
 	  				return true;
 	  			}
 	  			
@@ -626,13 +663,14 @@ public class CreateDependencyGraph {
                         }
                     }
                     
-            /*        IMethodBinding binding = node.resolveMethodBinding();
+               /*     IMethodBinding binding = node.resolveMethodBinding();
                     if (binding != null) {
                     	 ITypeBinding type = binding.getDeclaringClass();
                         if (type != null) {
-                            System.out.println("Decl: " + type.getName());
+                            System.out.println("Decl Method: " + type.getQualifiedName());
+                            invokedMethodName = type.getQualifiedName()+"."+node.getName();
                         }
-                    }*/                                    
+                    } */                               
              //       System.out.println("invokedMethodName: " +invokedMethodName);
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
@@ -644,7 +682,10 @@ public class CreateDependencyGraph {
 	  				Long currentMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentMethodName);
 	  				
 	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
-	  				dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
+	  				{
+	  					System.out.println("Creating edge from MethodInvocation");
+	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
+	  				}
 	  				return true;
 	  			}
 		 });
