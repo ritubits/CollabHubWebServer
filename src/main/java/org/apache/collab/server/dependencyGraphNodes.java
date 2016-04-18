@@ -239,6 +239,43 @@ public class dependencyGraphNodes {
     	return false;
     }
     
+    public Node createIndependentClassNode(GraphDatabaseService graphDb, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented)
+    {
+    
+//    	System.out.println("Creating Class Node::"+className);
+    	Node classNode = graphDb.createNode(dGraphNodeType.CLASS);
+    	classNode.addLabel(dGraphNodeType.CLASS);
+    	classNode.setProperty( "name", smallClassName );
+    	classNode.setProperty( "canonicalName", className );
+    	classNode.setProperty( "nodeType", "CLASS" );
+    	classNode.setProperty( "modifier", modifier );
+    	classNode.setProperty( "imports", imports );
+    	classNode.setProperty( "packageName", packageName );
+    	if (extend!=null)  	classNode.setProperty( "extends", extend );
+    	else classNode.setProperty( "extends", "null" );
+    	classNode.setProperty( "implements", implemented );
+//    	System.out.println("cNode Id:"+classNode.getId());
+    	nodeHashMap.put(classNode.getId(), smallClassName);//not adding canonical name    	 
+        
+        return classNode;
+    }
+    
+    public Node createIndependentInterfaceNode(GraphDatabaseService graphDb, String smallClassName, String interfaceName, String imports, String packageName, String modifier)
+    {
+//    	System.out.println("Creating Class Node::"+className);
+    	Node interfaceNode = graphDb.createNode(dGraphNodeType.INTERFACE);
+    	interfaceNode.addLabel(dGraphNodeType.INTERFACE);
+    	interfaceNode.setProperty( "name", smallClassName );
+    	interfaceNode.setProperty( "canonicalName", interfaceName );
+    	interfaceNode.setProperty( "nodeType", "INTERFACE" );
+    	interfaceNode.setProperty( "modifier", modifier );
+    	interfaceNode.setProperty( "imports", imports );
+    	interfaceNode.setProperty( "packageName", packageName );
+ //   	System.out.println("cNode Id:"+classNode.getId());
+    	nodeHashMap.put(interfaceNode.getId(), smallClassName);
+        
+        return interfaceNode;
+    }
     public HashMap getNodeHashMap()
     {
     	return nodeHashMap;

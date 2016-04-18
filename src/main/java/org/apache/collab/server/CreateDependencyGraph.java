@@ -53,7 +53,7 @@ import java.util.List;
 public class CreateDependencyGraph {
 
 	
-	 private final String DB_PATH = "target-DB-Client2/neo4j-dependencyGraph-db";
+	 private final String DB_PATH = "neo4jDB/Server";
 	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
@@ -79,6 +79,7 @@ public class CreateDependencyGraph {
 	    {
 	    	CONNECTING, DEPENDENCY;
 	    }
+	    
 	    public static void main(String args[]) {
 
 	       	CreateDependencyGraph db= new CreateDependencyGraph();
@@ -796,14 +797,12 @@ public class CreateDependencyGraph {
 //		 System.out.println("PackageName:::"+packName);
 		 return packName;				 
 	 }
+	 
     void shutDown(GraphDatabaseService graphDb)
     {
-        System.out.println("line 227");
         System.out.println( "Shutting down database ..." );
-
         graphDb.shutdown();
         System.out.println( "DB server shuting down complete" );
-
     }
     
     private void clearDb() {
