@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 public class UserArtifactGraphServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	
 	//this servlet take the user file in string and creates an artifact graph
 	String collabName =null;
     String fileName= null;

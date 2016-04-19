@@ -29,6 +29,12 @@
 		<servlet-class>org.apache.collab.server.UserActivityServlet</servlet-class>
 	</servlet>
 		<servlet>
+		<servlet-name>UserArtifactGraphServlet</servlet-name>
+		<display-name>UserArtifactGraphServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.UserArtifactGraphServlet</servlet-class>
+	</servlet>
+		<servlet>
 		<servlet-name>StopCollaborationServlet</servlet-name>
 		<display-name>StopCollaborationServlet</display-name>
 		<description></description>
@@ -64,6 +70,12 @@
 		<description></description>
 		<servlet-class>org.apache.collab.server.getCollaboratorDetails</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>UserArtifactGrpahServlet</servlet-name>
+		<display-name>UserArtifactGrpahServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.UserArtifactGrpahServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>EchoServlet</servlet-name>
 		<url-pattern>/echo</url-pattern>
@@ -95,5 +107,13 @@
 	<servlet-mapping>
 		<servlet-name>UserActivityServlet</servlet-name>
 		<url-pattern>/UserActivityServlet</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>UserArtifactGraphServlet</servlet-name>
+		<url-pattern>/UserArtifactGraphServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UserArtifactGrpahServlet</servlet-name>
+		<url-pattern>/UserArtifactGrpahServlet</url-pattern>
 	</servlet-mapping>
 </web-app>
