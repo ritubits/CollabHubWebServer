@@ -259,7 +259,12 @@ public class CreateUserArtifactGraph {
 	  				  smallMethodName = node.getName().toString();
 	  				    mName= cNode.getProperty("canonicalName")+"."+smallMethodName;
 	  				    
-	  				  if (node.getBody() !=null) methodBody= transformMethodBody(cu, node.getBody());
+	  				  if (node.getBody() !=null) 
+	  					  {
+	  					  System.out.println(node.getBody());
+	  					  methodBody= transformMethodBody(cu, node.getBody());
+	  					 System.out.println(methodBody);
+	  					  }
 	  				  else methodBody="null";
 	  				    // add method node
 	  				  String param=null;
@@ -469,7 +474,7 @@ public class CreateUserArtifactGraph {
 	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
 	    HashMap<Long, String> methodHashMap = dpGraph.methodHashMap;
 	    		
-    	System.out.println("created artifactNode object:: "+fileName);     	   
+    	System.out.println("In createDependencyGraph():: "+fileName);     	   
 	           	
 		CompilationUnit cu = parse(fileContent, fileName);
 		String smallClassName= fileName;
