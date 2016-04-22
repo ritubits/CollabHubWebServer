@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.collab.server.Comparator.CompareGraphs;
 import org.apache.collab.server.CreateDependencyGraph.RelTypes;
 import org.apache.collab.server.CreateDependencyGraph.dGraphNodeType;
 import org.apache.collab.server.CreateDependencyGraph.dMethodNodeType;
@@ -56,7 +57,7 @@ public class CreateUserArtifactGraph {
 	 Node artifactNode;
 	    String tryBody=null;
 	    
-	 private String DB_PATH = "neo4jDB/Client/";
+	 private String DB_PATH_CLIENT = "neo4jDB/Client/";
 	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 
 	    public  static enum dGraphNodeType implements Label {
@@ -82,12 +83,13 @@ public class CreateUserArtifactGraph {
 		fileContent = file;
 		fileName= fName;
 		collabName= cName;
-		DB_PATH = DB_PATH +collabName;
+		DB_PATH_CLIENT = DB_PATH_CLIENT +collabName;
 	}
-	
+
+	  
 	public void createGraph()
 	{
-		System.out.println("DB_PATH:: "+ DB_PATH);
+		System.out.println("DB_PATH_CLIENT:: "+ DB_PATH_CLIENT);
 		initializeDB();
 		
 	}
@@ -98,7 +100,7 @@ public class CreateUserArtifactGraph {
     		dpGraph = new dependencyGraphNodes();
     		
     		clearDb();
-    		File dbDir = new File(DB_PATH);
+    		File dbDir = new File(DB_PATH_CLIENT);
     		GraphDatabaseFactory graphFactory = new GraphDatabaseFactory();
     		GraphDatabaseBuilder graphBuilder = graphFactory.newEmbeddedDatabaseBuilder(dbDir);
     		 graphDb = graphBuilder.newGraphDatabase();                  
@@ -453,7 +455,7 @@ public class CreateUserArtifactGraph {
 	 
     private void clearDb() {
 		try {
-			FileUtils.deleteRecursively(new File(DB_PATH));
+			FileUtils.deleteRecursively(new File(DB_PATH_CLIENT));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

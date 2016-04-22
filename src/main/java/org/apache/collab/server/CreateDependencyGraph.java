@@ -53,7 +53,7 @@ import java.util.List;
 public class CreateDependencyGraph {
 
 	
-	 private final String DB_PATH = "neo4jDB/Server";
+	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
@@ -100,7 +100,7 @@ public class CreateDependencyGraph {
 	    	//	parseFiles(files);
 	    		
 	    		clearDb();
-	    		File dbDir = new File(DB_PATH);
+	    		File dbDir = new File(DB_PATH_SERVER);
 	    		GraphDatabaseFactory graphFactory = new GraphDatabaseFactory();
 	    		GraphDatabaseBuilder graphBuilder = graphFactory.newEmbeddedDatabaseBuilder(dbDir);
 	    		 graphDb = graphBuilder.newGraphDatabase();                  
@@ -807,7 +807,7 @@ public class CreateDependencyGraph {
     
     private void clearDb() {
 		try {
-			FileUtils.deleteRecursively(new File(DB_PATH));
+			FileUtils.deleteRecursively(new File(DB_PATH_SERVER));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

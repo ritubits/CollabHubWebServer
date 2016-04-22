@@ -146,7 +146,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
-	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, "COllabClient");
+	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, "CollabClient");
         userArtifactGraph.createGraph();
 	}
 }
