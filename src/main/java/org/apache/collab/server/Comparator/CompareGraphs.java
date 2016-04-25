@@ -21,7 +21,7 @@ import org.neo4j.io.fs.FileUtils;
 
 public class CompareGraphs {
 
-	
+	InconsistencyCommunicator communicator=null;
 	 public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
@@ -59,7 +59,7 @@ public class CompareGraphs {
 	    		dpGraph = new dependencyGraphNodes();	    		
 	    		File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
-	    		
+	    		communicator = new InconsistencyCommunicator();
 	    		
 	    		//for server DB
 	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
@@ -199,7 +199,7 @@ public class CompareGraphs {
 			if (!found)
 			{
 				//class does not exist
-				invokeCase1(clientNode, serverNode);//addition of a new class
+				invokeCase1(clientNode, graphDbServer);//addition of a new class
 			}
 			else
 			{
@@ -211,6 +211,8 @@ public class CompareGraphs {
 	  public void invokeCase1(Node clientNode, Node serverNode)
 	   {
 		  System.out.println("Invoking case1:: Addition of classNode");
+		  //new node has been added 
+		  communicator.informAdditionClassNodeCase1(clientNode, serverNode);
 	   }
 	  
 	  public void checkConnectingNodesExist(Node clientNode)
@@ -386,8 +388,33 @@ public class CompareGraphs {
 	  
 	  public void checkVariableDeclarationNodes(Node clientMethodNode, Node serverMethodNode)
 	  {
-		  
+		  Node otherClientNode;
+		  Node otherServerNode;
+		  boolean found=false;
 		  //also check all properties of these methods
+		  Iterable<Relationship> relationClient= clientMethodNode.getRelationships(methodRelTypes.BODY);
+		  for (Relationship r: relationClient)
+			{
+			  found=false;
+			  otherClientNode=r.getOtherNode(clientMethodNode);
+			  //compare this node with every such other node in the server
+			  //if found checkProperties
+			  //else addition of a new attribute
+			  Iterable<Relationship> relationServer= serverMethodNode.getRelationships(methodRelTypes.BODY);
+			  for (Relationship rServer: relationClient)
+				{
+				  otherServerNode=r.getOtherNode(serverMethodNode);
+				  if (otherClientNode.getProperty("name").toString().equals(otherServerNode.getProperty("name").toString()))
+				  {
+					  //found
+					  found=true;
+					  invokeCheckMethodAttributeProperties(otherClientNode, otherServerNode);
+					  break;
+				  }
+				}
+			  //node not found
+			  //invoke(not found);
+			}
 	  }
 	  
 	  
