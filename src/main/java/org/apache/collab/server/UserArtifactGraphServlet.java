@@ -51,28 +51,6 @@ public class UserArtifactGraphServlet extends HttpServlet {
      	DEBUG = getServletContext().getInitParameter("DEBUG");
     }
 
-
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-	 	response.setContentType("text/html");
-  
-	 	if (DEBUG.contains("TRUE")) System.out.println(" In the UserArtifactGraphServlet ");
-	// 	collabName= request.getParameter("collabName");
-	// 	fileName = request.getParameter("fileName");
-	// 	fileContent= request.getParameter("fileContent");
-
-        if (DEBUG.contains("TRUE"))
-        {	        	
-        System.out.println("collabName: "+collabName);	        
-        System.out.println("fileName: "+fileName);
-        System.out.println("fileContent: "+fileContent);
-        }
-        
-        CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, collabName);
-        userArtifactGraph.createGraph();
-	}
-
-
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		System.out.println(request.getParameter("text"));

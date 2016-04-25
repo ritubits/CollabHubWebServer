@@ -41,10 +41,22 @@
 		<servlet-class>org.apache.collab.server.StartCollaborationServlet</servlet-class>
 	</servlet>
 		<servlet>
+		<servlet-name>CompareGraphsServlet</servlet-name>
+		<display-name>CompareGraphsServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.Comparator.CompareGraphsServlet</servlet-class>
+	</servlet>
+		<servlet>
 		<servlet-name>RegisterProjectServlet</servlet-name>
 		<display-name>RegisterProjectServlet</display-name>
 		<description></description>
 		<servlet-class>org.apache.collab.server.RegisterProjectServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>CreateDependencyGraphServlet</servlet-name>
+		<display-name>CreateDependencyGraphServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.CreateDependencyGraphServlet</servlet-class>
 	</servlet>
 		<servlet>
 		<servlet-name>InitiateCollabHub</servlet-name>
@@ -89,6 +101,14 @@
 	<servlet-mapping>
 		<servlet-name>RegisterProjectServlet</servlet-name>
 		<url-pattern>/RegisterProjectServlet</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>CompareGraphsServlet</servlet-name>
+		<url-pattern>/CompareGraphsServlet</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>CreateDependencyGraphServlet</servlet-name>
+		<url-pattern>/CreateDependencyGraphServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>StartCollaborationServlet</servlet-name>

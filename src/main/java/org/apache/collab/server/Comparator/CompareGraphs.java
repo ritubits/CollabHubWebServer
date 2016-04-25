@@ -2,30 +2,22 @@ package org.apache.collab.server.Comparator;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+
 
 import org.neo4j.logging.Log;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.NullLogProvider;
-import org.apache.collab.server.CreateDependencyGraph;
 import org.apache.collab.server.dependencyGraphNodes;
-import org.apache.collab.server.CreateDependencyGraph.dGraphNodeType;
-import org.neo4j.cypher.ExecutionEngine;
-import org.neo4j.cypher.ExecutionResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.helpers.collection.IteratorUtil;
 import org.neo4j.io.fs.FileUtils;
-import org.neo4j.server.*;
 
 public class CompareGraphs {
 
@@ -34,7 +26,15 @@ public class CompareGraphs {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
 	    
-	 
+	    public static enum RelTypes implements RelationshipType
+	    {
+	    	CONNECTING, DEPENDENCY;
+	    }
+	    
+	    public static enum methodRelTypes implements RelationshipType
+	    {
+	    	BODY;
+	    }
 	 private static String DB_PATH_CLIENT = "neo4jDB/Client/";
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	 private dependencyGraphNodes dpGraph;
@@ -44,21 +44,19 @@ public class CompareGraphs {
 	 Node rootNodeSever=null;
 	 Node rootNodeClient =null;
 	 
-	  public static void main(String args[]) {
+/*	  public static void main(String args[]) {
 
 		  CompareGraphs db= new CompareGraphs();
-		  DB_PATH_CLIENT = DB_PATH_CLIENT + "COllabClient";
-	       	db.initializeDB("COllabClient");
+		  DB_PATH_CLIENT = DB_PATH_CLIENT + "CollabClient";
+	       	db.initializeDB("CollabClient");
 				
-		}
+		}*/
  
 	    public void initializeDB(String collabName) {
 			
 	    	try {
-	    		
+	    		  DB_PATH_CLIENT = DB_PATH_CLIENT + "CollabClient";
 	    		dpGraph = new dependencyGraphNodes();	    		
-	    		clearDBServer();
-	    		clearDBClient();
 	    		File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
 	    		
@@ -66,18 +64,16 @@ public class CompareGraphs {
 	    		//for server DB
 	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
 	    		GraphDatabaseBuilder graphBuilderServer = graphFactoryServer.newEmbeddedDatabaseBuilder(dbDirServer);
-	    		 graphDbServer = graphBuilderServer.newGraphDatabase();  
-	    		 
-	    		 
+	    		 graphDbServer = graphBuilderServer.newGraphDatabase();  	    			    		 
 	            registerShutdownHook( graphDbServer );
 
 	        	//for client DB
-	    	//	GraphDatabaseFactory graphFactoryClient = new GraphDatabaseFactory();
-	    	//	GraphDatabaseBuilder graphBuilderClient = graphFactoryClient.newEmbeddedDatabaseBuilder(dbDirClient);
-	    	//	 graphDbClient = graphBuilderClient.newGraphDatabase();                  
-	        //    registerShutdownHook( graphDbClient );
+	    		GraphDatabaseFactory graphFactoryClient = new GraphDatabaseFactory();
+	    		GraphDatabaseBuilder graphBuilderClient = graphFactoryClient.newEmbeddedDatabaseBuilder(dbDirClient);
+	    		 graphDbClient = graphBuilderClient.newGraphDatabase();                  
+	            registerShutdownHook( graphDbClient );
 	            
-	            ExecutionEngine engine = new ExecutionEngine(graphDbServer, new LogProvider() {
+	      /*      ExecutionEngine engine = new ExecutionEngine(graphDbServer, new LogProvider() {
 					
 					@Override
 					public Log getLog(String arg0) {
@@ -100,11 +96,15 @@ public class CompareGraphs {
 	            	tx= graphDbServer.beginTx();
 	                result = engine.execute( "match (n) return n" );
 
-	                Iterator<Node> n_column = (Iterator<Node>) result.columnAs( "n" );
-	                for ( Node node : IteratorUtil.asIterable( n_column ) )
+	             //   ExecutionResult execResult = execEngine.execute("MATCH (java:JAVA) RETURN java");
+	                String results = result.dumpToString();
+	                System.out.println(results);
+	                
+	               scala.collection.Iterable <Object> n_column = (Iterable<Object>) result.columnAs( "n" );
+	                for ( Object node : IteratorUtil.asIterable( n_column ) )
 	                {
 
-	                    nodeResult = node + ": " + node.getProperty( "name" );
+	                    nodeResult = node + ": " + ((Node)node).getProperty( "name" );
 
 	                    System.out.println(nodeResult);
 	                }
@@ -117,12 +117,12 @@ public class CompareGraphs {
 	            }
 	            finally {
 	            	tx.close();
-	            }
-	            //compareDB();
+	            }*/
+	            compareDB();
 				
 	            
 				shutDown(graphDbServer);	
-				//shutDown(graphDbClient);
+				shutDown(graphDbClient);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -139,8 +139,8 @@ public class CompareGraphs {
 	        	 System.out.println("creating transaction object");
 	        	 txClient= graphDbClient.beginTx();
 	        	 txServer= graphDbServer.beginTx();
-	        	 
-	        	 compareConnectingGraph();
+
+	        	 compareMainClassNode();
 	        	// createDependencyGraph(files);
         	System.out.println("created graph");
             // START SNIPPET: transaction
@@ -163,33 +163,262 @@ public class CompareGraphs {
         }         
       
 	    }
-	    
-	   public void compareConnectingGraph()
+	   
+	   
+	   public void compareMainClassNode()
 	    {
 		   Node clientNode= null;
+		   Node serverNode= null;
+		   boolean found=false;
 		   //assumes find all class nodes.... only one such exist
 		   ResourceIterator<Node> clientClassNodes= graphDbClient.findNodes(dGraphNodeType.CLASS);
-		   System.out.println("clientClassNodes:: "+clientClassNodes);
+
 			while (clientClassNodes.hasNext() )
 			{
 				clientNode= clientClassNodes.next();
+							
+				found = false;
 				System.out.println("clientNode:: "+clientNode.getProperty("name"));
-				//clientNodeType= (String)clientNode.getProperty("dataType");
-			}
-			
-			 Node serverNode= null;
 			   //assumes find all class nodes.... only one such exist
 			   ResourceIterator<Node> serverClassNodes= graphDbServer.findNodes(dGraphNodeType.CLASS);
-			   System.out.println("serverClassNodes:: "+serverClassNodes);
-				while (serverClassNodes.hasNext() )
+			  
+				while (serverClassNodes.hasNext())
 				{
 					serverNode= serverClassNodes.next();
 					System.out.println("serverNode:: "+serverNode.getProperty("name"));
-					//clientNodeType= (String)clientNode.getProperty("dataType");
+					if (clientNode.getProperty("name").toString().equals(serverNode.getProperty("name").toString()))
+					{
+						//class exists
+						System.out.println("Class Node exists");
+						found = true;
+						break;
+					}										
 				}
+			}
+			
+			if (!found)
+			{
+				//class does not exist
+				invokeCase1(clientNode, serverNode);//addition of a new class
+			}
+			else
+			{
+				checkConnectingNodesExist(clientNode);
+
+			}
 	    }
 	   
-	   
+	  public void invokeCase1(Node clientNode, Node serverNode)
+	   {
+		  System.out.println("Invoking case1:: Addition of classNode");
+	   }
+	  
+	  public void checkConnectingNodesExist(Node clientNode)
+	  {
+		  Node otherNode;
+		  String otherNodeType;
+		Iterable<Relationship> relations;
+		  relations= clientNode.getRelationships(RelTypes.CONNECTING);
+			for (Relationship r: relations)
+			{
+				otherNode=r.getOtherNode(clientNode);
+				otherNodeType= otherNode.getProperty("nodeType").toString();
+				if (otherNodeType.equals("ATTRIBUTE"))
+				{
+					//check for existence of all attributes
+					checkAttributesExist(otherNode, clientNode);				
+				}
+				else if (otherNodeType.equals("METHOD"))
+				{
+					//check for existence of all methods
+					checkMethodsExist(otherNode, clientNode);
+				}
+					
+			}
+	  }
+	  
+	  public void checkAttributesExist(Node attributeNode, Node clientNode)
+	  {
+		  //get the corresponding class node at the server
+		  String clientAtrributeName=null;
+		String serverAttributeName=null;
+		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+		 Node otherNode;
+		 String otherNodeType;
+		 boolean found = false;
+		 if (serverClassNode !=null)
+		 {
+			 //servernode found
+			 Iterable<Relationship> relations= serverClassNode.getRelationships(RelTypes.CONNECTING);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverClassNode);
+					otherNodeType= otherNode.getProperty("nodeType").toString();
+					if (otherNodeType.equals("ATTRIBUTE"))
+					{
+						//check for existence of  attributes
+						clientAtrributeName= attributeNode.getProperty("name").toString();
+						serverAttributeName= otherNode.getProperty("name").toString();
+						if 	(clientAtrributeName.equals(serverAttributeName))	
+								{
+									//atribute found
+									//check for other propoerties of the attribute
+									invokeCheckAttributeProperties(attributeNode,otherNode );
+									found = true;
+									break;
+								}
+					}
+				}
+				
+				if (!found)
+				{
+					//attribute does not exist
+					//addition of attribute node in client
+					//invokeCase1();
+					//
+				}
+		 }
+		  
+	  }
+	  
+	  public void invokeCheckAttributeProperties(Node clientAttributeNode, Node serverAttributeNode )
+	  {		  
+		  //modifier, datatype and initializer (may be null)
+		  
+		  if (!(clientAttributeNode.getProperty("modifier").toString().equals(serverAttributeNode.getProperty("modifier").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different modifier");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientAttributeNode.getProperty("dataType").toString().equals(serverAttributeNode.getProperty("dataType").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientAttributeNode.getProperty("initializer").toString().equals(serverAttributeNode.getProperty("initializer").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different initializer");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+	  }
+	  
+	  
+	  public void checkMethodsExist(Node methodNode, Node clientNode)
+	  {
+		  //get the corresponding class node at the server
+		  String clientMethodName=null;
+		String serverMethodName=null;
+		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+		 Node otherNode;
+		 String otherNodeType;
+		 boolean found = false;
+		 if (serverClassNode !=null)
+		 {
+			 //servernode found
+			 Iterable<Relationship> relations= serverClassNode.getRelationships(RelTypes.CONNECTING);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverClassNode);
+					otherNodeType= otherNode.getProperty("nodeType").toString();
+					if (otherNodeType.equals("METHOD"))
+					{
+						//check for existence of  attributes
+						clientMethodName= methodNode.getProperty("name").toString();
+						serverMethodName= otherNode.getProperty("name").toString();
+						if 	(clientMethodName.equals(serverMethodName))	
+								{
+									//atribute found
+									//check for other propoerties of the attribute
+									invokeCheckMethodProperties(methodNode,otherNode );
+									found = true;
+									break;
+								}
+					}
+				}
+				
+				if (!found)
+				{
+					//method does not exist
+					//addition of attribute node in client
+					//invokeCase1();
+					//
+				}
+		 }
+	  }
+	  
+	  
+	  public void invokeCheckMethodProperties(Node clientMethodNode, Node serverMethodNode )
+	  {		  
+	    	//modifier, returnType and parameterList, body (may be null)
+		  
+		  if (!(clientMethodNode.getProperty("modifier").toString().equals(serverMethodNode.getProperty("modifier").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different modifier");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientMethodNode.getProperty("returnType").toString().equals(serverMethodNode.getProperty("returnType").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different returnType");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientMethodNode.getProperty("parameterList").toString().equals(serverMethodNode.getProperty("parameterList").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different parameterList");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  //check for body
+		  /*important*/
+		  
+		  //check for attributes inside methods
+		  checkVariableDeclarationNodes(clientMethodNode, serverMethodNode);
+	  }
+	  
+	  public void checkVariableDeclarationNodes(Node clientMethodNode, Node serverMethodNode)
+	  {
+		  
+		  //also check all properties of these methods
+	  }
+	  
+	  
+	  public void invokeCheckMethodAttributeProperties(Node clientMethodAttributeNode, Node serverMethodAttributeNode )
+	  {		  
+	    	//modifier, returnType and parameterList, body (may be null)
+		  
+		  if (!(clientMethodAttributeNode.getProperty("modifier").toString().equals(serverMethodAttributeNode.getProperty("modifier").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different modifier");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientMethodAttributeNode.getProperty("dataType").toString().equals(serverMethodAttributeNode.getProperty("dataType").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+		  
+		  if (!(clientMethodAttributeNode.getProperty("initializer").toString().equals(serverMethodAttributeNode.getProperty("initializer").toString())))
+		  {
+			  //different modifier
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different initializer");
+			  //sendMessage(clientAttributeNode, msg, caseNo);
+		  }
+
+	  }
+	  
+	  
 	    void shutDown(GraphDatabaseService graphDb)
 	    {
 	        System.out.println( "Shutting down database ..." );

@@ -158,7 +158,9 @@ public class dependencyGraphNodes {
     	aNode.setProperty( "nodeType", "METHOD-ATTRIBUTE" );
     	aNode.setProperty( "modifier", modifier );
     	aNode.setProperty( "dataType", dataType );  	
-    	aNode.setProperty( "initializer", initializer );
+    	if (initializer !=null)    	aNode.setProperty( "initializer", initializer );
+    	else aNode.setProperty( "initializer", "null" );
+    //	aNode.setProperty( "initializer", initializer );
     	
     	methodHashMap.put(aNode.getId(), smallAttributeName);//adding canonical name
     	

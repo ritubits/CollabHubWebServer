@@ -152,7 +152,7 @@ public class CreateUserArtifactGraph {
         	System.out.println("created artifactNode object:: "+fileName);     	   
    	  	           	
 			CompilationUnit cu = parse(fileContent, fileName);
-			String smallClassName= fileName;
+			String smallClassName= parse(fileName);
 			String className=null;
 			String packName = null;
 			if (cu.getPackage()!=null)
@@ -750,6 +750,14 @@ public class CreateUserArtifactGraph {
 			        }
 			    }
 				return id;		
+	}
+	
+	public String parse(String fileName)
+	{
+		String fName= null;
+		int i = fileName.indexOf(".java");
+		fName= fileName.substring(0, i);
+		return fName;
 	}
 	
 	 public ASTNode getParentMethodDeclarationNode(ASTNode node)

@@ -80,12 +80,12 @@ public class CreateDependencyGraph {
 	    	CONNECTING, DEPENDENCY;
 	    }
 	    
-	    public static void main(String args[]) {
+/*	    public static void main(String args[]) {
 
 	       	CreateDependencyGraph db= new CreateDependencyGraph();
 	       	db.initializeDB(SRC_URL, "CollabProject");
 				
-		}
+		}*/
    
 	    
 	    public void initializeDB(String srcURL, String pName) {
