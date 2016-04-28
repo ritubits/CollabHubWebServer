@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class LoadDriver {
 	
-	  static Connection connect = null;
+	  public static Connection connect = null;
   
 	  
     public static Connection createConnection(String ipAddSQL) {

@@ -63,6 +63,9 @@ public class RegisterProjectServlet extends HttpServlet{
 	       createTableRegProject(con);
 	       addDatatoTable(con);
 	       createTableUserDetails(con);
+	       
+	       //create a table for storing messages, if not already exist
+	       createTableConflictMessages(con); // with Project Name
 	       LoadDriver.closeConnection();
 		  }//doGet 
 	 
@@ -143,6 +146,37 @@ public class RegisterProjectServlet extends HttpServlet{
 
 		      statement.executeUpdate(sql);
 		      if (DEBUG.contains("TRUE")) System.out.println("Created table user details in given database...");
+		      
+	          
+	        } catch (SQLException ex) {
+	            // handle any errors
+	            System.out.println("SQLException: " + ex.getMessage());
+	            System.out.println("SQLState: " + ex.getSQLState());
+	            System.out.println("VendorError: " + ex.getErrorCode());
+	            out.print("Exception:"+ex.getMessage());
+	        }
+	    	
+	 }
+	 
+	 public void createTableConflictMessages(Connection conn)
+	 {
+		  Statement statement = null;
+	  
+		 //create table here
+		 try {
+	        	
+			 if (DEBUG.contains("TRUE")) System.out.println("Creating conflictMessages table in given database...");
+			 statement = conn.createStatement();
+		      
+		      String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"+
+		                   "(sentNode VARCHAR(30) not NULL, " +
+		                   " message VARCHAR(200), " + 
+		                   " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "; 
+		      
+		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
+
+		      statement.executeUpdate(sql);
+		      if (DEBUG.contains("TRUE")) System.out.println("Created table in given database...");
 		      
 	          
 	        } catch (SQLException ex) {

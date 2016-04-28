@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.collab.server.Comparator.CompareGraphs;
 import org.apache.tomcat.util.http.fileupload.FileItemIterator;
 import org.apache.tomcat.util.http.fileupload.FileItemStream;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -124,8 +125,13 @@ public class UserArtifactGraphServlet extends HttpServlet {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
+	    
 	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, "CollabClient");
         userArtifactGraph.createGraph();
+        
+        CompareGraphs db= new CompareGraphs();
+		 db.initializeDB("CollabClient", ipAddSQL);
+		 
 	}
 }
 	

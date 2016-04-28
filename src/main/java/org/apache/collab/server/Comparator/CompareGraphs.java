@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 
 
+
 import org.neo4j.logging.Log;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.NullLogProvider;
 import org.apache.collab.server.dependencyGraphNodes;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -22,7 +24,8 @@ import org.neo4j.io.fs.FileUtils;
 public class CompareGraphs {
 
 	InconsistencyCommunicator communicator=null;
-	
+	String collabName=null;
+	String ipAddSQL=null;
 	boolean DEBUG= true;
 	 public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
@@ -54,14 +57,16 @@ public class CompareGraphs {
 				
 		}*/
  
-	    public void initializeDB(String collabName) {
+	    public void initializeDB(String cName, String ipSQL) {
 			
+	    	collabName =cName;
+	    	ipAddSQL = ipSQL;
 	    	try {
 	    		  DB_PATH_CLIENT = DB_PATH_CLIENT + "CollabClient";
 	    		dpGraph = new dependencyGraphNodes();	    		
 	    		File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
-	    		communicator = new InconsistencyCommunicator();
+	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL);
 	    		
 	    		//for server DB
 	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
@@ -397,7 +402,7 @@ public class CompareGraphs {
 	   
 	  public void invokeCheckClassProperties(Node clientNode, Node serverNode)
 	   {
-		  System.out.println(" invokeCheckClassProperties-- still to be implemented");
+		 // System.out.println(" invokeCheckClassProperties-- still to be implemented");
 		  //modifier, imports and packageName, extends, implements (may be null)
 		  
 		  if (!(clientNode.getProperty("modifier").toString().equals(serverNode.getProperty("modifier").toString())))
@@ -511,7 +516,7 @@ public class CompareGraphs {
 				{
 					//attribute does not exist
 					//addition of attribute node in client
-					invokeDependencyEdgeCreation(attributeNode);
+					invokeAttributeDependencyEdgeCreation(attributeNode);
 					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode, graphDbServer);
 					
 				}
@@ -536,7 +541,7 @@ public class CompareGraphs {
 			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
 			  //sendMessage(clientAttributeNode, msg, caseNo);
 			  //this also leads to creation of a dependency edge
-			  invokeDependencyEdgeCreation(clientAttributeNode);
+			  invokeAttributeDependencyEdgeCreation(clientAttributeNode);
 		  }
 		  
 		  if (!(clientAttributeNode.getProperty("initializer").toString().equals(serverAttributeNode.getProperty("initializer").toString())))
@@ -548,14 +553,14 @@ public class CompareGraphs {
 	  }
 	  
 	  
-	  public void invokeDependencyEdgeCreation(Node clientAttributeNode)
+	  public void invokeAttributeDependencyEdgeCreation(Node clientAttributeNode)
 	  {
 		  String dataType= clientAttributeNode.getProperty("dataType").toString();
 		  //search this datatype class in server, if exists... 
 		  Node serverClassNode = searchDatatypeClassInServerGraph(dataType);
 		  
 		  //invoke creation of dependency edge
-		 if (serverClassNode !=null) communicator.informAdditionOfDependencyEdge(clientAttributeNode, serverClassNode, graphDbServer);
+		 if (serverClassNode !=null) communicator.informAdditionOfAttributeDependencyEdge(clientAttributeNode, serverClassNode, graphDbServer);
 	  }
 	  
 	  public Node searchDatatypeClassInServerGraph(String dataType)
@@ -661,9 +666,9 @@ public class CompareGraphs {
 			  //if found checkProperties
 			  //else addition of a new attribute
 			  Iterable<Relationship> relationServer= serverMethodNode.getRelationships(methodRelTypes.BODY);
-			  for (Relationship rServer: relationClient)
+			  for (Relationship rServer: relationServer)
 				{
-				  otherServerNode=r.getOtherNode(serverMethodNode);
+				  otherServerNode=rServer.getOtherNode(serverMethodNode);
 				  if (otherClientNode.getProperty("name").toString().equals(otherServerNode.getProperty("name").toString()))
 				  {
 					  //found
@@ -677,6 +682,7 @@ public class CompareGraphs {
 				{
 					//method does not exist
 					//addition of attribute node in client
+					invokeMethodDependencyEdgeCreation(otherClientNode, clientMethodNode, serverMethodNode);
 					 communicator.informAdditionMethodAttributeNodeCase1(clientMethodNode, serverMethodNode, graphDbServer);
 				}
 			}
@@ -699,7 +705,18 @@ public class CompareGraphs {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");
 			  //sendMessage(clientAttributeNode, msg, caseNo);
-			  invokeDependencyEdgeCreation(clientMethodAttributeNode);
+			  
+			  // Get clientMethodNode and serverMethodNode here
+			  Node clientMethodNode=null;
+			  Node serverMethodNode=null;
+			  
+			  Relationship r= clientMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
+			  clientMethodNode= r.getOtherNode(clientMethodAttributeNode); 
+			  
+			  r= serverMethodNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
+			  serverMethodNode= r.getOtherNode(serverMethodAttributeNode);
+			  
+			  invokeMethodDependencyEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("initializer").toString().equals(serverMethodAttributeNode.getProperty("initializer").toString())))
@@ -709,6 +726,16 @@ public class CompareGraphs {
 			  //sendMessage(clientAttributeNode, msg, caseNo);
 		  }
 
+	  }
+	  
+	  public void invokeMethodDependencyEdgeCreation(Node clientMethodAttributeNode, Node clientMethodNode, Node serverMethodNode)
+	  {
+		  String dataType= clientMethodAttributeNode.getProperty("dataType").toString();
+		  //search this datatype class in server, if exists... 
+		  Node serverClassNode = searchDatatypeClassInServerGraph(dataType);
+		  
+		  //invoke creation of dependency edge
+		 if (serverClassNode !=null) communicator.informAdditionOfMethodAttributeDependencyEdge(clientMethodAttributeNode, clientMethodNode, serverClassNode);
 	  }
 	  
 	  
