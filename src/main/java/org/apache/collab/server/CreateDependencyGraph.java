@@ -154,6 +154,7 @@ public class CreateDependencyGraph {
 
         	rootNode.setProperty( "name", projectName );
         	rootNode.setProperty("nodeType", "PROJECT");
+        	rootNode.setProperty("canonicalName", "org.collab;");
         	rootNode.addLabel(dGraphNodeType.PROJECT);
 
     		//call createGraphAST for each file

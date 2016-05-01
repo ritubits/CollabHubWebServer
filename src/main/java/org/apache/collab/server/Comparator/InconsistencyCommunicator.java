@@ -23,24 +23,26 @@ public class InconsistencyCommunicator {
 	String ipAddSQL=null;
 	boolean DEBUG= true;
 	Connection conn=null;
+	GraphDatabaseService graphDbServer=null;
 	
-	public InconsistencyCommunicator(String cName, String ipSQL)
+	public InconsistencyCommunicator(String cName, String ipSQL , GraphDatabaseService server )
 	{
 		collabName=cName;
 		if (DEBUG) System.out.println("In InconsistencyCommunicator::Collab::"+collabName);
 		ipAddSQL= ipSQL;
 		conn= LoadDriver.connect;
+		graphDbServer= server;
 	}
 	
 	 public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    } 
 	 
-	 String msg_collaborator= "|by Collaborator:: ";
-	 String msg_add_class="| Message: Addition of new class: ";
+	String msg_collaborator= "|by Collaborator:: ";
+	String msg_add_class="| Message: Addition of new class: ";
 	String msg_add_attribute="| Message: Addition of new attribute to: ";
-	String msg_add_method="| Message: Addition of new method: ";
-	String msg_add_method_attribute="| Message: Addition of new attribute to method: ";
+	String msg_add_method="| Message: Addition of new method : |";
+	String msg_add_method_attribute="| Message: Addition of new attribute: |";
 	
 	String msg_del_method="| Message: Deletion of a method: ";
 	String msg_del_attribute="| Message: Deletion of an attribute: ";
@@ -48,8 +50,12 @@ public class InconsistencyCommunicator {
 	
 	String msg_add_attribute_dependency= "| Message: Addition/Modification of attribute dependency : |";
 	String msg_add_method_attribute_dependency= "| Message: Addition/Modification of attribute dependency to the method : ";
-			
-	public void informAdditionClassNodeCase1(Node clientNode, GraphDatabaseService graphDbServer)
+	
+	String msg_change_class_properties= "| Message: Change in class property: |";
+	String msg_change_attribute_properties= "| Message: Change in attribute property: |";
+	String msg_change_method_properties= "| Message: Change in method property: |";
+	
+	public void informAdditionClassNodeCase1(Node clientNode)
 	{
 		if (DEBUG) System.out.println("In informAdditionClassNodeCase1");
 		//1)
@@ -96,7 +102,7 @@ public class InconsistencyCommunicator {
 			
 	}
 	
-	public void informAdditionAttributeNodeCase1(Node clientAttributeNode, Node serverClassNode, GraphDatabaseService graphDbServer)
+	public void informAdditionAttributeNodeCase1(Node clientAttributeNode, Node serverClassNode)
 	{
 		if (DEBUG) System.out.println("In informAdditionAttributeNodeCase1");
 		
@@ -115,11 +121,11 @@ public class InconsistencyCommunicator {
 		
 	}
 	
-	public void informAdditionMethodNodeCase1(Node clientNode, Node serverClassNode, GraphDatabaseService graphDbServer)
+	public void informAdditionMethodNodeCase1(Node clientMethodNode, Node clientClassNode, Node serverClassNode)
 	{
 		if (DEBUG) System.out.println("In informAdditionMethodNodeCase1");
 		// inform parent of N1 
-		sendInfo(serverClassNode, msg_add_method+clientNode.getProperty("name"));
+		sendInfo(serverClassNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"));
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
@@ -128,30 +134,54 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						 sendInfo(otherNode, msg_add_method+clientNode.getProperty("name"));
+						 sendInfo(otherNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"));
 					}
 		
 	}
 	
-	public void informAdditionMethodAttributeNodeCase1(Node clientNode, Node serverClassNode, GraphDatabaseService graphDbServer)
+	public void informAdditionMethodAttributeNodeCase1(Node clientMethodAttributeNode, Node clientMethodNode, Node serverMethodNode)
 	{
+		//also same as modification of a method 
+		//need to be implemented here
+		
+		//get classnod
+		Node serverClassNode =null;
+		Relationship r1= serverMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) 
+			{
+			serverClassNode = r1.getOtherNode(serverMethodNode);				   
+			}
+		
+		//1) inform N1
 		if (DEBUG) System.out.println("In informAdditionMethodAttributeNodeCase1");
 		// inform parent of N1 
-		sendInfo(serverClassNode, msg_add_method_attribute+clientNode.getProperty("name"));
+		sendInfo(clientMethodNode, msg_add_method_attribute+clientMethodAttributeNode.getProperty("name")+"| to method: |"+clientMethodNode.getProperty("name")+ "| of class|"+serverClassNode.getProperty("name"));
 		
-		//inform all dependencies on parent of N1
-		  Node otherNode;
-				Iterable<Relationship> relations;
-				  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
-					for (Relationship r: relations)
-					{
-						otherNode=r.getOtherNode(serverClassNode);
-						 sendInfo(otherNode, msg_add_method_attribute+clientNode.getProperty("name"));
-					}
+		//2) inform all dependencies of N1
+		 Node otherNode;
+			Iterable<Relationship> relations;
+			  relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverMethodNode);
+					 sendInfo(otherNode, msg_add_method_attribute+clientMethodAttributeNode.getProperty("name")+"| to method: |"+serverMethodNode.getProperty("name")+ "| of class|"+serverClassNode.getProperty("name"));;
+				}
+				
+		//3) inform parent of N1		
+		sendInfo(serverClassNode, msg_add_method_attribute+clientMethodAttributeNode.getProperty("name")+"| to method: |"+clientMethodNode.getProperty("name")+ "| of class|"+serverClassNode.getProperty("name"));
 		
+		
+		//4) inform dependencies of parent of N1
+		 otherNode = null;
+			  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverClassNode);
+					 sendInfo(otherNode, msg_add_method_attribute+clientMethodAttributeNode.getProperty("name")+"| to method: |"+serverMethodNode.getProperty("name")+ "| of class|"+serverClassNode.getProperty("name"));
+				}		
 	}
 	
-	public void informDeletionOfClassAttributeCase2(Node clientClassNode, Node serverAttributeNode, GraphDatabaseService graphDbServer)
+	public void informDeletionOfClassAttributeCase2(Node clientClassNode, Node serverAttributeNode)
 	{
 		if (DEBUG) System.out.println("In informDeletionOfClassAttributeCase2");
 		// inform parent of N1 
@@ -159,7 +189,7 @@ public class InconsistencyCommunicator {
 		Relationship r1= serverAttributeNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
 		if (r1!=null) serverClassNode = r1.getOtherNode(serverAttributeNode);
 		
-		sendInfo(serverClassNode, msg_del_attribute+serverAttributeNode.getProperty("name"));
+		sendInfo(serverClassNode, msg_del_attribute+serverAttributeNode.getProperty("name")+"| of class |"+clientClassNode.getProperty("name"));
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
@@ -168,12 +198,12 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						 sendInfo(otherNode, msg_del_attribute+serverAttributeNode.getProperty("name"));
+						 sendInfo(otherNode, msg_del_attribute+serverAttributeNode.getProperty("name")+"| of class |"+clientClassNode.getProperty("name"));
 					}
 		
 	}
 	
-	public void informDeletionOfClassMethodCase2(Node clientClassNode, Node serverMethodNode, GraphDatabaseService graphDbServer)
+	public void informDeletionOfClassMethodCase2(Node clientClassNode, Node serverMethodNode)
 	{
 		if (DEBUG) System.out.println("In informDeletionOfClassMethodCase2");
 		// inform parent of N1 
@@ -181,7 +211,7 @@ public class InconsistencyCommunicator {
 		Relationship r1= serverMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
 		if (r1!=null) serverClassNode = r1.getOtherNode(serverMethodNode);
 		
-		sendInfo(serverClassNode, msg_del_method+serverMethodNode.getProperty("name"));
+		sendInfo(serverClassNode, msg_del_method+serverMethodNode.getProperty("name")+"|of class: |"+clientClassNode.getProperty("name"));
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
@@ -190,30 +220,36 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						 sendInfo(otherNode, msg_del_method+serverMethodNode.getProperty("name"));
+						 sendInfo(otherNode, msg_del_method+serverMethodNode.getProperty("name")+"|of class: |"+clientClassNode.getProperty("name"));
 					}
 		
 	}
 	
-	public void informDeletionOfMethodAttributeCase2(Node clientMethodAttributeNode, Node serverMethodNode, GraphDatabaseService graphDbServer)
+	public void informDeletionOfMethodAttributeCase2(Node clientMethodAttributeNode, Node clientMethodNode, Node serverMethodNode)
 	{
 		if (DEBUG) System.out.println("In informDeletionOfMethodAttributeCase2");
+		//get parent of serverMethodNode
+		//get the server classNode
+		Node serverClassNode =null;
+		Relationship r1= serverMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) serverClassNode = r1.getOtherNode(serverMethodNode);
+		
 		// inform parent of N1 		
-		sendInfo(serverMethodNode, msg_del_method_attribute+clientMethodAttributeNode.getProperty("name"));
+		sendInfo(serverClassNode, msg_del_method_attribute+clientMethodAttributeNode.getProperty("name")+"| of the method: |"+serverMethodNode.getProperty("name")+"| of the class: |"+serverClassNode.getProperty("name"));
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
 				Iterable<Relationship> relations;
-				  relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
+				  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
 					for (Relationship r: relations)
 					{
-						otherNode=r.getOtherNode(serverMethodNode);
-						 sendInfo(otherNode,msg_del_method_attribute+clientMethodAttributeNode.getProperty("name"));
+						otherNode=r.getOtherNode(serverClassNode);
+						 sendInfo(otherNode,msg_del_method_attribute+clientMethodAttributeNode.getProperty("name")+"| of the method: |"+serverMethodNode.getProperty("name")+"| of the class: |"+serverClassNode.getProperty("name"));
 					}
 		
 	}
 	
-	public void informAdditionOfAttributeDependencyEdge(Node clientAttributeNode, Node serverClassNode, GraphDatabaseService graphDbServer)
+	public void informAdditionOfAttributeDependencyEdge(Node clientAttributeNode, Node serverClassNode)
 	{
 		if (DEBUG) System.out.println("In informAdditionOfAttributeDependencyEdge");
 		// N1- clientAttributeNode
@@ -406,6 +442,135 @@ public class InconsistencyCommunicator {
 			}
 	}
 	
+	public void informPropertyChangeClassNodeCase3(Node clientClassNode, Node serverClassNode, String propertyChanged)
+	{
+		// 1) inform node N1
+		sendInfo(clientClassNode ,msg_change_class_properties+propertyChanged+"|of class |"+ clientClassNode.getProperty("name"));
+		
+		// 2) inform dependencies of N1
+		//get dependencies of N1 from server graph
+		Node otherNode =null;
+		Iterable<Relationship> relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+			for (Relationship r: relations)
+			{
+				otherNode=r.getOtherNode(serverClassNode);
+				sendInfo(otherNode ,msg_change_class_properties+propertyChanged+"|of class |"+ clientClassNode.getProperty("name"));
+			}
+		
+		// 3) inform parent of N1
+			Node serverParent=null;
+			// get parent of N1 from serverGraph
+			Relationship r1= serverClassNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+			if (r1!=null) serverParent = r1.getOtherNode(serverClassNode);
+			if (serverParent !=null)
+				sendInfo(serverParent ,msg_change_class_properties+propertyChanged+"|of class |"+ clientClassNode.getProperty("name"));
+			
+			
+		// 4) inform dependencies of parent of N1
+			if (serverParent !=null)
+				{
+					otherNode =null;
+				
+					relations= serverParent.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverParent);
+						sendInfo(otherNode ,msg_change_class_properties+propertyChanged+"|of class |"+ clientClassNode.getProperty("name"));
+					}
+				}
+			
+	}
+	
+	public void informPropertyChangeAttributeNodeCase3(Node clientAttributeNode, Node serverAttributeNode, String propertyChanged)
+	{
+		//get clientClassNode
+		Node serverClassNode=null;
+
+		// get parent of N1 from serverGraph
+		Relationship r1= serverAttributeNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) serverClassNode = r1.getOtherNode(serverAttributeNode);				
+		
+		if (serverClassNode !=null)
+			// 1) inform node N1
+			sendInfo(clientAttributeNode ,msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+	
+		
+		// 2) inform dependencies of N1
+		//get dependencies of N1 from server graph
+		Node otherNode =null;
+		Iterable<Relationship> relations= serverAttributeNode.getRelationships(RelTypes.DEPENDENCY);
+			for (Relationship r: relations)
+			{
+				otherNode=r.getOtherNode(serverAttributeNode);
+				sendInfo(otherNode , msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			}
+		
+		// 3) inform parent of N1
+		// inform serverClassNode;
+			// get parent of N1 from serverGraph		
+			if (serverClassNode !=null)
+				sendInfo(serverClassNode , msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			
+			
+		// 4) inform dependencies of parent of N1
+			if (serverClassNode !=null)
+				{
+					otherNode =null;
+				
+					relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverClassNode);
+						sendInfo(otherNode ,msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+					}
+				}			
+	}
+	
+	
+	public void informPropertyChangeMethodNodeCase3(Node clientMethodNode, Node serverMethodNode, String propertyChanged)
+	{
+		//get clientClassNode
+		Node serverClassNode=null;
+
+		// get parent of N1 from serverGraph
+		Relationship r1= serverMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) serverClassNode = r1.getOtherNode(serverMethodNode);				
+		
+		if (serverClassNode !=null)
+			// 1) inform node N1
+			sendInfo(clientMethodNode ,msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+	
+		
+		// 2) inform dependencies of N1
+		//get dependencies of N1 from server graph
+		Node otherNode =null;
+		Iterable<Relationship> relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
+			for (Relationship r: relations)
+			{
+				otherNode=r.getOtherNode(serverMethodNode);
+				sendInfo(otherNode , msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			}
+		
+		// 3) inform parent of N1
+		// inform serverClassNode;
+			// get parent of N1 from serverGraph		
+			if (serverClassNode !=null)
+				sendInfo(serverClassNode , msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			
+			
+		// 4) inform dependencies of parent of N1
+			if (serverClassNode !=null)
+				{
+					otherNode =null;
+				
+					relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverClassNode);
+						sendInfo(otherNode ,msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+					}
+				}			
+	}
 	 public void sendInfo(Node node, String message)
 	 {
 		 message= message + msg_collaborator+collabName;

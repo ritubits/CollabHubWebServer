@@ -66,7 +66,7 @@ public class CompareGraphs {
 	    		dpGraph = new dependencyGraphNodes();	    		
 	    		File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
-	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL);
+	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL, graphDbServer);
 	    		
 	    		//for server DB
 	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
@@ -149,6 +149,7 @@ public class CompareGraphs {
 
 	        	 compareMainClassNode();
 	        	compareDeletionOfNodes();
+	        	compareDeletionOfMethods();
         	System.out.println("created graph");
             // START SNIPPET: transaction
         	txClient.success();
@@ -228,7 +229,7 @@ public class CompareGraphs {
 										if (!found)
 										{
 											//attribute does not exist
-											communicator.informDeletionOfClassAttributeCase2(clientNode, otherNode, graphDbServer);
+											communicator.informDeletionOfClassAttributeCase2(clientNode, otherNode);
 										}
 								}
 							}
@@ -278,7 +279,7 @@ public class CompareGraphs {
 								for (Relationship rClient: relationClient)
 								{
 									//check each attribute of server for existence in client
-									clientMethodNode=r.getOtherNode(clientNode);
+									clientMethodNode=rClient.getOtherNode(clientNode);
 									clientMethodNodeType= clientMethodNode.getProperty("nodeType").toString();
 									if (clientMethodNodeType.equals("METHOD"))
 									{
@@ -297,7 +298,7 @@ public class CompareGraphs {
 								{
 									//attribute does not exist
 									//invokeDeletionOfClassAttribute();
-									communicator.informDeletionOfClassMethodCase2(clientNode, otherNode, graphDbServer);
+									communicator.informDeletionOfClassMethodCase2(clientNode, otherNode);
 								}
 						}
 					}
@@ -309,6 +310,7 @@ public class CompareGraphs {
 	    
 	    public void compareDeletionOfMethodAttributes(Node clientMethodNode,Node serverMethodNode)
 	    {
+	    	if (DEBUG) System.out.println("In compareDeletionOfMethodAttributes");
 	    	//servernode found
 	    	boolean found=false;
 	    	Node otherNode=null;
@@ -327,14 +329,19 @@ public class CompareGraphs {
 						serverMethodAttributeName= otherNode.getProperty("name").toString();
 						Node clientMethodAttributeNode=null;
 						String clientMethodAttributeNodeType=null;
-						 Iterable<Relationship> relationClient= clientMethodNode.getRelationships(RelTypes.CONNECTING);
+						 Iterable<Relationship> relationClient= clientMethodNode.getRelationships(methodRelTypes.BODY);
 							for (Relationship rClient: relationClient)
 							{
-								//check each attribute of server for existence in client
-								clientMethodAttributeNode=r.getOtherNode(clientMethodNode);
-								clientMethodAttributeNodeType= clientMethodNode.getProperty("nodeType").toString();
+								//check each attribute of server for existence in client															
+								clientMethodAttributeNode=rClient.getOtherNode(clientMethodNode);
+								clientMethodAttributeNodeType= clientMethodAttributeNode.getProperty("nodeType").toString();
+							//	if (DEBUG) System.out.println("clientMethodAttributeNode: "+ clientMethodAttributeNode.getProperty("name").toString());
+							//	if (DEBUG) System.out.println("serverMethodAttributeName: "+ serverMethodAttributeName);
+							//	if (DEBUG) System.out.println("clientMethodAttributeNodeType: "+ clientMethodAttributeNodeType);
+								
 								if (clientMethodAttributeNodeType.equals("METHOD-ATTRIBUTE"))
 								{
+									
 									if (serverMethodAttributeName.equals(clientMethodAttributeNode.getProperty("name").toString()))
 									{
 										found = true;
@@ -346,7 +353,8 @@ public class CompareGraphs {
 							if (!found)
 							{
 								//method attribute does not exist
-								communicator.informDeletionOfMethodAttributeCase2(clientMethodAttributeNode, otherNode, graphDbServer);
+								communicator.informDeletionOfMethodAttributeCase2(otherNode, clientMethodNode, serverMethodNode);
+								found=false;
 							}
 					}
 				}
@@ -408,36 +416,36 @@ public class CompareGraphs {
 		  if (!(clientNode.getProperty("modifier").toString().equals(serverNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different modifier");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different modifier");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "modifier");			  
 		  }
 		  
 		  if (!(clientNode.getProperty("imports").toString().equals(serverNode.getProperty("imports").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different imports");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			 // System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different imports");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "imports");
 		  }
 		  
 		  if (!(clientNode.getProperty("packageName").toString().equals(serverNode.getProperty("packageName").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different packageName");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different packageName");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "packageName");
 		  }
 		  
 		  if (!(clientNode.getProperty("extends").toString().equals(serverNode.getProperty("extends").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different extends");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			//  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different extends");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "extends");
 		  }
 		  
 		  if (!(clientNode.getProperty("implements").toString().equals(serverNode.getProperty("implements").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different implements");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different implements");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "implements");
 		  }
 		  
 	   }
@@ -446,7 +454,7 @@ public class CompareGraphs {
 	   {
 		  System.out.println("Invoking case1:: Addition of classNode");
 		  //new node has been added 
-		  communicator.informAdditionClassNodeCase1(clientNode, graphDbServer);
+		  communicator.informAdditionClassNodeCase1(clientNode);
 	   }
 	  
 	  public void checkConnectingNodesExist(Node clientNode)
@@ -517,7 +525,7 @@ public class CompareGraphs {
 					//attribute does not exist
 					//addition of attribute node in client
 					invokeAttributeDependencyEdgeCreation(attributeNode);
-					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode, graphDbServer);
+					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode);
 					
 				}
 		 }
@@ -531,15 +539,15 @@ public class CompareGraphs {
 		  if (!(clientAttributeNode.getProperty("modifier").toString().equals(serverAttributeNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different modifier");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			 // System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different modifier");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "modifier");
 		  }
 		  
 		  if (!(clientAttributeNode.getProperty("dataType").toString().equals(serverAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  //System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "dataType");
 			  //this also leads to creation of a dependency edge
 			  invokeAttributeDependencyEdgeCreation(clientAttributeNode);
 		  }
@@ -547,8 +555,8 @@ public class CompareGraphs {
 		  if (!(clientAttributeNode.getProperty("initializer").toString().equals(serverAttributeNode.getProperty("initializer").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different initializer");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  //System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different initializer");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "initializer");
 		  }
 	  }
 	  
@@ -560,7 +568,7 @@ public class CompareGraphs {
 		  Node serverClassNode = searchDatatypeClassInServerGraph(dataType);
 		  
 		  //invoke creation of dependency edge
-		 if (serverClassNode !=null) communicator.informAdditionOfAttributeDependencyEdge(clientAttributeNode, serverClassNode, graphDbServer);
+		 if (serverClassNode !=null) communicator.informAdditionOfAttributeDependencyEdge(clientAttributeNode, serverClassNode);
 	  }
 	  
 	  public Node searchDatatypeClassInServerGraph(String dataType)
@@ -579,6 +587,8 @@ public class CompareGraphs {
 	  public void checkMethodsExist(Node methodNode, Node clientNode)
 	  {
 		  //get the corresponding class node at the server
+		  
+		  if (DEBUG) System.out.println("In checkMethodsExist");
 		  String clientMethodName=null;
 		String serverMethodName=null;
 		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
@@ -602,6 +612,7 @@ public class CompareGraphs {
 								{
 									//atribute found
 									//check for other propoerties of the attribute
+							  if (DEBUG) System.out.println("Method exists:: "+clientMethodName);
 									invokeCheckMethodProperties(methodNode,otherNode );
 									found = true;
 									break;
@@ -613,7 +624,8 @@ public class CompareGraphs {
 				{
 					//method does not exist
 					//addition of attribute node in client
-					 communicator.informAdditionMethodNodeCase1(clientNode, serverClassNode, graphDbServer);
+					  if (DEBUG) System.out.println("Method does not exists:: "+methodNode);
+					 communicator.informAdditionMethodNodeCase1(methodNode, clientNode, serverClassNode);
 				}
 		 }
 	  }
@@ -627,26 +639,26 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different modifier");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "modifier");
 		  }
 		  
 		  if (!(clientMethodNode.getProperty("returnType").toString().equals(serverMethodNode.getProperty("returnType").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different returnType");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "returnType");
 		  }
 		  
 		  if (!(clientMethodNode.getProperty("parameterList").toString().equals(serverMethodNode.getProperty("parameterList").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different parameterList");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "parameterList");
 		  }
 		  
 		  //check for body
 		  /*important*/
-		  
+		  System.out.println("Check for method body here");
 		  //check for attributes inside methods
 		  checkVariableDeclarationNodes(clientMethodNode, serverMethodNode);
 	  }
@@ -683,7 +695,7 @@ public class CompareGraphs {
 					//method does not exist
 					//addition of attribute node in client
 					invokeMethodDependencyEdgeCreation(otherClientNode, clientMethodNode, serverMethodNode);
-					 communicator.informAdditionMethodAttributeNodeCase1(clientMethodNode, serverMethodNode, graphDbServer);
+					 communicator.informAdditionMethodAttributeNodeCase1(otherClientNode, clientMethodNode, serverMethodNode);
 				}
 			}
 	  }
