@@ -19,9 +19,11 @@ import org.eclipse.jgit.api.Git;
 
 public class CloneRemoteRepo implements Runnable {
 
-	private static final String REMOTE_URL = "https://github.com/ritubits/CQPAss1.git";
+	//private static final String REMOTE_URL = "https://github.com/ritubits/CQPAss1.git";
+	private static final String REMOTE_URL = "https://github.com/Atmosphere/atmosphere.git";
 	private static final String PATH_URL = "D:\\TestGitProjectRepo";
 	private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+
 
 	private String ipAddSQL;
 	private String projectName;
@@ -31,13 +33,13 @@ public class CloneRemoteRepo implements Runnable {
 		ipAddSQL = ipAddDB;
 		projectName = pName;
 
-		try {
+	/*	try {
 			con = LoadDriver.createConnection(ipAddSQL);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 	public void run() {
@@ -68,7 +70,7 @@ public class CloneRemoteRepo implements Runnable {
 
 				copyToProjectRepo(filePath, con);
 
-				CreateDependencyGraph dbGraph= new CreateDependencyGraph();
+			/*	CreateDependencyGraph dbGraph= new CreateDependencyGraph();
 			    try {
 			    	System.out.println("Going to create DB");
 					dbGraph.initializeDB(SRC_URL, projectName);
@@ -76,7 +78,7 @@ public class CloneRemoteRepo implements Runnable {
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 				
 				// delet contents of the directory filePath
 				removeDirectory(filePath);
@@ -106,7 +108,7 @@ public class CloneRemoteRepo implements Runnable {
 
 			// create graph and delete the folder
 			// create table here
-			createArtifactTable(conn);
+		//	createArtifactTable(conn);
 			System.out.println("Going yo create DB");
 
 		} catch (IOException e) {

@@ -37,6 +37,6 @@ public class CreateDependencyGraphServlet extends HttpServlet{
 		    {
 		    
     	CreateDependencyGraph dpGraph = new CreateDependencyGraph();
-    	dpGraph.initializeDB(SRC_URL, "CollabProject");
+    	dpGraph.initializeDB("CollabProject");
 		    }
 }

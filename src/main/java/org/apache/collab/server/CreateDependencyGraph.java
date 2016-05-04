@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.apache.collab.server.Finder;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -54,7 +58,8 @@ public class CreateDependencyGraph {
 
 	
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
-	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
 	 
@@ -88,16 +93,15 @@ public class CreateDependencyGraph {
 		}*/
    
 	    
-	    public void initializeDB(String srcURL, String pName) {
+	    public void initializeDB(String pName) {
 			
 	    	try {
 	    		projectName = pName;
 	    		dpGraph = new dependencyGraphNodes();
-	    		System.out.println(srcURL);
-	    		File root = new File(srcURL);
+	    		//System.out.println(srcURL);
+	    	//	File root = new File(srcURL);
 	    		//System.out.println(root.listFiles());
-	    		File[] files = root.listFiles ( );
-	    	//	parseFiles(files);
+	    	//	File[] files = root.listFiles ( );
 	    		
 	    		clearDb();
 	    		File dbDir = new File(DB_PATH_SERVER);
@@ -106,7 +110,7 @@ public class CreateDependencyGraph {
 	    		 graphDb = graphBuilder.newGraphDatabase();                  
 	            registerShutdownHook( graphDb );
 
-				createDB(files);
+				createDB();
 				shutDown(graphDb);	
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -115,16 +119,17 @@ public class CreateDependencyGraph {
 	    	System.out.println("Out of DB");
 		}
 
-	    public Node createDB(File[] files) throws Exception
+	    public Node createDB() throws Exception
 	    {
 	      Transaction tx =null;
 	        try 
 	        {
 	        	 System.out.println("creating transaction object");
 	        	 tx= graphDb.beginTx();
-
-	        	 createConnectingGraph(files);
-	        	 createDependencyGraph(files);
+	        	 createRootNode();
+	        	 parseDirectory();
+	        	// createConnectingGraph(files);
+	        	// createDependencyGraph(files);
         	System.out.println("created graph");
             // START SNIPPET: transaction
             tx.success();
@@ -145,22 +150,40 @@ public class CreateDependencyGraph {
         return rootNode;
 	    }
 
-	public void createConnectingGraph(File[] files) throws Exception
-    {
-
+	    public void createRootNode()
+	    {	    	
         	rootNode = graphDb.createNode(dGraphNodeType.PROJECT);
       
         	System.out.println("created rootNode object");
 
         	rootNode.setProperty( "name", projectName );
         	rootNode.setProperty("nodeType", "PROJECT");
-        	rootNode.setProperty("canonicalName", "org.collab;");
+        	rootNode.setProperty("canonicalName", projectName);
         	rootNode.addLabel(dGraphNodeType.PROJECT);
+	    }
+	    
+	    public void parseDirectory()
+	     {
 
+	            Path startingDir = Paths.get(SRC_URL);
+	            String pattern = ".java";
+
+	            Finder finder = new Finder(this);
+	            try {
+					Files.walkFileTree(startingDir, finder);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	            finder.done();
+	        }
+	    
+	public void createConnectingGraph(File f) throws Exception
+    {
     		//call createGraphAST for each file
          	String filePath = null;
          	Node cNode= null;
-         	for (File f : files ) {
+         //	for (File f : files ) {
      			 filePath = f.getAbsolutePath();
      		//	System.out.println(filePath);
      			 if(f.isFile() && (f.getName().contains(".java"))){
@@ -259,7 +282,7 @@ public class CreateDependencyGraph {
      			    //for each file, get its Methods and add nodes
      				 getMethodGraph(cu, dpGraph, graphDb, cNode);      				
      			 }// for all java files
-     		 }//for all files
+     		// }//for all files
     }//for createCOnnectingGraph
 
 

@@ -54,6 +54,7 @@ public class InconsistencyCommunicator {
 	String msg_change_class_properties= "| Message: Change in class property: |";
 	String msg_change_attribute_properties= "| Message: Change in attribute property: |";
 	String msg_change_method_properties= "| Message: Change in method property: |";
+	String msg_change_method_attribute_properties= "| Message: Change in method attribute property: |";
 	
 	public void informAdditionClassNodeCase1(Node clientNode)
 	{
@@ -568,6 +569,51 @@ public class InconsistencyCommunicator {
 					{
 						otherNode=r.getOtherNode(serverClassNode);
 						sendInfo(otherNode ,msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+					}
+				}			
+	}
+	
+	public void informPropertyChangeMethodAttributeNodeCase3(Node clientMethodNode, Node serverMethodNode, String propertyChanged)
+	{
+		//get clientClassNode
+		Node serverClassNode=null;
+
+		// get parent of N1 from serverGraph
+		Relationship r1= serverMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) serverClassNode = r1.getOtherNode(serverMethodNode);				
+		
+		if (serverClassNode !=null)
+			// 1) inform node N1
+			sendInfo(clientMethodNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+	
+		
+		// 2) inform dependencies of N1
+		//get dependencies of N1 from server graph
+		Node otherNode =null;
+		Iterable<Relationship> relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
+			for (Relationship r: relations)
+			{
+				otherNode=r.getOtherNode(serverMethodNode);
+				sendInfo(otherNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			}
+		
+		// 3) inform parent of N1
+		// inform serverClassNode;
+			// get parent of N1 from serverGraph		
+			if (serverClassNode !=null)
+				sendInfo(serverClassNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			
+			
+		// 4) inform dependencies of parent of N1
+			if (serverClassNode !=null)
+				{
+					otherNode =null;
+				
+					relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverClassNode);
+						sendInfo(otherNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
 					}
 				}			
 	}

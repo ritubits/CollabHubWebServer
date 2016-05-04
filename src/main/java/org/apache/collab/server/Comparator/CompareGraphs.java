@@ -705,29 +705,29 @@ public class CompareGraphs {
 	  {		  
 	    	//modifier, returnType and parameterList, body (may be null)
 		  
+		  // Get clientMethodNode and serverMethodNode here
+		  Node clientMethodNode=null;
+		  Node serverMethodNode=null;
+		  
+		  Relationship r= clientMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
+		  clientMethodNode= r.getOtherNode(clientMethodAttributeNode); 
+		  
+		  r= serverMethodNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
+		  serverMethodNode= r.getOtherNode(serverMethodAttributeNode);
+		  
 		  if (!(clientMethodAttributeNode.getProperty("modifier").toString().equals(serverMethodAttributeNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different modifier");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "modifier");
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("dataType").toString().equals(serverMethodAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
-			  
-			  // Get clientMethodNode and serverMethodNode here
-			  Node clientMethodNode=null;
-			  Node serverMethodNode=null;
-			  
-			  Relationship r= clientMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
-			  clientMethodNode= r.getOtherNode(clientMethodAttributeNode); 
-			  
-			  r= serverMethodNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
-			  serverMethodNode= r.getOtherNode(serverMethodAttributeNode);
-			  
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");			  
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "dataType");
+			 
 			  invokeMethodDependencyEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
 		  }
 		  
@@ -735,7 +735,7 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different initializer");
-			  //sendMessage(clientAttributeNode, msg, caseNo);
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "initializer");
 		  }
 
 	  }
