@@ -1,8 +1,10 @@
 package org.apache.collab.server;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +48,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +57,8 @@ public class CreateDependencyGraph {
 	
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
-	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
+	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
+	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
 	 
@@ -89,8 +93,9 @@ public class CreateDependencyGraph {
    
 	    
 	    public void initializeDB(String pName) {
-			
+	    	long lStartTime = System.currentTimeMillis();
 	    	try {
+	    		
 	    		projectName = pName;
 	    		dpGraph = new dependencyGraphNodes();
 	    		//System.out.println(srcURL);
@@ -112,6 +117,10 @@ public class CreateDependencyGraph {
 				e.printStackTrace();
 			}
 	    	System.out.println("Out of DB");
+	    	long lEndTime = System.currentTimeMillis();
+	    	long difference = lEndTime - lStartTime;
+
+	    	System.out.println("Elapsed milliseconds: " + difference);
 		}
 
 	    public Node createDB() throws Exception
@@ -190,21 +199,21 @@ public class CreateDependencyGraph {
    	  	           	
      				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
      				String className= null;
-     				String smallClassName= (f.getName()).substring(0, index);;
+     				String smallClassName= null; //(f.getName()).substring(0, index);;
      				String packName = null;
      				Node packageNode= null;
      				if (cu.getPackage()!=null)
      				{
      					//System.out.println("package name is not null");
      					packName = parsePackageName(cu.getPackage().toString());
-     					className= packName+"."+(f.getName()).substring(0, index);
+     					//className= packName+"."+(f.getName()).substring(0, index);
      					
      					//create package node, if the same does not exist
      					packageNode= dpGraph.addPackageNode(graphDb, rootNode, packName);
      				}
      				else 
      					{
-     					className= (f.getName()).substring(0, index);
+     					//className= (f.getName()).substring(0, index);
      					packName ="null";
      					}
      			//	System.out.println("cu.types:: "+cu.types());
@@ -219,10 +228,16 @@ public class CreateDependencyGraph {
      					if (t1 instanceof org.eclipse.jdt.core.dom.TypeDeclaration)
      					{
      						t= (org.eclipse.jdt.core.dom.TypeDeclaration)t1;
-     						System.out.println("Instance of org.eclipse.jdt.core.dom.TypeDeclaration");
+     						//System.out.println("Instance of org.eclipse.jdt.core.dom.TypeDeclaration");
      			
-     					System.out.println("Creating Class");
+     					//System.out.println("Creating Class");
      					isInterface= t.isInterface();   
+     					System.out.println("Name of TypeDeclaration:: "+ t.getName());
+     					smallClassName= t.getName().toString();
+     					if (packName == null)
+     						className=t.getName().toString();
+     					else
+     						className= packName+"."+t.getName().toString();
      					modifier= Modifier.toString(t.getModifiers());
      					Type superClass= t.getSuperclassType();
      					if (superClass !=null) extend= superClass.toString();
@@ -242,17 +257,18 @@ public class CreateDependencyGraph {
         				if (isInterface)
         				{
         					if (packageNode !=null)
-        					cNode= dpGraph.addConnectingInterfaceNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier);
         					else	
-        					cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        					writeToFile(smallClassName+" INTERFACE ");
         				}
         				else 
         					{
         					if (packageNode !=null)
         						cNode= dpGraph.addConnectingClassNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
-        						else
-        						
-        					cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
+        					else
+        						cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
+        					writeToFile(smallClassName+" CLASS ");
         					}
         				
      					//System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
@@ -302,7 +318,31 @@ public class CreateDependencyGraph {
      		// }//for all files
     }//for createCOnnectingGraph
 
+	   public void writeToFile(String fileName)
+	    {
+	    	try
+			{
+	    	File configfile = new File("D:\\ClassesCreated.txt");
+	        
+	        if (!configfile.exists()) {
+	        	configfile.createNewFile();
+	        	}
+	    	
+			FileWriter fw = new FileWriter(configfile.getAbsoluteFile(), true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(fileName);
+			bw.newLine();
+			bw.close();
 
+			System.out.println("Done");
+			
+			// update bean here...
+			//updateConfigBean(content);
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+	    }
 	public void createDependencyGraph(File f) throws Exception
     {
 		//read file content into a string
@@ -329,17 +369,17 @@ public class CreateDependencyGraph {
 	  	           	
  				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
  				
- 				smallClassName= (f.getName()).substring(0, index);;
+ 				//smallClassName= (f.getName()).substring(0, index);;
  				packName = null;
  				if (cu.getPackage()!=null)
  				{
  					//System.out.println("package name is not null");
  					packName = parsePackageName(cu.getPackage().toString());
- 					className= packName+"."+(f.getName()).substring(0, index);
+ 					//className= packName+"."+(f.getName()).substring(0, index);
  				}
  				else 
  					{
- 					className= (f.getName()).substring(0, index);
+ 					//className= (f.getName()).substring(0, index);
  					packName ="null";
  					}
  			//	System.out.println("cu.types:: "+cu.types());
@@ -350,15 +390,21 @@ public class CreateDependencyGraph {
  				Long idCurrentClassNode=(long) -1; 
  				TypeDeclaration t;
  				for (AbstractTypeDeclaration t1: types)
- 				{     	
+ 				{    
+ 					
  					if (t1 instanceof org.eclipse.jdt.core.dom.TypeDeclaration)
  					{
  						t= (org.eclipse.jdt.core.dom.TypeDeclaration)t1;
- 						System.out.println("Instance of org.eclipse.jdt.core.dom.TypeDeclaration");
+ 						//System.out.println("Instance of org.eclipse.jdt.core.dom.TypeDeclaration");
  					isInterface= t.isInterface();   
  					Type superClass= t.getSuperclassType();
  				//	System.out.println("SuperClassType::"+superClass);	
- 					
+ 					smallClassName= t.getName().toString();
+
+ 					if (packName == null)
+ 						className=t.getName().toString();
+ 					else
+ 						className= packName+"."+t.getName().toString();
  					if (superClass !=null)
  					{
  						//search for Class node in hashmap
@@ -398,6 +444,8 @@ public class CreateDependencyGraph {
  						
  					}//if (!interfacesImplemented.isEmpty()) 
  					}//if
+ 					else
+ 						System.out.println("Not creating class for:: "+f.getName());
  				}//for (TypeDeclaration t: types)
  				
  				//create calls edges
@@ -437,7 +485,7 @@ public class CreateDependencyGraph {
 							//class node found
 							//create dependency edge from current class node to class node
 						//uses relationship		
-						System.out.println("Creating edge from Class to class for attribute node");
+					//	System.out.println("Creating edge from Class to class for attribute node");
 							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -566,7 +614,7 @@ public class CreateDependencyGraph {
   			
   			public boolean visit(MethodDeclaration node) {
   				    methods.add(node);
-  				    System.out.println("MethodName:: "+node.getName());
+  				  //  System.out.println("MethodName:: "+node.getName());
   				 //   if (node.getName().equals("addToNodeHashMap")) 
   				 //   	System.out.println("MethodBody:: "+node.getBody());
   				    int mod =node.getModifiers(); //get the int value of modifier
@@ -691,7 +739,7 @@ public class CreateDependencyGraph {
 	  				
 	  				if ((invokeClassNodeId != (long) -1) && (currentNodeId != (long) -1))
 	  				{
-	  					System.out.println("Creating edge from ClassInstanceCreation");
+	  					//System.out.println("Creating edge from ClassInstanceCreation");
 	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
 	  				}
 	  				return true;
@@ -733,7 +781,7 @@ public class CreateDependencyGraph {
 	  				
 	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
 	  				{
-	  					System.out.println("Creating edge from MethodInvocation");
+	  					//System.out.println("Creating edge from MethodInvocation");
 	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
 	  				}
 	  				return true;
@@ -844,11 +892,11 @@ public class CreateDependencyGraph {
 
 		 int indexPackage = pName.lastIndexOf("package")+1;
 		 pName= pName.substring(indexPackage, pName.length());
-		 System.out.println("pName:::"+pName);
+		 //System.out.println("pName:::"+pName);
 		 
 		 int index = pName.indexOf(" ")+1;
 		 packName= pName.substring(index, pName.length()-2);
-		 System.out.println("PackageName:::"+packName);
+		// System.out.println("PackageName:::"+packName);
 		 return packName;				 
 	 }
 	 
@@ -872,7 +920,7 @@ public class CreateDependencyGraph {
 			final String[] temp2;						
 			  String delimiter1 = "[,]";			  
 			  temp2 = eFiles.split(delimiter1);
-			  System.out.println("From strat: "+temp2);		
+			//  System.out.println("From strat: "+temp2);		
 			     	
 	    	return temp2;
 	    }

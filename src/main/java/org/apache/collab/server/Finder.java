@@ -22,6 +22,7 @@ public class Finder extends SimpleFileVisitor<Path> {
             numMatches++;
             System.out.println(file);
             try {
+            	writeToFile(name.toString());
 				dSererGraph.createConnectingGraph(file.toFile());
 				
 				dSererGraph.createDependencyGraph(file.toFile());
@@ -60,5 +61,31 @@ public class Finder extends SimpleFileVisitor<Path> {
             IOException exc) {
         System.err.println(exc);
         return CONTINUE;
+    }
+    
+    public void writeToFile(String fileName)
+    {
+    	try
+		{
+    	File configfile = new File("D:\\filesExisting.txt");
+        
+        if (!configfile.exists()) {
+        	configfile.createNewFile();
+        	}
+    	
+		FileWriter fw = new FileWriter(configfile.getAbsoluteFile(), true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(fileName);
+		bw.newLine();
+		bw.close();
+
+		System.out.println("Done");
+		
+		// update bean here...
+		//updateConfigBean(content);
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
     }
 }
