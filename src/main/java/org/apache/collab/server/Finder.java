@@ -23,6 +23,8 @@ public class Finder extends SimpleFileVisitor<Path> {
             System.out.println(file);
             try {
 				dSererGraph.createConnectingGraph(file.toFile());
+				
+				dSererGraph.createDependencyGraph(file.toFile());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

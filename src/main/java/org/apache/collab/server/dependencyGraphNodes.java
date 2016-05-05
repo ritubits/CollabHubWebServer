@@ -1,6 +1,5 @@
 package org.apache.collab.server;
 
-import org.apache.collab.server.CreateDependencyGraph.RelTypes;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
@@ -36,6 +35,37 @@ public class dependencyGraphNodes {
     
     HashMap<Long, String> methodHashMap = new HashMap<Long, String>();
     HashMap<Long, String> methodEdgeHashMap = new HashMap<Long, String>();
+    
+    public Node addPackageNode(GraphDatabaseService graphDb, Node rootNode, String packName)
+    {
+    
+//    	System.out.println("Creating Class Node::"+className);
+    	Node existingPackageNode= checkPackageNodeExists(graphDb, rootNode,  packName);
+    	
+    	if (existingPackageNode == null)//package node does not exist- create new
+    	{
+    	Node packageNode = graphDb.createNode(dGraphNodeType.PACKAGE);
+    	packageNode.addLabel(dGraphNodeType.PACKAGE);
+    	packageNode.setProperty( "name", packName );
+    	packageNode.setProperty( "canonicalName", packName );
+    	packageNode.setProperty( "nodeType", "PACKAGE" );
+
+
+    	nodeHashMap.put(packageNode.getId(), packName);//adding canonical name
+    	 
+     	relationship = packageNode.createRelationshipTo( rootNode, RelTypes.CONNECTING );
+        relationship.setProperty( "edgeType", "OWNER" ); 
+        
+        //later set this something else if required //summation of class name and package node name
+        relationship.setProperty( "name", packageNode.getProperty("canonicalName").toString());
+ //       System.out.println("relationship Id:"+relationship.getId());
+//        System.out.println("relationship Name:"+relationship.getProperty("name").toString());
+        edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());//adding canonical name
+        
+        return packageNode;
+    	}
+    	else return existingPackageNode;
+    }
     
     public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented)
     {
@@ -212,10 +242,11 @@ public class dependencyGraphNodes {
     	
     	//returns true if node exists
     	Boolean exists= checkDependencyEdgeExists(graphDb, subClassNode,superClassNode, edgeType );
-   	System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
+   	
     	 
     	if (!exists)
     	{
+    		System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
 	     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
 	        relationship.setProperty( "edgeType", edgeType );
 	        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
@@ -239,6 +270,12 @@ public class dependencyGraphNodes {
     		}
 		}
     	return false;
+    }
+    
+    public Node checkPackageNodeExists(GraphDatabaseService graphDb, Node rootNode,  String packName)
+    {
+    	Node pNode= graphDb.findNode(dGraphNodeType.PACKAGE, "name", packName);    	
+    	 return pNode;
     }
     
     public Node createIndependentClassNode(GraphDatabaseService graphDb, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented)
