@@ -6,11 +6,11 @@ import java.nio.file.attribute.*;
 
 import static java.nio.file.FileVisitResult.*;
 
-public class Finder extends SimpleFileVisitor<Path> {
+public class FinderDependency extends SimpleFileVisitor<Path> {
     private int numMatches = 0;
     CreateDependencyGraph dSererGraph=null;
 
-    Finder(CreateDependencyGraph dGraph)
+    FinderDependency(CreateDependencyGraph dGraph)
     {
     	dSererGraph= dGraph;
     }
@@ -23,9 +23,9 @@ public class Finder extends SimpleFileVisitor<Path> {
             System.out.println(file);
             try {
             	writeToFile(name.toString());
-				dSererGraph.createConnectingGraph(file.toFile());
+				//dSererGraph.createConnectingGraph(file.toFile());
 				
-				//dSererGraph.createDependencyGraph(file.toFile());
+				dSererGraph.createDependencyGraph(file.toFile());
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

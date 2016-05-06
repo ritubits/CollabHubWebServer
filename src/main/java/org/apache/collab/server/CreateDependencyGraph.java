@@ -58,7 +58,8 @@ public class CreateDependencyGraph {
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
+	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\zxing-master";
+	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
 	 
@@ -131,9 +132,10 @@ public class CreateDependencyGraph {
 	        	 System.out.println("creating transaction object");
 	        	 tx= graphDb.beginTx();
 	        	 createRootNode();
-	        	 parseDirectory();
-	        	// createConnectingGraph(files);
-	        	// createDependencyGraph(files);
+	        	 parseDirectoryForConnectingGraph();
+	        	 parseDirectoryForDependencyGraph();
+	        	 createAttributeDependencyGraph();
+	        	 createMethodAttributeDependencyGraph();
         	System.out.println("created graph");
             // START SNIPPET: transaction
             tx.success();
@@ -166,13 +168,29 @@ public class CreateDependencyGraph {
         	rootNode.addLabel(dGraphNodeType.PROJECT);
 	    }
 	    
-	    public void parseDirectory()
+	    public void parseDirectoryForConnectingGraph()
 	     {
 
 	            Path startingDir = Paths.get(SRC_URL);
 	            String pattern = ".java";
 
 	            Finder finder = new Finder(this);
+	            try {
+					Files.walkFileTree(startingDir, finder);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	            finder.done();
+	        }
+	    
+	    public void parseDirectoryForDependencyGraph()
+	     {
+
+	            Path startingDir = Paths.get(SRC_URL);
+	            String pattern = ".java";
+
+	            FinderDependency finder = new FinderDependency(this);
 	            try {
 					Files.walkFileTree(startingDir, finder);
 				} catch (IOException e) {
@@ -189,14 +207,9 @@ public class CreateDependencyGraph {
          	Node cNode= null;
          //	for (File f : files ) {
      			 filePath = f.getAbsolutePath();
-     		//	System.out.println(filePath);
      			 if(f.isFile() && (f.getName().contains(".java"))){
-     				 //print filename
-     				 System.out.println("In file: "+ f.getName());
-     				 
-     				 //add class node with fileName f.getName()- java
-     				 int index = (f.getName()).indexOf(".java");      	   
-   	  	           	
+   
+     				 System.out.println("In file: "+ f.getName());    	      	  	           	
      				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
      				String className= null;
      				String smallClassName= null; //(f.getName()).substring(0, index);;
@@ -313,7 +326,7 @@ public class CreateDependencyGraph {
      					
      				}//type declaration
      			    //for each file, get its Methods and add nodes
-     				 getMethodGraph(cu, dpGraph, graphDb, cNode);      				
+     				 if (cNode!= null) getMethodGraph(cu, dpGraph, graphDb, cNode);      				
      			 }// for all java files
      		// }//for all files
     }//for createCOnnectingGraph
@@ -453,9 +466,14 @@ public class CreateDependencyGraph {
  				visitFileAST(dpGraph, graphDb, cu, className);
  			 }// if(f.isFile() && (f.getName().contains(".java"))){
      //	}//for (File f : files ) {
-     	
+    }
 /*****************************************************************************/			
-			//create uses dependency between class and class based on type of attribute node
+	public void createAttributeDependencyGraph()
+	{
+	    HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
+	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
+	    HashMap<Long, String> methodHashMap = dpGraph.methodHashMap;
+	//create uses dependency between class and class based on type of attribute node
 			//obtain all class nodes from graph
 			Node attributeNode;
 			String attributeType;
@@ -490,16 +508,20 @@ public class CreateDependencyGraph {
 						}//if (idinterfaceNode != -1)
 				}
 			}
-			
+	}//public void createAttributeDependencyGraph()
+	
 /*****************************************************************************/
-			//create uses dependency between method and class based on type of attribute node
+	public void createMethodAttributeDependencyGraph()
+	{		
+		  HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
+	//create uses dependency between method and class based on type of attribute node
 			//obtain all attribute nodes from graph
 			Node attributeNode1;
 			String attributeType1;		
 			Node attributeMethodNode;
 			Long attributeMethodNodeId= (long) -1;
 			Long otherClassNodeId= (long) -1;
-			
+			Iterable<Relationship> relations;
 			ResourceIterator<Node> methodANodes= graphDb.findNodes(dMethodNodeType.VariableDeclarationNode);
 			while (methodANodes.hasNext() )
 			{
@@ -526,7 +548,7 @@ public class CreateDependencyGraph {
 				}
 			}
 /*****************************************************************************/
-    }//dependency Graph
+    }//
 	
 	public Long searchClassNode(String className, HashMap <Long,String> nodeHashMap)
 	{
