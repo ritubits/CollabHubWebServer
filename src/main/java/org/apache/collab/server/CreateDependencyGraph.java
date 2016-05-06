@@ -59,7 +59,8 @@ public class CreateDependencyGraph {
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\zxing-master";
-	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
+	private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
+	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
 	 
