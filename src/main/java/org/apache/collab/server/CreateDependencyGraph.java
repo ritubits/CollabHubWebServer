@@ -6,9 +6,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
+import java.util.Vector;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,9 +61,9 @@ public class CreateDependencyGraph {
 	
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
-	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\zxing-master";
-	private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
+	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
+	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\bigbluebutton-master";
+	//private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
@@ -93,9 +97,15 @@ public class CreateDependencyGraph {
 				
 		}*/
    
-	    
+        public  long getCpuTime( ) {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
+            return bean.isCurrentThreadCpuTimeSupported( ) ?
+                bean.getCurrentThreadCpuTime( ) : 0L;
+        }
+        
 	    public void initializeDB(String pName) {
-	    	long lStartTime = System.currentTimeMillis();
+	    	long lStartTime = getCpuTime( ); //System.currentTimeMillis();
+
 	    	try {
 	    		
 	    		projectName = pName;
@@ -119,10 +129,10 @@ public class CreateDependencyGraph {
 				e.printStackTrace();
 			}
 	    	System.out.println("Out of DB");
-	    	long lEndTime = System.currentTimeMillis();
+	    	long lEndTime = getCpuTime( );//System.currentTimeMillis();
 	    	long difference = lEndTime - lStartTime;
 
-	    	System.out.println("Elapsed milliseconds: " + difference);
+	    	System.out.println("Elapsed nanoseconds: " + difference);
 		}
 
 	    public Node createDB() throws Exception
@@ -248,7 +258,7 @@ public class CreateDependencyGraph {
      					isInterface= t.isInterface();   
      					System.out.println("Name of TypeDeclaration:: "+ t.getName());
      					smallClassName= t.getName().toString();
-     					if (packName == null)
+     					if (packName.equals("null"))
      						className=t.getName().toString();
      					else
      						className= packName+"."+t.getName().toString();
@@ -415,7 +425,7 @@ public class CreateDependencyGraph {
  				//	System.out.println("SuperClassType::"+superClass);	
  					smallClassName= t.getName().toString();
 
- 					if (packName == null)
+ 					if (packName.equals("null"))
  						className=t.getName().toString();
  					else
  						className= packName+"."+t.getName().toString();
@@ -457,6 +467,32 @@ public class CreateDependencyGraph {
  						}//for (SimpleType interfaces: interfacesImplemented)
  						
  					}//if (!interfacesImplemented.isEmpty()) 
+ 					
+ 					//create import edges
+ 					String imports= cu.imports().toString();
+ 					if (!imports.equals("[]"))
+ 					{
+ 						System.out.println("imports:: "+imports);
+ 						Vector importsVector= parseImports(imports);
+ 						  Enumeration enumImports= importsVector.elements();
+ 						  String importClass=null;
+ 						  Long importClassId= (long) -1;
+ 						  while (enumImports.hasMoreElements())
+ 						  {
+ 							  importClass= enumImports.nextElement().toString();
+ 							  System.out.println("Enumeration:: "+ importClass);	
+ 							 importClassId= searchClassNode(importClass, nodeHashMap);
+ 							if (importClassId != -1)
+ 	 						{
+ 	 							//interface node found
+ 	 							//create dependency edge from current node to interface node
+ 	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
+ 	 							
+ 	 							dpGraph.addImportsDependencyEdge(graphDb, importClassId, idCurrentClassNode);
+ 	 						}//if (idinterfaceNode != -1)
+ 						  }
+ 						
+ 					}
  					}//if
  					else
  						System.out.println("Not creating class for:: "+f.getName());
@@ -945,6 +981,28 @@ public class CreateDependencyGraph {
 			  temp2 = eFiles.split(delimiter1);
 			//  System.out.println("From strat: "+temp2);		
 			     	
+	    	return temp2;
+	    }
+	   
+	    public Vector parseImports(String line)
+	    {  	
+			  String[] temp1;
+			  Vector temp2 = new Vector();
+			  int index=0;
+			  String delimiter1 = "[,]";
+			  String className;
+			  temp1 = line.split(delimiter1);
+			  System.out.println("temp1 Length:: "+ temp1.length);
+			  for (int i=0; i< temp1.length; i++)
+			  {
+				  System.out.println("temp1:: "+ temp1[i]);			  
+				  index= temp1[i].lastIndexOf(".")+1;				 
+				  if (i== temp1.length-1)
+				  {
+					  temp2.add(temp1[i].substring(index, temp1[i].length()-3));
+				  }
+				  else temp2.add(temp1[i].substring(index, temp1[i].length()-2));			  
+			  }
 	    	return temp2;
 	    }
 }

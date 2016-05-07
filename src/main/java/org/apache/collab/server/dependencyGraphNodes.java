@@ -234,6 +234,20 @@ public class dependencyGraphNodes {
     	
     }
     
+    public void addImportsDependencyEdge(GraphDatabaseService graphDb, Long importID, Long classID)    
+    {
+    	//adding edge from superclass id to sub class it
+    	Node classNode =	graphDb.getNodeById(classID);
+    	Node importClassNode =	graphDb.getNodeById(importID);
+    //	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+interfaceNode.getProperty("name"));
+    	    	
+     	relationship = classNode.createRelationshipTo(importClassNode, RelTypes.DEPENDENCY );
+        relationship.setProperty( "edgeType", "IMPORTS" );
+        relationship.setProperty( "name", classNode.getProperty("canonicalName").toString()+"::"+importClassNode.getProperty("canonicalName").toString());        
+    	edgeHashMap.put(relationship.getId(), relationship.getProperty("name").toString());
+    	
+    }
+    
     public void addDependencyEdge(GraphDatabaseService graphDb, Long superClassID, Long subClassID, String edgeType)    
     {
     	//adding edge from superclass id to sub class it
