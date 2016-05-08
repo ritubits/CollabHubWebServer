@@ -31,6 +31,7 @@ public class dependencyGraphNodes {
     }
     
     HashMap<Long, String> nodeHashMap = new HashMap<Long, String>();
+   HashMap<Long, String> nodeCanonicalHashMap = new HashMap<Long, String>();
     HashMap<Long, String> edgeHashMap = new HashMap<Long, String>();
     
     HashMap<Long, String> methodHashMap = new HashMap<Long, String>();
@@ -83,8 +84,8 @@ public class dependencyGraphNodes {
     	else classNode.setProperty( "extends", "null" );
     	classNode.setProperty( "implements", implemented );
 //    	System.out.println("cNode Id:"+classNode.getId());
-    	nodeHashMap.put(classNode.getId(), smallClassName);//adding canonical name
-    	 
+    	nodeHashMap.put(classNode.getId(), smallClassName);
+    	nodeCanonicalHashMap.put(classNode.getId(), className);//adding canonical name
      	relationship = classNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
         
@@ -110,7 +111,7 @@ public class dependencyGraphNodes {
     	interfaceNode.setProperty( "packageName", packageName );
  //   	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(interfaceNode.getId(), smallClassName);
-    	 
+    	nodeCanonicalHashMap.put(interfaceNode.getId(), interfaceName);
      	relationship = interfaceNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
         
@@ -139,7 +140,7 @@ public class dependencyGraphNodes {
     	
 //    	System.out.println("mNode Id:"+mNode.getId());
     	nodeHashMap.put(mNode.getId(), smallMethodName);
-    	
+    	nodeCanonicalHashMap.put(mNode.getId(), methodName);
      	relationship = mNode.createRelationshipTo( cNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" );
         relationship.setProperty( "name", methodName+"::"+cNode.getProperty("canonicalName").toString());
@@ -165,6 +166,7 @@ public class dependencyGraphNodes {
     	else aNode.setProperty( "initializer", "null" );
     	
     	nodeHashMap.put(aNode.getId(), smallAttributeName);//adding canonical name
+    	nodeCanonicalHashMap.put(aNode.getId(), attributeName);//adding canonical name
     	
      	relationship = aNode.createRelationshipTo( cNode, RelTypes.CONNECTING );
      
@@ -260,7 +262,7 @@ public class dependencyGraphNodes {
     	 
     	if (!exists)
     	{
-    		System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
+    	//	System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
 	     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
 	        relationship.setProperty( "edgeType", edgeType );
 	        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        
@@ -308,7 +310,8 @@ public class dependencyGraphNodes {
     	else classNode.setProperty( "extends", "null" );
     	classNode.setProperty( "implements", implemented );
 //    	System.out.println("cNode Id:"+classNode.getId());
-    	nodeHashMap.put(classNode.getId(), smallClassName);//not adding canonical name    	 
+    	nodeHashMap.put(classNode.getId(), smallClassName);//not adding canonical name
+  //  	nodeCanonicalHashMap.put(classNode.getId(), className);
         
         return classNode;
     }
@@ -326,12 +329,19 @@ public class dependencyGraphNodes {
     	interfaceNode.setProperty( "packageName", packageName );
  //   	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(interfaceNode.getId(), smallClassName);
+  //  	nodeCanonicalHashMap.put(interfaceNode.getId(), interfaceName);
         
         return interfaceNode;
     }
     public HashMap getNodeHashMap()
     {
     	return nodeHashMap;
+    }
+    
+    
+   public HashMap getCanonicalNodeHashMap()
+    {
+    	return nodeCanonicalHashMap;
     }
     
     public void addToNodeHashMap()

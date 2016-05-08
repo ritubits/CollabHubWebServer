@@ -62,7 +62,7 @@ public class CreateDependencyGraph {
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\bigbluebutton-master";
+	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\FBReaderJ-master";
 	//private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
@@ -96,7 +96,9 @@ public class CreateDependencyGraph {
 	       	db.initializeDB(SRC_URL, "CollabProject");
 				
 		}*/
-   
+	    long lEndTime;//System.currentTimeMillis();
+    	long difference;
+    	long lStartTime;
         public  long getCpuTime( ) {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
             return bean.isCurrentThreadCpuTimeSupported( ) ?
@@ -104,7 +106,7 @@ public class CreateDependencyGraph {
         }
         
 	    public void initializeDB(String pName) {
-	    	long lStartTime = getCpuTime( ); //System.currentTimeMillis();
+	    	lStartTime = getCpuTime( ); //System.currentTimeMillis();
 
 	    	try {
 	    		
@@ -129,8 +131,8 @@ public class CreateDependencyGraph {
 				e.printStackTrace();
 			}
 	    	System.out.println("Out of DB");
-	    	long lEndTime = getCpuTime( );//System.currentTimeMillis();
-	    	long difference = lEndTime - lStartTime;
+	    	lEndTime = getCpuTime( );//System.currentTimeMillis();
+	    	difference = lEndTime - lStartTime;
 
 	    	System.out.println("Elapsed nanoseconds: " + difference);
 		}
@@ -144,9 +146,27 @@ public class CreateDependencyGraph {
 	        	 tx= graphDb.beginTx();
 	        	 createRootNode();
 	        	 parseDirectoryForConnectingGraph();
+	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+	 	    	difference = lEndTime - lStartTime;
+
+	 	    	System.out.println("Elapsed nanoseconds after creating connecting graph: " + difference);
+	 	    	
 	        	 parseDirectoryForDependencyGraph();
+	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+		 	    difference = lEndTime - lStartTime;
+
+		 	    System.out.println("Elapsed nanoseconds after creating dependency graph: " + difference);
 	        	 createAttributeDependencyGraph();
+	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+			 	    difference = lEndTime - lStartTime;
+
+			 	    System.out.println("Elapsed nanoseconds after creating attribute dependency graph: " + difference);
 	        	 createMethodAttributeDependencyGraph();
+	        	 
+	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+			 	    difference = lEndTime - lStartTime;
+
+			 	    System.out.println("Elapsed nanoseconds after creating method attribute  dependency graph: " + difference);
         	System.out.println("created graph");
             // START SNIPPET: transaction
             tx.success();
@@ -220,7 +240,7 @@ public class CreateDependencyGraph {
      			 filePath = f.getAbsolutePath();
      			 if(f.isFile() && (f.getName().contains(".java"))){
    
-     				 System.out.println("In file: "+ f.getName());    	      	  	           	
+     			//	 System.out.println("In file: "+ f.getName());    	      	  	           	
      				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
      				String className= null;
      				String smallClassName= null; //(f.getName()).substring(0, index);;
@@ -256,7 +276,7 @@ public class CreateDependencyGraph {
      			
      					//System.out.println("Creating Class");
      					isInterface= t.isInterface();   
-     					System.out.println("Name of TypeDeclaration:: "+ t.getName());
+     					//System.out.println("Name of TypeDeclaration:: "+ t.getName());
      					smallClassName= t.getName().toString();
      					if (packName.equals("null"))
      						className=t.getName().toString();
@@ -284,7 +304,7 @@ public class CreateDependencyGraph {
         						cNode= dpGraph.addConnectingInterfaceNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier);
         					else	
         						cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
-        					writeToFile(smallClassName+" INTERFACE ");
+        					//writeToFile(smallClassName+" INTERFACE ");
         				}
         				else 
         					{
@@ -292,7 +312,7 @@ public class CreateDependencyGraph {
         						cNode= dpGraph.addConnectingClassNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
         					else
         						cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
-        					writeToFile(smallClassName+" CLASS ");
+        					//writeToFile(smallClassName+" CLASS ");
         					}
         				
      					//System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
@@ -342,7 +362,7 @@ public class CreateDependencyGraph {
      		// }//for all files
     }//for createCOnnectingGraph
 
-	   public void writeToFile(String fileName)
+/*	   public void writeToFile(String fileName)
 	    {
 	    	try
 			{
@@ -357,25 +377,19 @@ public class CreateDependencyGraph {
 			bw.write(fileName);
 			bw.newLine();
 			bw.close();
-
-			System.out.println("Done");
-			
-			// update bean here...
-			//updateConfigBean(content);
 			
 			} catch (IOException e) {
 				e.printStackTrace();
 			} 
-	    }
+	    }*/
+	
 	public void createDependencyGraph(File f) throws Exception
     {
 		//read file content into a string
 		//call createGraphAST for each file
 	    HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
-	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
-	    HashMap<Long, String> methodHashMap = dpGraph.methodHashMap;
 	    		
-	    System.out.println("Creating Dependency Graph");
+	    //System.out.println("Creating Dependency Graph");
      	String filePath = null;
      	Node cNode= null;
      	String className= null;
@@ -385,12 +399,8 @@ public class CreateDependencyGraph {
  			 filePath = f.getAbsolutePath();
  		//	System.out.println(filePath);
  			 if(f.isFile() && (f.getName().contains(".java"))){
- 				 //print filename
- 				 System.out.println("In file: "+ f.getName());
- 				 
- 				 //add class node with fileName f.getName()- java
- 				 int index = (f.getName()).indexOf(".java");      	   
-	  	           	
+ 				// System.out.println("In file: "+ f.getName());
+
  				CompilationUnit cu = parse(readFileToString(filePath), f.getName());
  				
  				//smallClassName= (f.getName()).substring(0, index);;
@@ -406,10 +416,10 @@ public class CreateDependencyGraph {
  					//className= (f.getName()).substring(0, index);
  					packName ="null";
  					}
- 			//	System.out.println("cu.types:: "+cu.types());
+
  				List<AbstractTypeDeclaration> types= cu.types();
- 				String modifier=null;
- 				Boolean isInterface= false;
+
+ 				boolean isInterface= false;
  				Long idSuperNode=(long) -1;  
  				Long idCurrentClassNode=(long) -1; 
  				TypeDeclaration t;
@@ -472,7 +482,7 @@ public class CreateDependencyGraph {
  					String imports= cu.imports().toString();
  					if (!imports.equals("[]"))
  					{
- 						System.out.println("imports:: "+imports);
+ 						//System.out.println("imports:: "+imports);
  						Vector importsVector= parseImports(imports);
  						  Enumeration enumImports= importsVector.elements();
  						  String importClass=null;
@@ -480,7 +490,7 @@ public class CreateDependencyGraph {
  						  while (enumImports.hasMoreElements())
  						  {
  							  importClass= enumImports.nextElement().toString();
- 							  System.out.println("Enumeration:: "+ importClass);	
+ 							  //System.out.println("Enumeration:: "+ importClass);	
  							 importClassId= searchClassNode(importClass, nodeHashMap);
  							if (importClassId != -1)
  	 						{
@@ -499,8 +509,9 @@ public class CreateDependencyGraph {
  				}//for (TypeDeclaration t: types)
  				
  				//create calls edges
- 				System.out.println("ClassName:::"+className);
- 				visitFileAST(dpGraph, graphDb, cu, className);
+ 				//System.out.println("ClassName:::"+className);
+ 			//	if (className != null) 
+ 					visitFileAST(dpGraph, graphDb, cu, className);
  			 }// if(f.isFile() && (f.getName().contains(".java"))){
      //	}//for (File f : files ) {
     }
@@ -508,8 +519,6 @@ public class CreateDependencyGraph {
 	public void createAttributeDependencyGraph()
 	{
 	    HashMap<Long, String> nodeHashMap = dpGraph.getNodeHashMap();
-	    HashMap<Long, String> edgeHashMap = dpGraph.getEdgeHashMap();
-	    HashMap<Long, String> methodHashMap = dpGraph.methodHashMap;
 	//create uses dependency between class and class based on type of attribute node
 			//obtain all class nodes from graph
 			Node attributeNode;
@@ -594,6 +603,20 @@ public class CreateDependencyGraph {
 
 			    for (Map.Entry<Long, String> entry : nodeHashMap.entrySet()) {
 			        if (Objects.equals(className, entry.getValue())) {
+			            id= entry.getKey();
+			            break;
+			        }
+			    }
+				return id;		
+	}
+	
+	public Long searchHashNode(String nodeName, HashMap <Long,String> nodeHashMap)
+	{
+		//get id of class name in nodeHashMap else return -1
+		Long id = (long) -1;
+
+			    for (Map.Entry<Long, String> entry : nodeHashMap.entrySet()) {
+			        if (Objects.equals(nodeName, entry.getValue())) {
 			            id= entry.getKey();
 			            break;
 			        }
@@ -751,6 +774,7 @@ public class CreateDependencyGraph {
 	 
 	 public void visitFileAST(final dependencyGraphNodes dpGraph, final GraphDatabaseService graphDb, final CompilationUnit cu, final String className)
 	 {
+		    final HashMap<Long, String> nodeCanonicalHashMap = dpGraph.getCanonicalNodeHashMap();
 		 // visit each method invocation node
 		 cu.accept(new ASTVisitor()
 		 {			
@@ -758,43 +782,35 @@ public class CreateDependencyGraph {
 			 String invokedMethodName=null;	
 			 String currentParentName=null;
 		 			
+	 			
+
+			public boolean visit(MethodDeclaration node){
+				
+				
+				return true;
+			}
+			
 	  			public boolean visit(ClassInstanceCreation node){
 	  				
 	  				String classInstanceCreation=node.getType().toString();
                     ITypeBinding typeBinding = node.resolveTypeBinding();
                     if (typeBinding != null) {
-                   	 IType type = (IType)typeBinding.getJavaElement();
-
-                 //      System.out.println("Type Qualified Name: " + typeBinding.getQualifiedName());
-                 //      System.out.println("Type Binary Name: " + typeBinding.getBinaryName());
-		 		//		System.out.println("Type Name: " + typeBinding.getName());
-		 				
-		 				//if (typeBinding.getBinaryName() !=null) classInstanceCreation= typeBinding.getBinaryName();
-		 			//	else 
-		 					if (typeBinding.getQualifiedName()!=null) classInstanceCreation= typeBinding.getQualifiedName();
-		 			//	System.out.println("Type getDeclaringClass: " + typeBinding.getDeclaringClass());
+                    	if (typeBinding.getQualifiedName()!=null) classInstanceCreation= typeBinding.getQualifiedName();
+		 			
                     }
-                    
-      /*              IMethodBinding binding = node.resolveConstructorBinding();
-                    if (binding != null) {
-                    	 ITypeBinding type = binding.getDeclaringClass();
-                        if (type != null) {
-                            System.out.println("Decl ClassInstanceCreation: " + type.getName());
-                        }
-                    } */
-              //      System.out.println("ClassInstanceCreation: "+classInstanceCreation);
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
 	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
 	  				else
 	  					currentParentName = className;
-	  			//	System.out.println("currentParentName: "+currentParentName);
 	  				//create node from currentParentname to node.getType() if exists
 	  				
-	  				Long invokeClassNodeId = searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", classInstanceCreation);
-	  				Long currentNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentParentName);
+	  				//Long invokeClassNodeId = searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", classInstanceCreation);
+	  				Long invokeClassNodeId = searchHashNode(classInstanceCreation, nodeCanonicalHashMap);
+	  				//Long currentNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentParentName);
+	  				Long currentNodeId = searchHashNode(currentParentName, nodeCanonicalHashMap);
 	  				
-	  				if (currentNodeId == (long)-1) currentNodeId= searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", currentParentName);
+	  				if (currentNodeId == (long)-1) currentNodeId= searchHashNode(currentParentName, nodeCanonicalHashMap);;//searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", currentParentName);
 	  				
 	  				if ((invokeClassNodeId != (long) -1) && (currentNodeId != (long) -1))
 	  				{
@@ -817,15 +833,7 @@ public class CreateDependencyGraph {
                             invokedMethodName = typeBinding.getQualifiedName()+"."+node.getName();
                         }
                     }
-                    
-               /*     IMethodBinding binding = node.resolveMethodBinding();
-                    if (binding != null) {
-                    	 ITypeBinding type = binding.getDeclaringClass();
-                        if (type != null) {
-                            System.out.println("Decl Method: " + type.getQualifiedName());
-                            invokedMethodName = type.getQualifiedName()+"."+node.getName();
-                        }
-                    } */                               
+                              
              //       System.out.println("invokedMethodName: " +invokedMethodName);
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
@@ -835,8 +843,10 @@ public class CreateDependencyGraph {
 	  		//		System.out.println("currentMethodName: "+currentMethodName);
 	  	
 	  				//create calls edge from currentMethodName to invokedMethodName
-	  				Long invokeMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", invokedMethodName);
-	  				Long currentMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentMethodName);
+	  				//Long invokeMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", invokedMethodName);
+	  				Long invokeMethodNodeId = searchHashNode(invokedMethodName, nodeCanonicalHashMap); 
+	  				//Long currentMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentMethodName);
+	  				Long currentMethodNodeId = searchHashNode(currentMethodName, nodeCanonicalHashMap); 
 	  				
 	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
 	  				{
@@ -848,7 +858,7 @@ public class CreateDependencyGraph {
 		 });
 	 }
 	 
-	 public Long searchNode(final GraphDatabaseService graphDb, Label nodeType, String key, String nodeName )
+/*	 public Long searchNode(final GraphDatabaseService graphDb, Label nodeType, String key, String nodeName )
 	 {
 		 //returns the id of the last node found
 		 //assumes only one such node exists found
@@ -860,7 +870,7 @@ public class CreateDependencyGraph {
 			nodeId= nodes.next().getId();
 		}
 		return nodeId;					
-	 }
+	 }*/
 	 
 	 
 	 public ASTNode getParentMethodDeclarationNode(ASTNode node)
@@ -992,10 +1002,10 @@ public class CreateDependencyGraph {
 			  String delimiter1 = "[,]";
 			  String className;
 			  temp1 = line.split(delimiter1);
-			  System.out.println("temp1 Length:: "+ temp1.length);
+			//  System.out.println("temp1 Length:: "+ temp1.length);
 			  for (int i=0; i< temp1.length; i++)
 			  {
-				  System.out.println("temp1:: "+ temp1[i]);			  
+				 // System.out.println("temp1:: "+ temp1[i]);			  
 				  index= temp1[i].lastIndexOf(".")+1;				 
 				  if (i== temp1.length-1)
 				  {

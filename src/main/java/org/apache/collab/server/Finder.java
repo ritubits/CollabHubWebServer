@@ -20,9 +20,9 @@ public class Finder extends SimpleFileVisitor<Path> {
      //   System.out.println(file);
         if (name != null && name.toString().contains(".java")) {
             numMatches++;
-            System.out.println(file);
+           // System.out.println(file);
             try {
-            	writeToFile(name.toString());
+            	//writeToFile(name.toString());
 				dSererGraph.createConnectingGraph(file.toFile());
 				
 				//dSererGraph.createDependencyGraph(file.toFile());
@@ -79,7 +79,7 @@ public class Finder extends SimpleFileVisitor<Path> {
 		bw.newLine();
 		bw.close();
 
-		System.out.println("Done");
+		//System.out.println("Done");
 		
 		// update bean here...
 		//updateConfigBean(content);
