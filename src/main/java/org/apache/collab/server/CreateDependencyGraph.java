@@ -62,8 +62,8 @@ public class CreateDependencyGraph {
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	 private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\FBReaderJ-master";
-	//private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
+	//private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
+	private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
@@ -72,41 +72,53 @@ public class CreateDependencyGraph {
 	      Node rootNode;
 	    String tryBody=null;
 	    
-	    public  static enum dGraphNodeType implements Label {
+	    public  enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
 	    
-	    public  static enum dMethodNodeType implements Label {
+	    public  enum dMethodNodeType implements Label {
 	    	VariableDeclarationNode, PACKAGE;
 	    }  
 	    
-	    public static enum methodRelTypes implements RelationshipType
+	    public enum methodRelTypes implements RelationshipType
 	    {
 	    	BODY;
 	    }
 	    
-	    public static enum RelTypes implements RelationshipType
+	    public enum RelTypes implements RelationshipType
 	    {
 	    	CONNECTING, DEPENDENCY;
 	    }
 	    
-/*	    public static void main(String args[]) {
+/*	   public static void main(String args[]) {
 
 	       	CreateDependencyGraph db= new CreateDependencyGraph();
-	       	db.initializeDB(SRC_URL, "CollabProject");
+	       	
+	       	for (int i=0; i<=4; i++)
+	       	{
+	       		db.initializeDB("CollabProject");
+	      		try {
+					Thread.sleep(40000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	       	
+	       	}
 				
 		}*/
+	   
 	    long lEndTime;//System.currentTimeMillis();
     	long difference;
     	long lStartTime;
-        public  long getCpuTime( ) {
+    /*    public  long getCpuTime( ) {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
             return bean.isCurrentThreadCpuTimeSupported( ) ?
                 bean.getCurrentThreadCpuTime( ) : 0L;
-        }
+        }*/
         
 	    public void initializeDB(String pName) {
-	    	lStartTime = getCpuTime( ); //System.currentTimeMillis();
+	    	lStartTime = System.currentTimeMillis();//getCpuTime( ); //
 
 	    	try {
 	    		
@@ -131,7 +143,7 @@ public class CreateDependencyGraph {
 				e.printStackTrace();
 			}
 	    	System.out.println("Out of DB");
-	    	lEndTime = getCpuTime( );//System.currentTimeMillis();
+	    	lEndTime = System.currentTimeMillis();//getCpuTime( );
 	    	difference = lEndTime - lStartTime;
 
 	    	System.out.println("Elapsed nanoseconds: " + difference);
@@ -146,24 +158,24 @@ public class CreateDependencyGraph {
 	        	 tx= graphDb.beginTx();
 	        	 createRootNode();
 	        	 parseDirectoryForConnectingGraph();
-	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+	        	 lEndTime = System.currentTimeMillis();//getCpuTime( );
 	 	    	difference = lEndTime - lStartTime;
 
 	 	    	System.out.println("Elapsed nanoseconds after creating connecting graph: " + difference);
 	 	    	
 	        	 parseDirectoryForDependencyGraph();
-	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+	        	 lEndTime = System.currentTimeMillis();//getCpuTime( );
 		 	    difference = lEndTime - lStartTime;
 
 		 	    System.out.println("Elapsed nanoseconds after creating dependency graph: " + difference);
 	        	 createAttributeDependencyGraph();
-	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+	        	 lEndTime = System.currentTimeMillis();//getCpuTime( );
 			 	    difference = lEndTime - lStartTime;
 
 			 	    System.out.println("Elapsed nanoseconds after creating attribute dependency graph: " + difference);
 	        	 createMethodAttributeDependencyGraph();
 	        	 
-	        	 lEndTime = getCpuTime( );//System.currentTimeMillis();
+	        	 lEndTime = System.currentTimeMillis();//getCpuTime( );
 			 	    difference = lEndTime - lStartTime;
 
 			 	    System.out.println("Elapsed nanoseconds after creating method attribute  dependency graph: " + difference);
@@ -624,7 +636,7 @@ public class CreateDependencyGraph {
 				return id;		
 	}
 	
-		public static String readFileToString(String filePath) throws IOException 
+		public String readFileToString(String filePath) throws IOException 
 		{
 			StringBuilder fileData = new StringBuilder(1000);
 			BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -642,7 +654,7 @@ public class CreateDependencyGraph {
 		}
 		
 		//use ASTParse to parse string
-		public static CompilationUnit parse(String str, String fileName) {
+		public  CompilationUnit parse(String str, String fileName) {
 			// each str contains the str content of a single java file
 			ASTParser parser = ASTParser.newParser(AST.JLS4);
 			

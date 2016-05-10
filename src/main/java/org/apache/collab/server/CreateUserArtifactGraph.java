@@ -2,6 +2,8 @@ package org.apache.collab.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.ChildPropertyDescriptor;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -57,6 +60,10 @@ public class CreateUserArtifactGraph {
 	 Node artifactNode;
 	    String tryBody=null;
 	    
+	    long lEndTime;//System.currentTimeMillis();
+		long difference;
+		long lStartTime;
+		
 	 private String DB_PATH_CLIENT = "neo4jDB/Client/";
 	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 
@@ -86,7 +93,12 @@ public class CreateUserArtifactGraph {
 		DB_PATH_CLIENT = DB_PATH_CLIENT +collabName;
 	}
 
-	  
+    public  long getCpuTime( ) {
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
+        return bean.isCurrentThreadCpuTimeSupported( ) ?
+            bean.getCurrentThreadCpuTime( ) : 0L;
+    }
+    
 	public void createGraph()
 	{
 		System.out.println("DB_PATH_CLIENT:: "+ DB_PATH_CLIENT);
@@ -95,7 +107,7 @@ public class CreateUserArtifactGraph {
 	}
 	
     public void initializeDB() {
-		
+    	lStartTime = getCpuTime( ); //System.currentTimeMillis();
     	try {
     		dpGraph = new dependencyGraphNodes();
     		
@@ -113,6 +125,11 @@ public class CreateUserArtifactGraph {
 			e.printStackTrace();
 		}
     	System.out.println("Out of DB");
+    	
+    	lEndTime = getCpuTime( );//System.currentTimeMillis();
+    	difference = lEndTime - lStartTime;
+
+    	System.out.println("Elapsed nanoseconds: " + difference);
 	}
     
     public Node createDB() throws Exception
@@ -173,8 +190,12 @@ public class CreateUserArtifactGraph {
      				Boolean isInterface= false;
      				String extend=null;     
      				String implemented=null;  
-     				for (TypeDeclaration t: types)
+     				TypeDeclaration t;
+     				for (AbstractTypeDeclaration t1: types)
      				{     	
+     					if (t1 instanceof org.eclipse.jdt.core.dom.TypeDeclaration)
+     					{
+     						t= (org.eclipse.jdt.core.dom.TypeDeclaration)t1;
      					System.out.println("Creating Class");
      					isInterface= t.isInterface();   
      					modifier= Modifier.toString(t.getModifiers());
@@ -237,6 +258,7 @@ public class CreateUserArtifactGraph {
      								}	//if    					
      							}//for variable declaration     					
      					}//field declaration
+     					}//if
      				}//type declaration
      			    //for each file, get its Methods and add nodes
      				 getMethodGraph(cu, dpGraph, graphDb, artifactNode);      				
