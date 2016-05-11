@@ -82,6 +82,12 @@
 		<description></description>
 		<servlet-class>org.apache.collab.server.UserArtifactGraphServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
+		<display-name>UserArtifactGraphSimulatorServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.UserArtifactGraphSimulatorServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>EchoServlet</servlet-name>
 		<url-pattern>/echo</url-pattern>
@@ -125,6 +131,10 @@
 	<servlet-mapping>
 		<servlet-name>UserArtifactGraphServlet</servlet-name>
 		<url-pattern>/UserArtifactGraphServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
+		<url-pattern>/UserArtifactGraphSimulatorServlet</url-pattern>
 	</servlet-mapping>
 	
 	   <security-constraint>

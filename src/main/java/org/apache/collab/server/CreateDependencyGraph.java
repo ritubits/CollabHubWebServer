@@ -7,7 +7,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.HashMap;
 import java.util.Vector;
@@ -62,8 +64,8 @@ public class CreateDependencyGraph {
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
 	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	//private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
-	private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
+	private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\Hystrix-master";
+	//private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
 	 private dependencyGraphNodes dpGraph;
@@ -72,20 +74,20 @@ public class CreateDependencyGraph {
 	      Node rootNode;
 	    String tryBody=null;
 	    
-	    public  enum dGraphNodeType implements Label {
+	    public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
 	    
-	    public  enum dMethodNodeType implements Label {
+	    public  static enum dMethodNodeType implements Label {
 	    	VariableDeclarationNode, PACKAGE;
 	    }  
 	    
-	    public enum methodRelTypes implements RelationshipType
+	    public static enum methodRelTypes implements RelationshipType
 	    {
 	    	BODY;
 	    }
 	    
-	    public enum RelTypes implements RelationshipType
+	    public static enum RelTypes implements RelationshipType
 	    {
 	    	CONNECTING, DEPENDENCY;
 	    }
@@ -137,6 +139,7 @@ public class CreateDependencyGraph {
 	            registerShutdownHook( graphDb );
 
 				createDB();
+				writeHashTableToFile(dpGraph.getCanonicalNodeHashMap());
 				shutDown(graphDb);	
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -996,6 +999,37 @@ public class CreateDependencyGraph {
 		}
 	}
     
+    public void writeHashTableToFile(HashMap<Long, String> nodeMap)
+    {
+    	//write hash to file
+    	try
+		{
+    	File configfile = new File("neo4jDB/Server/HashMap.txt");
+        
+        if (!configfile.exists()) {
+        	configfile.createNewFile();
+        	}
+    	
+		FileWriter fw = new FileWriter(configfile.getAbsoluteFile(), true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		
+		Iterator entries = nodeMap.entrySet().iterator();
+		
+		while (entries.hasNext()) {
+		  Entry thisEntry = (Entry) entries.next();
+		  Object key = thisEntry.getKey();
+		  Object value = thisEntry.getValue();
+		  bw.write(key+":"+value);
+		bw.newLine();
+		}
+		
+		bw.close();
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+    	
+    }
 	   public String[] parseToStringArray(String eFiles)
 	    {	    	    	
 			final String[] temp2;						

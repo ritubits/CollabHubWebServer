@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import org.apache.collab.server.LoadDriver;
 import org.apache.collab.server.Comparator.CompareGraphs.RelTypes;
@@ -24,14 +27,15 @@ public class InconsistencyCommunicator {
 	boolean DEBUG= true;
 	Connection conn=null;
 	GraphDatabaseService graphDbServer=null;
-	
-	public InconsistencyCommunicator(String cName, String ipSQL , GraphDatabaseService server )
+	HashMap<Long, String> nodeCanonicalHashMap=null;
+	public InconsistencyCommunicator(String cName, String ipSQL , GraphDatabaseService server, HashMap<Long, String> nodeMap )
 	{
 		collabName=cName;
 		if (DEBUG) System.out.println("In InconsistencyCommunicator::Collab::"+collabName);
 		ipAddSQL= ipSQL;
 		conn= LoadDriver.connect;
 		graphDbServer= server;
+		nodeCanonicalHashMap = nodeMap;
 	}
 	
 	 public  static enum dGraphNodeType implements Label {
@@ -334,9 +338,13 @@ public class InconsistencyCommunicator {
 		  //8) Inform all dependencies of parent of N1-clientClassNode 
 		// -dependency of parent exist in the serverGrpah
 		// get the same node as this classNode in the server Graph
-		Node clientClassNodeInServer=null;
+	//	Node clientClassNodeInServer=null;
 		
-		clientClassNodeInServer= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientClassNode.getProperty("name").toString());
+		 long serverNodeID= getCanonicalClassNodeID(clientClassNode.getProperty("canonicalName").toString());
+		   System.out.println("serverNodeID::"+serverNodeID);
+		   Node clientClassNodeInServer= graphDbServer.getNodeById(serverNodeID);
+		   
+	//	clientClassNodeInServer= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientClassNode.getProperty("name").toString());
 		if (clientClassNodeInServer !=null)
 			{
 			otherNode =null;
@@ -351,6 +359,20 @@ public class InconsistencyCommunicator {
 			}
 	}
 	
+	   long getCanonicalClassNodeID(String className)
+	   {
+			System.out.println("className::"+className);
+		   //get id of class name in nodeHashMap else return -1
+			Long id = (long) -1;
+
+				    for (Map.Entry<Long, String> entry : nodeCanonicalHashMap.entrySet()) {
+				        if (Objects.equals(className, entry.getValue())) {
+				            id= entry.getKey();
+				            break;
+				        }
+				    }
+					return id;
+	   }
 	public void informAdditionOfMethodAttributeDependencyEdge(Node clientMethodAttributeNode, Node clientMethodNode, Node serverClassNode)
 	{
 		if (DEBUG) System.out.println("In informAdditionOfMethodAttributeDependencyEdge");

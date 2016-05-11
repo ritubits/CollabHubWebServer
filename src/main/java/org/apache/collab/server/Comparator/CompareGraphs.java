@@ -1,9 +1,15 @@
 package org.apache.collab.server.Comparator;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import org.neo4j.logging.Log;
 import org.neo4j.logging.LogProvider;
@@ -45,6 +51,8 @@ public class CompareGraphs {
 	 private dependencyGraphNodes dpGraph;
 	 GraphDatabaseService graphDbServer;
 	 GraphDatabaseService graphDbClient;
+	 HashMap<Long, String> nodeHashMap=null;
+	 HashMap<Long, String> nodeCanonicalHashMap=null;
 	 
 	 Node rootNodeSever=null;
 	 Node rootNodeClient =null;
@@ -59,6 +67,10 @@ public class CompareGraphs {
  
 	    public void initializeDB(String cName, String ipSQL) {
 			
+	    	nodeHashMap= new HashMap<Long, String>();
+	    	nodeCanonicalHashMap= new HashMap<Long, String>();
+	    	readFromFileHashMap(nodeHashMap, nodeCanonicalHashMap);
+	    
 	    	collabName =cName;
 	    	ipAddSQL = ipSQL;
 	    	try {
@@ -66,7 +78,7 @@ public class CompareGraphs {
 	    		dpGraph = new dependencyGraphNodes();	    		
 	    		File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
-	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL, graphDbServer);
+	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL, graphDbServer, nodeCanonicalHashMap);
 	    		
 	    		//for server DB
 	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
@@ -176,7 +188,7 @@ public class CompareGraphs {
 				  {
 			   Node clientClassNode= null;
 			   Node clientNode=null;
-			   Node serverClassNode= null;
+			//   Node serverClassNode= null;
 			   boolean found=false;
 			   //assumes find all class nodes.... only one such exist
 			   ResourceIterator<Node> clientClassNodes= graphDbClient.findNodes(dGraphNodeType.CLASS);
@@ -184,13 +196,16 @@ public class CompareGraphs {
 				while (clientClassNodes.hasNext() )
 				{
 					clientNode= clientClassNodes.next();
-								
+							
+					 long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
+					 System.out.println("serverNodeID::"+serverNodeID);
+					 Node serverClassNode= graphDbServer.getNodeById(serverNodeID);
 					found = false;
 					
 					//get the corresponding class node at the server
 					  String clientAtrributeName=null;
 					  String serverAttributeName=null;
-					  serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+					//  serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
 					 Node otherNode;
 					 String otherNodeType;
 				
@@ -242,7 +257,7 @@ public class CompareGraphs {
 		  {
 	   Node clientClassNode= null;
 	   Node clientNode=null;
-	   Node serverClassNode= null;
+	 //  Node serverClassNode= null;
 	   boolean found=false;
 	   //assumes find all class nodes.... only one such exist
 	   ResourceIterator<Node> clientClassNodes= graphDbClient.findNodes(dGraphNodeType.CLASS);
@@ -253,9 +268,12 @@ public class CompareGraphs {
 						
 			found = false;
 			
+			 long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
+			 System.out.println("serverNodeID::"+serverNodeID);
+			 Node serverClassNode= graphDbServer.getNodeById(serverNodeID);
 			//get the corresponding class node at the server
 			  String serverMethodName=null;
-			  serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+			//  serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
 			 Node otherNode;
 			 String otherNodeType;
 		
@@ -367,8 +385,47 @@ public class CompareGraphs {
 		   Node clientNode= null;
 		   Node serverNode= null;
 		   boolean found=false;
-		   //assumes find all class nodes.... only one such exist
+		   
 		   ResourceIterator<Node> clientClassNodes= graphDbClient.findNodes(dGraphNodeType.CLASS);
+		 //assumes find all class nodes.... only one such exist
+			while (clientClassNodes.hasNext() )
+			{
+				clientNode= clientClassNodes.next();
+			   //get class node id from HashMap
+			   long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
+			   System.out.println("serverNodeID::"+serverNodeID);
+			   Node classNodeFoundOnServer= graphDbServer.getNodeById(serverNodeID);
+			   
+			   if (classNodeFoundOnServer == null)
+			   {
+				   //class does not exist on server
+				   //message new class
+				   invokeCase1(clientNode, graphDbServer);//addition of a new class
+			   }
+			   else
+			   {
+				   System.out.println("Class Node exists");
+					checkConnectingNodesExist(clientNode, classNodeFoundOnServer); // class exits
+					invokeCheckClassProperties(clientNode, classNodeFoundOnServer);
+			   }
+			}
+	    }
+	
+	   long getCanonicalClassNodeID(String className)
+	   {
+			System.out.println("className::"+className);
+		   //get id of class name in nodeHashMap else return -1
+			Long id = (long) -1;
+
+				    for (Map.Entry<Long, String> entry : nodeCanonicalHashMap.entrySet()) {
+				        if (Objects.equals(className, entry.getValue())) {
+				            id= entry.getKey();
+				            break;
+				        }
+				    }
+					return id;
+	   }
+	/*	   ResourceIterator<Node> clientClassNodes= graphDbClient.findNodes(dGraphNodeType.CLASS);
 
 			while (clientClassNodes.hasNext() )
 			{
@@ -406,7 +463,7 @@ public class CompareGraphs {
 				invokeCheckClassProperties(clientNode, serverNode);
 
 			}*/
-	    }
+	 //   }
 	   
 	  public void invokeCheckClassProperties(Node clientNode, Node serverNode)
 	   {
@@ -457,7 +514,7 @@ public class CompareGraphs {
 		  communicator.informAdditionClassNodeCase1(clientNode);
 	   }
 	  
-	  public void checkConnectingNodesExist(Node clientNode)
+	  public void checkConnectingNodesExist(Node clientNode, Node serverClassNode)
 	  {
 		  
 		  if (DEBUG) System.out.println("In checkConnectingNodesExist");
@@ -473,26 +530,26 @@ public class CompareGraphs {
 				{
 					  if (DEBUG) System.out.println("Going to checkAttributesExist");
 					//check for existence of all attributes
-					checkAttributesExist(otherNode, clientNode);				
+					checkAttributesExist(otherNode, clientNode, serverClassNode);				
 				}
 				else if (otherNodeType.equals("METHOD"))
 				{
 					  if (DEBUG) System.out.println("Going to checkMethodsExist");
 					//check for existence of all methods
-					checkMethodsExist(otherNode, clientNode);
+					checkMethodsExist(otherNode, clientNode, serverClassNode);
 				}
 					
 			}
 	  }
 	  
-	  public void checkAttributesExist(Node attributeNode, Node clientNode)
+	  public void checkAttributesExist(Node attributeNode, Node clientNode, Node serverClassNode)
 	  {
 		
 		  if (DEBUG) System.out.println("In checkAttributesExist");
 		  //get the corresponding class node at the server
 		  String clientAtrributeName=null;
 		String serverAttributeName=null;
-		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+		// Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
 		 Node otherNode;
 		 String otherNodeType;
 		 boolean found = false;
@@ -574,24 +631,37 @@ public class CompareGraphs {
 	  public Node searchDatatypeClassInServerGraph(String dataType)
 	  {
 		  
-		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", dataType);
+		/* Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", dataType);
 
 		 if (serverClassNode != null)
 		 {
 			return serverClassNode;
 		 }
-		 else return null;
+		 else return null;*/
+		 Node serverNode=null;
+		  ResourceIterator<Node>  serverClassNodes= graphDbServer.findNodes(dGraphNodeType.CLASS);
 
+		 while (serverClassNodes.hasNext())
+			{
+				serverNode= serverClassNodes.next();
+				System.out.println("serverNode:: "+serverNode.getProperty("name"));
+				
+				 if (serverNode.getProperty("name").toString().equals(dataType))
+				 {
+					return serverNode;
+				 }				 
+			}
+		return serverNode;		
 	  }
 	  
-	  public void checkMethodsExist(Node methodNode, Node clientNode)
+	  public void checkMethodsExist(Node methodNode, Node clientNode, Node serverClassNode)
 	  {
 		  //get the corresponding class node at the server
 		  
 		  if (DEBUG) System.out.println("In checkMethodsExist");
 		  String clientMethodName=null;
 		String serverMethodName=null;
-		 Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
+		// Node serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
 		 Node otherNode;
 		 String otherNodeType;
 		 boolean found = false;
@@ -712,7 +782,7 @@ public class CompareGraphs {
 		  Relationship r= clientMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
 		  clientMethodNode= r.getOtherNode(clientMethodAttributeNode); 
 		  
-		  r= serverMethodNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
+		  r= serverMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
 		  serverMethodNode= r.getOtherNode(serverMethodAttributeNode);
 		  
 		  if (!(clientMethodAttributeNode.getProperty("modifier").toString().equals(serverMethodAttributeNode.getProperty("modifier").toString())))
@@ -772,5 +842,41 @@ public class CompareGraphs {
 		            }
 		        } );
 		    }
-	    
+		 
+		 private void readFromFileHashMap(HashMap<Long, String> nodeNameMap, HashMap<Long, String> nodeCanonicalMap)
+		 {
+		
+			 
+			 BufferedReader br = null;
+			 
+				try {
+					int index=0;
+					String sCurrentLine;
+					String  key=null;
+					String value = null;
+							
+					br = new BufferedReader(new FileReader("neo4jDB/Server/HashMap.txt"));
+					while ((sCurrentLine = br.readLine()) != null) {
+					//	System.out.println("sCurrentLine:"+sCurrentLine);
+						index = sCurrentLine.indexOf(":");
+					//	System.out.println("index:"+index);
+						key = sCurrentLine.substring(0, index);
+					//	System.out.println("key:"+key);
+						long l = Long.parseLong(key);
+						value = sCurrentLine.substring(index+1, sCurrentLine.length());
+					//	System.out.println("key:"+l+" Value:"+value);
+						nodeCanonicalMap.put(l, value);
+									
+					}
+		 
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if (br != null)br.close();
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}					
+		 }	    
 }

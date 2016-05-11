@@ -106,7 +106,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 			        reader.close();
 			        fileContent= out.toString();
 			        
-			        System.out.println(fileContent);  
+			    //    System.out.println(fileContent);  
 
 	        }
 	   

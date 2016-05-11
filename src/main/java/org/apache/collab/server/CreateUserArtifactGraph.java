@@ -93,11 +93,11 @@ public class CreateUserArtifactGraph {
 		DB_PATH_CLIENT = DB_PATH_CLIENT +collabName;
 	}
 
-    public  long getCpuTime( ) {
+/*    public  long getCpuTime( ) {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean( );
         return bean.isCurrentThreadCpuTimeSupported( ) ?
             bean.getCurrentThreadCpuTime( ) : 0L;
-    }
+    }*/
     
 	public void createGraph()
 	{
@@ -107,7 +107,7 @@ public class CreateUserArtifactGraph {
 	}
 	
     public void initializeDB() {
-    	lStartTime = getCpuTime( ); //System.currentTimeMillis();
+    //	lStartTime = System.currentTimeMillis();
     	try {
     		dpGraph = new dependencyGraphNodes();
     		
@@ -126,10 +126,10 @@ public class CreateUserArtifactGraph {
 		}
     	System.out.println("Out of DB");
     	
-    	lEndTime = getCpuTime( );//System.currentTimeMillis();
-    	difference = lEndTime - lStartTime;
+    //	lEndTime = System.currentTimeMillis();
+    //	difference = lEndTime - lStartTime;
 
-    	System.out.println("Elapsed nanoseconds: " + difference);
+    //	System.out.println("Elapsed milliseconds after creation of user Graph: " + difference);
 	}
     
     public Node createDB() throws Exception
@@ -275,7 +275,7 @@ public class CreateUserArtifactGraph {
 	  			
 	  			public boolean visit(MethodDeclaration node) {
 	  				    methods.add(node);
-	  				    System.out.println("MethodName:: "+node.getName());
+	  				 //   System.out.println("MethodName:: "+node.getName());
 	  				 //   if (node.getName().equals("addToNodeHashMap")) 
 	  				 //   	System.out.println("MethodBody:: "+node.getBody());
 	  				    int mod =node.getModifiers(); //get the int value of modifier
@@ -285,9 +285,9 @@ public class CreateUserArtifactGraph {
 	  				    
 	  				  if (node.getBody() !=null) 
 	  					  {
-	  					  System.out.println(node.getBody());
+	  					//  System.out.println(node.getBody());
 	  					  methodBody= transformMethodBody(cu, node.getBody());
-	  					 System.out.println(methodBody);
+	  					// System.out.println(methodBody);
 	  					  }
 	  				  else methodBody="null";
 	  				    // add method node
