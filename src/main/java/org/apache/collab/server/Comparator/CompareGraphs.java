@@ -46,12 +46,12 @@ public class CompareGraphs {
 	    {
 	    	BODY;
 	    }
-	 private static String DB_PATH_CLIENT = "neo4jDB/Client/";
-	 private final String DB_PATH_SERVER = "neo4jDB/Server";
+	 private String DB_PATH_CLIENT = "neo4jDB/Client/";
+	 private static final String DB_PATH_SERVER = "neo4jDB/Server";
 	 private dependencyGraphNodes dpGraph;
 	 GraphDatabaseService graphDbServer;
 	 GraphDatabaseService graphDbClient;
-	 HashMap<Long, String> nodeHashMap=null;
+
 	 HashMap<Long, String> nodeCanonicalHashMap=null;
 	 
 	 Node rootNodeSever=null;
@@ -66,10 +66,9 @@ public class CompareGraphs {
 		}*/
  
 	    public void initializeDB(String cName, String ipSQL) {
-			
-	    	nodeHashMap= new HashMap<Long, String>();
+
 	    	nodeCanonicalHashMap= new HashMap<Long, String>();
-	    	readFromFileHashMap(nodeHashMap, nodeCanonicalHashMap);
+	    	readFromFileHashMap(nodeCanonicalHashMap);
 	    
 	    	collabName =cName;
 	    	ipAddSQL = ipSQL;
@@ -92,51 +91,6 @@ public class CompareGraphs {
 	    		 graphDbClient = graphBuilderClient.newGraphDatabase();                  
 	            registerShutdownHook( graphDbClient );
 	            
-	      /*      ExecutionEngine engine = new ExecutionEngine(graphDbServer, new LogProvider() {
-					
-					@Override
-					public Log getLog(String arg0) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-					
-					@Override
-					public Log getLog(Class arg0) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-				});
-
-	            ExecutionResult result;
-	            String nodeResult=null;
-	            Transaction tx=null;
-	            try 
-	            {
-	            	tx= graphDbServer.beginTx();
-	                result = engine.execute( "match (n) return n" );
-
-	             //   ExecutionResult execResult = execEngine.execute("MATCH (java:JAVA) RETURN java");
-	                String results = result.dumpToString();
-	                System.out.println(results);
-	                
-	               scala.collection.Iterable <Object> n_column = (Iterable<Object>) result.columnAs( "n" );
-	                for ( Object node : IteratorUtil.asIterable( n_column ) )
-	                {
-
-	                    nodeResult = node + ": " + ((Node)node).getProperty( "name" );
-
-	                    System.out.println(nodeResult);
-	                }
-	                tx.success();
-
-	            }
-	            catch (Exception e)
-	            {
-	            	e.printStackTrace();
-	            }
-	            finally {
-	            	tx.close();
-	            }*/
 	            compareDB();
 				
 	            
@@ -169,8 +123,6 @@ public class CompareGraphs {
         }
         catch (Exception e)
         {
-        //	if ( txClient != null && txServer !=null)
-        //    throw e;
         	e.printStackTrace();
         }
         finally {
@@ -479,8 +431,9 @@ public class CompareGraphs {
 		  
 		  if (!(clientNode.getProperty("imports").toString().equals(serverNode.getProperty("imports").toString())))
 		  {
-			  //different modifier
+			  //different imports
 			 // System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different imports");
+			  //invoke change in dependency edges for imports
 			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "imports");
 		  }
 		  
@@ -730,9 +683,45 @@ public class CompareGraphs {
 		  /*important*/
 		  System.out.println("Check for method body here");
 		  //check for attributes inside methods
+		  String clientMethodBody= (String) clientMethodNode.getProperty("body"); 
+		  String serverMethodBody= (String) serverMethodNode.getProperty("body");
+		  
+		  if (!clientMethodBody.equals(serverMethodBody))
+		  {
+			  findDifferenceInMethodBody(clientMethodBody,serverMethodBody, clientMethodNode, serverMethodNode);
+		  }
 		  checkVariableDeclarationNodes(clientMethodNode, serverMethodNode);
 	  }
 	  
+	  public void findDifferenceInMethodBody(String clientMethodBody, String serverMethodBody, Node clientMethodNode, Node serverMethodNode)
+	  {
+
+		  //get client body in an array
+		  String clientBody[]= clientMethodBody.split(",");
+		  String serverBody[]= serverMethodBody.split(",");
+		  int i;
+		  for (i=0; i< clientBody.length && i < serverBody.length; i++)
+		  {
+			  if (!clientBody[i].equals(serverBody[i]))
+			  {
+				  // inform communicator
+				  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "MODIFIED");
+			  }
+		  }
+		  
+		  if (clientBody.length > serverBody.length)
+		  {
+			  //added content to client body
+			  // inform communicator
+			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "ADDED");
+		  }
+		  else
+		  {
+			  //deleted content from method
+			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "DELETED");
+		  }
+	  }
+		 
 	  public void checkVariableDeclarationNodes(Node clientMethodNode, Node serverMethodNode)
 	  {
 		  Node otherClientNode;
@@ -843,7 +832,7 @@ public class CompareGraphs {
 		        } );
 		    }
 		 
-		 private void readFromFileHashMap(HashMap<Long, String> nodeNameMap, HashMap<Long, String> nodeCanonicalMap)
+		 private void readFromFileHashMap(HashMap<Long, String> nodeCanonicalMap)
 		 {
 		
 			 

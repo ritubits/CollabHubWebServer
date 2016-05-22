@@ -33,6 +33,7 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
@@ -62,9 +63,10 @@ public class CreateDependencyGraph {
 
 	
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
-	// private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	 //private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	 private static final String SRC_URL = "D:\\MathTutorialProject\\src";
 	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
-	private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\Hystrix-master";
+	//private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\astrid-master";
 	//private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\rhino-master";
 	 //private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\src";
 	 private String projectName;
@@ -139,7 +141,7 @@ public class CreateDependencyGraph {
 	            registerShutdownHook( graphDb );
 
 				createDB();
-				writeHashTableToFile(dpGraph.getCanonicalNodeHashMap());
+				writeHashTableToFile(dpGraph.getClassCanonicalNodeHashMap());
 				shutDown(graphDb);	
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -719,8 +721,12 @@ public class CreateDependencyGraph {
   				  smallMethodName = node.getName().toString();
   				    mName= cNode.getProperty("canonicalName")+"."+smallMethodName;
   				    
-  				  if (node.getBody() !=null) methodBody= transformMethodBody(cu, node.getBody());
+  				//  if (node.getBody() !=null) methodBody= transformMethodBody(cu, node.getBody());
+  				//  else methodBody="null";
+  				  
+  				  if (node.getBody() !=null) methodBody= node.getBody().toString();
   				  else methodBody="null";
+  			
   				    // add method node
   				  String param=null;
   				List parameterList= node.parameters();
@@ -929,8 +935,9 @@ public class CreateDependencyGraph {
 								String strTry=null;
 								public boolean visit(TryStatement node) {
 		
-								//	System.out.println("TryBlock: " + node.getBody());
+									System.out.println("TryBlock: " + node.getBody());
 									body = "try"+node.getBody();
+									Block b= node.getBody();
 									finallyBlock= node.getFinally();
 									catchBody= node.catchClauses();
 									if (finallyBlock ==null && catchBody !=null)
@@ -970,6 +977,40 @@ public class CreateDependencyGraph {
 			return methodBody;
 	 }
 	 
+	 public void transformNewMethodBody(final CompilationUnit cu, Block methodBlock) 
+	 {
+		 String body= methodBlock.statements().toString();
+			ASTParser parser = ASTParser.newParser(AST.JLS3);
+			
+			body = parseMethodBody(body);
+			System.out.println("Body::"+body);
+			parser.setSource(body.toCharArray());
+	 
+			parser.setKind(ASTParser.K_STATEMENTS);
+	 
+			Block block = (Block) parser.createAST(null);
+	 
+			//here can access the first element of the returned statement list
+			String str = block.statements().get(0).toString();
+	 
+			System.out.println(str);
+	 
+			block.accept(new ASTVisitor() {
+	 
+				public boolean visit(SimpleName node) {
+	 
+					System.out.println("Name: " + node.getFullyQualifiedName());
+	 
+					return true;
+				}
+	 
+			});
+		}
+	 
+	 public String parseMethodBody(String body)
+	 {
+		 return (body.replaceAll(",","\n"));
+	 }
 	 public String parsePackageName(String pName)
 	 {
 		 String packName=null;

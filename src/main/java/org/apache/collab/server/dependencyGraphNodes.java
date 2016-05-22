@@ -32,6 +32,7 @@ public class dependencyGraphNodes {
     
     HashMap<Long, String> nodeHashMap = new HashMap<Long, String>();
    HashMap<Long, String> nodeCanonicalHashMap = new HashMap<Long, String>();
+   HashMap<Long, String> nodeClassCanonicalHashMap = new HashMap<Long, String>();
     HashMap<Long, String> edgeHashMap = new HashMap<Long, String>();
     
     HashMap<Long, String> methodHashMap = new HashMap<Long, String>();
@@ -86,6 +87,9 @@ public class dependencyGraphNodes {
 //    	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(classNode.getId(), smallClassName);
     	nodeCanonicalHashMap.put(classNode.getId(), className);//adding canonical name
+    	
+    	//for classHashMap
+    	nodeClassCanonicalHashMap.put(classNode.getId(), className);//adding canonical name
      	relationship = classNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
         
@@ -112,6 +116,10 @@ public class dependencyGraphNodes {
  //   	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(interfaceNode.getId(), smallClassName);
     	nodeCanonicalHashMap.put(interfaceNode.getId(), interfaceName);
+    	
+    	//for classHashMap
+    	nodeClassCanonicalHashMap.put(interfaceNode.getId(), interfaceName);//adding canonical name
+    	
      	relationship = interfaceNode.createRelationshipTo( pNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
         
@@ -344,6 +352,11 @@ public class dependencyGraphNodes {
     	return nodeCanonicalHashMap;
     }
     
+   public HashMap getClassCanonicalNodeHashMap()
+   {
+   	return nodeClassCanonicalHashMap;
+   }
+   
     public void addToNodeHashMap()
     {
     	

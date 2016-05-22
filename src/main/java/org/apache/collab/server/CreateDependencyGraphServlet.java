@@ -19,8 +19,6 @@ public class CreateDependencyGraphServlet extends HttpServlet{
     String ipAddSQL= null;
     PrintWriter out =null;
     String DEBUG=null;
-    private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
-
 	
     public void init(ServletConfig config) throws ServletException  
     {
@@ -38,6 +36,6 @@ public class CreateDependencyGraphServlet extends HttpServlet{
 		    {
 		    
     	CreateDependencyGraph dpGraph = new CreateDependencyGraph();
-    	dpGraph.initializeDB("CollabProject");
+    	dpGraph.initializeDB("MathTutorialProject");
 		    }
 }

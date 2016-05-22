@@ -137,7 +137,7 @@ public class CloneRemoteRepo implements Runnable {
 
 		Statement statement = null;
 		java.sql.DatabaseMetaData meta;
-
+		String sql=null;
 		try {
 			meta = conn.getMetaData();
 			String tableName = null;
@@ -152,7 +152,7 @@ public class CloneRemoteRepo implements Runnable {
 					// artifact Table exists
 					// delete * from it
 					statement = con.createStatement();
-					String sql = "DELETE FROM " + tableName;
+					sql = "DELETE FROM " + tableName;
 
 					statement.executeUpdate(sql);
 
@@ -163,7 +163,7 @@ public class CloneRemoteRepo implements Runnable {
 			System.out.println("Creating table artifact_projectName");
 			statement = conn.createStatement();
 
-			String sql = "CREATE TABLE IF NOT EXISTS artifact_" + projectName
+			sql = "CREATE TABLE IF NOT EXISTS artifact_" + projectName
 					+ "(projectName VARCHAR(30), filename VARCHAR(30))";
 
 			System.out.println("SQL: " + sql);

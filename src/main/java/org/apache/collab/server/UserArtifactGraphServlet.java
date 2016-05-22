@@ -90,9 +90,13 @@ public class UserArtifactGraphServlet extends HttpServlet {
 
 	        } else {
 	        	 String fieldName = item.getFieldName();
-				    fileName = item.getName();
+				    String name = item.getName();
 				    System.out.println("fieldName:: "+fieldName);
+				    fileName= parseFileName(name);
 				    System.out.println("fileName:: "+fileName);
+				    collabName= parseClientName(name);
+				    System.out.println("clientName:: "+collabName);
+				    
 				    String contentType = item.getContentType();
 				    InputStream filecontent = item.openStream();
 				    
@@ -126,12 +130,26 @@ public class UserArtifactGraphServlet extends HttpServlet {
             e.printStackTrace();
         }*/
 	    
-	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, "CollabClient");
+	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, collabName);
         userArtifactGraph.createGraph();
         
         CompareGraphs db= new CompareGraphs();
-		 db.initializeDB("CollabClient", ipAddSQL);
+		 db.initializeDB(collabName, ipAddSQL);
 		 
+	}
+	
+	public String parseFileName(String name)
+	{
+		name= name.substring(0, name.indexOf("|"));
+		return name;
+		
+	}
+	
+	public String parseClientName(String name)
+	{
+		name= name.substring(name.indexOf("|")+1, name.length() );
+		return name;
+		
 	}
 }
 	
