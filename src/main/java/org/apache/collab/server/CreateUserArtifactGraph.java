@@ -286,7 +286,7 @@ public class CreateUserArtifactGraph {
 	  				  if (node.getBody() !=null) 
 	  					  {
 	  					//  System.out.println(node.getBody());
-	  					  methodBody= transformMethodBody(cu, node.getBody());
+	  					  methodBody= node.getBody().toString(); //transformMethodBody(cu, node.getBody());
 	  					// System.out.println(methodBody);
 	  					  }
 	  				  else methodBody="null";

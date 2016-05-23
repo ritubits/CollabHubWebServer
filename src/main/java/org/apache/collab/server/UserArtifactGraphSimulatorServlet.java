@@ -44,8 +44,8 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		int randomNumber;
-		for (int i=0; i<5; i++)
-		{
+	//	for (int i=0; i<5; i++)
+	//	{
 			readFileContent();
 		//	System.out.println(fileContent);	
 			fileName= "CloneRemoteRepo.java";
@@ -68,17 +68,17 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	    	
 	    	System.out.println("total elapsed time: " + difference);
 	    	
-			try {
+	/*		try {
 				randomNumber= getRandomNumberInRange(20, 60);
 				System.out.println("Random Number::" + randomNumber);
 				Thread.sleep(1000*randomNumber);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}*/
 			
 
-		}
+	//	}
 	}
 
 	private  int getRandomNumberInRange(int min, int max) {

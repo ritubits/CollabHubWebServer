@@ -688,6 +688,8 @@ public class CompareGraphs {
 		  
 		  if (!clientMethodBody.equals(serverMethodBody))
 		  {
+			  System.out.println("ClientMethodBody:: "+clientMethodBody);
+			  System.out.println("serverMethodBody:: "+serverMethodBody);
 			  findDifferenceInMethodBody(clientMethodBody,serverMethodBody, clientMethodNode, serverMethodNode);
 		  }
 		  checkVariableDeclarationNodes(clientMethodNode, serverMethodNode);
@@ -705,7 +707,8 @@ public class CompareGraphs {
 			  if (!clientBody[i].equals(serverBody[i]))
 			  {
 				  // inform communicator
-				  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "MODIFIED");
+				  System.out.println("Body modified at::"+ clientBody[i]);
+				  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY MODIFIED");
 			  }
 		  }
 		  
@@ -713,12 +716,14 @@ public class CompareGraphs {
 		  {
 			  //added content to client body
 			  // inform communicator
-			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "ADDED");
+			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "BODY ADDED");
 		  }
 		  else
 		  {
+			  if (clientBody.length < serverBody.length){
 			  //deleted content from method
-			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "DELETED");
+			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY DELETED");
+			  }
 		  }
 	  }
 		 
