@@ -47,7 +47,7 @@ public class CompareGraphs {
 	    	BODY;
 	    }
 	 private String DB_PATH_CLIENT = "neo4jDB/Client/";
-	 private static final String DB_PATH_SERVER = "neo4jDB/Server";
+	// private static final String DB_PATH_SERVER = "neo4jDB/Server";
 	 private dependencyGraphNodes dpGraph;
 	 GraphDatabaseService graphDbServer;
 	 GraphDatabaseService graphDbClient;
@@ -65,26 +65,28 @@ public class CompareGraphs {
 				
 		}*/
  
-	    public void initializeDB(String cName, String ipSQL) {
+	    public void initializeDB(String cName, String ipSQL,  GraphDatabaseService graphServer) {
 
+	    	 graphDbServer =  graphServer;
 	    	nodeCanonicalHashMap= new HashMap<Long, String>();
 	    	readFromFileHashMap(nodeCanonicalHashMap);
 	    
 	    	collabName =cName;
 	    	ipAddSQL = ipSQL;
 	    	try {
-	    		  DB_PATH_CLIENT = DB_PATH_CLIENT + "CollabClient";
+	    		  DB_PATH_CLIENT = DB_PATH_CLIENT + collabName;
 	    		dpGraph = new dependencyGraphNodes();	    		
-	    		File dbDirServer = new File(DB_PATH_SERVER);
+	    	//	File dbDirServer = new File(DB_PATH_SERVER);
 	    		File dbDirClient = new File(DB_PATH_CLIENT);
-	    		communicator = new InconsistencyCommunicator(collabName, ipAddSQL, graphDbServer, nodeCanonicalHashMap);
+	    		
 	    		
 	    		//for server DB
-	    		GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
-	    		GraphDatabaseBuilder graphBuilderServer = graphFactoryServer.newEmbeddedDatabaseBuilder(dbDirServer);
-	    		 graphDbServer = graphBuilderServer.newGraphDatabase();  	    			    		 
-	            registerShutdownHook( graphDbServer );
+	    	//	GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
+	    	//	GraphDatabaseBuilder graphBuilderServer = graphFactoryServer.newEmbeddedDatabaseBuilder(dbDirServer);
+	    	//	 graphDbServer = graphBuilderServer.newGraphDatabase();  	    			    		 
+	        //    registerShutdownHook( graphDbServer );
 
+	            communicator = new InconsistencyCommunicator(collabName, ipAddSQL, graphDbServer, nodeCanonicalHashMap);
 	        	//for client DB
 	    		GraphDatabaseFactory graphFactoryClient = new GraphDatabaseFactory();
 	    		GraphDatabaseBuilder graphBuilderClient = graphFactoryClient.newEmbeddedDatabaseBuilder(dbDirClient);
@@ -94,7 +96,7 @@ public class CompareGraphs {
 	            compareDB();
 				
 	            
-				shutDown(graphDbServer);	
+			//	shutDown(graphDbServer);	
 				shutDown(graphDbClient);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

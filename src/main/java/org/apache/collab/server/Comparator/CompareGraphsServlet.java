@@ -14,6 +14,6 @@ public class CompareGraphsServlet extends HttpServlet {
 			    {
 			    
 		 CompareGraphs db= new CompareGraphs();
-		 db.initializeDB("CollabClient", "loclahost:3306");
+	//	 db.initializeDB("CollabClient", "loclahost:3306");
 			    }
 }

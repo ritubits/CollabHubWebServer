@@ -65,7 +65,6 @@ public class CreateUserArtifactGraph {
 		long lStartTime;
 		
 	 private String DB_PATH_CLIENT = "neo4jDB/Client/";
-	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	 
 	    public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
@@ -687,6 +686,7 @@ public class CreateUserArtifactGraph {
 	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
 	  				else
 	  					currentParentName = className;
+
 	  			//	System.out.println("currentParentName: "+currentParentName);
 	  				//create node from currentParentname to node.getType() if exists
 	  				
@@ -728,7 +728,11 @@ public class CreateUserArtifactGraph {
             //       System.out.println("invokedMethodName: " +invokedMethodName);
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
-	  				currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
+	  				if (parentMethodDeclarationNode !=null)
+		  				currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
+		  				else currentMethodName = className;
+	  				
+	  				//currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
 	  		//		System.out.println("currentMethodName: "+currentMethodName);
 	  	
 	  				//create calls edge from currentMethodName to invokedMethodName

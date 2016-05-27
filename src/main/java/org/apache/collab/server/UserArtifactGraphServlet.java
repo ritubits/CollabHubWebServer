@@ -26,6 +26,9 @@ import javax.servlet.http.Part;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 
 
 public class UserArtifactGraphServlet extends HttpServlet {
@@ -33,14 +36,14 @@ public class UserArtifactGraphServlet extends HttpServlet {
 
 	
 	//this servlet take the user file in string and creates an artifact graph
-	String collabName =null;
-    String fileName= null;
-    String fileContent= null;
+
     String ipAddTomcat= null;
     String ipAddSQL= null;
-    PrintWriter out =null;
+
     String DEBUG=null;
-    
+	 private static final String DB_PATH_SERVER = "neo4jDB/Server";
+	 GraphDatabaseService graphDbServer;
+	 
     public void init(ServletConfig config) throws ServletException  
     {
     
@@ -50,10 +53,22 @@ public class UserArtifactGraphServlet extends HttpServlet {
     	ipAddTomcat = getServletContext().getInitParameter("ipAddTomcat");
     	ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
      	DEBUG = getServletContext().getInitParameter("DEBUG");
+     	
+        
+		File dbDirServer = new File(DB_PATH_SERVER);
+    	GraphDatabaseFactory graphFactoryServer = new GraphDatabaseFactory();
+    	GraphDatabaseBuilder graphBuilderServer = graphFactoryServer.newEmbeddedDatabaseBuilder(dbDirServer);
+    	graphDbServer = graphBuilderServer.newGraphDatabase();  	    			    		 
+        registerShutdownHook( graphDbServer );
     }
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
+		String collabName =null;
+	    String fileName= null;
+	    String fileContent= null;
+	    PrintWriter out =null;
+	    
 		System.out.println(request.getParameter("text"));
 		String partName = "text"; // or "data"
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -101,14 +116,14 @@ public class UserArtifactGraphServlet extends HttpServlet {
 				    InputStream filecontent = item.openStream();
 				    
 				    BufferedReader reader = new BufferedReader(new InputStreamReader(filecontent));
-			        StringBuilder out = new StringBuilder();
+			        StringBuilder outBuilder = new StringBuilder();
 			        String line;
 			        while ((line = reader.readLine()) != null) {
-			            out.append(line);
-			            out.append('\n');
+			        	outBuilder.append(line);
+			        	outBuilder.append('\n');
 			        }
 			        reader.close();
-			        fileContent= out.toString();
+			        fileContent= outBuilder.toString();
 			        
 			    //    System.out.println(fileContent);  
 
@@ -132,9 +147,10 @@ public class UserArtifactGraphServlet extends HttpServlet {
 	    
 	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, collabName);
         userArtifactGraph.createGraph();
-        
+
+		
         CompareGraphs db= new CompareGraphs();
-		 db.initializeDB(collabName, ipAddSQL);
+		 db.initializeDB(collabName, ipAddSQL, graphDbServer);
 		 
 	}
 	
@@ -151,6 +167,33 @@ public class UserArtifactGraphServlet extends HttpServlet {
 		return name;
 		
 	}
+	
+	 private  void registerShutdownHook( final GraphDatabaseService graphDb )
+	    {
+	        // Registers a shutdown hook for the Neo4j instance so that it
+	        // shuts down nicely when the VM exits (even if you "Ctrl-C" the
+	        // running application).
+	        Runtime.getRuntime().addShutdownHook( new Thread()
+	        {
+	            @Override
+	            public void run()
+	            {
+	                graphDb.shutdown();
+	            }
+	        } );
+	    }
+	 
+	 public void destroy() {
+	 
+		 shutDown(graphDbServer);	
+	 }
+	   
+	 void shutDown(GraphDatabaseService graphDb)
+	    {
+	        System.out.println( "Shutting down database ..." );
+	        graphDb.shutdown();
+	        System.out.println( "DB server shuting down complete" );
+	    }
 }
 	
 

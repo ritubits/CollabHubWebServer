@@ -60,7 +60,7 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	    	System.out.println("Elapsed milliseconds after creation of user Graph: " + difference);
 	
 		    CompareGraphs db= new CompareGraphs();
-			db.initializeDB("CollabClient", ipAddSQL);
+		//	db.initializeDB("CollabClient", ipAddSQL);
 			
 			//System.out.println(getRandomNumberInRange(20, 60));
 		    lEndTime = System.currentTimeMillis();
