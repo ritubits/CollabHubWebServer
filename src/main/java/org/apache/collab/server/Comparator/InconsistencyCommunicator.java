@@ -28,14 +28,27 @@ public class InconsistencyCommunicator {
 	Connection conn=null;
 	GraphDatabaseService graphDbServer=null;
 	HashMap<Long, String> nodeCanonicalHashMap=null;
+	int radius=4;
 	public InconsistencyCommunicator(String cName, String ipSQL , GraphDatabaseService server, HashMap<Long, String> nodeMap )
 	{
 		collabName=cName;
 		if (DEBUG) System.out.println("In InconsistencyCommunicator::Collab::"+collabName);
 		ipAddSQL= ipSQL;
-		conn= LoadDriver.connect;
+	//	conn= LoadDriver.connect;
 		graphDbServer= server;
 		nodeCanonicalHashMap = nodeMap;
+		
+		
+		//added here only for checking... remove afterwards
+			try {
+		conn = LoadDriver.createConnection(ipAddSQL);
+		createTableConflictMessages(conn);
+
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+		
 	}
 	
 	 public  static enum dGraphNodeType implements Label {
@@ -85,7 +98,7 @@ public class InconsistencyCommunicator {
 				 {
 					 //package node found
 					 sendInfo(packageNode, msg_add_class+clientNode.getProperty("name"));
-					 informTransitiveSubNodes(packageNode, 2, msg_add_class+clientNode.getProperty("name"));
+					 informTransitiveSubNodes(packageNode, radius, msg_add_class+clientNode.getProperty("name"));
 					 break;
 				 }
 			}
@@ -105,7 +118,7 @@ public class InconsistencyCommunicator {
 				{
 					otherNode=r.getOtherNode(packageNode);
 					 sendInfo(otherNode, msg_add_class+clientNode.getProperty("name"));
-					 informTransitiveDependencyNodes(packageNode, 2, msg_add_class+clientNode.getProperty("name"));
+					 informTransitiveDependencyNodes(packageNode, radius, msg_add_class+clientNode.getProperty("name"));
 				}
 		}
 			
@@ -117,7 +130,7 @@ public class InconsistencyCommunicator {
 		
 		// inform parent of N1 
 		sendInfo(serverClassNode, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
-		informTransitiveSubNodes(serverClassNode, 2, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
+		informTransitiveSubNodes(serverClassNode, radius, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
@@ -127,7 +140,7 @@ public class InconsistencyCommunicator {
 					{
 						otherNode=r.getOtherNode(serverClassNode);
 						 sendInfo(otherNode, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
-						 informTransitiveDependencyNodes(serverClassNode, 2, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
+						 informTransitiveDependencyNodes(serverClassNode, radius, msg_add_attribute+serverClassNode.getProperty("canonicalName")+"| Attribute Added::"+ clientAttributeNode.getProperty("name") );
 					}
 		
 	}
@@ -524,7 +537,7 @@ public class InconsistencyCommunicator {
 			// 1) inform node N1
 			{
 				sendInfo(clientAttributeNode ,msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
-				informTransitiveSubNodes(clientAttributeNode, 2, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+				informTransitiveSubNodes(clientAttributeNode, radius, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
 			}
 		
 		// 2) inform dependencies of N1
@@ -535,7 +548,7 @@ public class InconsistencyCommunicator {
 			{
 				otherNode=r.getOtherNode(serverAttributeNode);
 				sendInfo(otherNode , msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
-				informTransitiveDependencyNodes(otherNode, 2, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+				informTransitiveDependencyNodes(otherNode, radius, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
 			}
 		
 		// 3) inform parent of N1
@@ -544,7 +557,7 @@ public class InconsistencyCommunicator {
 			if (serverClassNode !=null)
 			{
 				sendInfo(serverClassNode , msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
-				informTransitiveSubNodes(serverClassNode, 2, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+			informTransitiveSubNodes(serverClassNode, radius, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
 			}
 			
 			
@@ -558,7 +571,7 @@ public class InconsistencyCommunicator {
 					{
 						otherNode=r.getOtherNode(serverClassNode);
 						sendInfo(otherNode ,msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
-						informTransitiveDependencyNodes(otherNode, 2, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
+						informTransitiveDependencyNodes(otherNode, radius, msg_change_attribute_properties+propertyChanged+"|of attribute |"+clientAttributeNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"));
 					}
 				}			
 	}
@@ -702,27 +715,37 @@ public class InconsistencyCommunicator {
 	 {
 		 message= message + msg_collaborator+collabName;
 		 System.out.println("Send Info to::"+ node.getProperty("canonicalName")+ message);
+		// sendInfoToDB(node, message);
 		//filterMessage(node, "Send Info to::"+ node.getProperty("canonicalName")+ message);
+		filterMessage(node, message);
 	 }
 	 
 	 public void filterMessage(Node node, String message)
 	 {
-		 if (!messageAlreadySent(node, message))
-		 {
+		 
 			 if ((node.getProperty("nodeType").toString().equals("ATTRIBUTE")) || (node.getProperty("nodeType").toString().equals("METHOD")))
 			 {
 				 //get enclosing class
 				 Node ClassNode=null;				
 				Relationship r1= node.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
 				if (r1!=null) ClassNode = r1.getOtherNode(node);
-				sendInfoToDB(ClassNode, message);									 
+				{
+					 if (!messageAlreadySent(ClassNode, message)) 
+					 {
+						// System.out.println("In filterMessage::1::");
+						 sendInfoToDB(ClassNode, message);
+					 }
+				}
 			 }
 			 else
 			 {
 				 //send message to DB
-				 sendInfoToDB(node, message);
+				 if (!messageAlreadySent(node, message)) 
+				 { //System.out.println("In filterMessage::2::");
+					 sendInfoToDB(node, message);
+				 }
 			 }			 
-		 }
+		 
 	 }
 	 
 	 public boolean messageAlreadySent(Node node, String message)
@@ -737,9 +760,24 @@ public class InconsistencyCommunicator {
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-	    	   resultSet = statement.executeQuery("select * from conflictMessages where sentNode="+ node.getProperty("canonicalName").toString() + " AND message="+message);
+				sql= "select sentNode from conflictMessages where sentNode='"+ node.getProperty("canonicalName").toString() + "' AND message='"+message+"';";
+				if (DEBUG) System.out.println("SQL::from filterMessage::"+sql);
+	    	   resultSet = statement.executeQuery(sql);
+	    	   resultSet.last();
+	    	   System.out.println("Resultset is ::"+resultSet.getRow());
+	    	   if (resultSet.getRow() == 0) 
+	    	   {
+	    		   exists=false;
+	    		   System.out.println("Resultset is null");
+	    	   }
+	    	   else 
+	    		   {
+	    		   exists =true;
+	    		   System.out.println("Resultset is not null");
+	    		   }
 	    	   
-	    	   if (resultSet!=null)  exists=true;
+	    	   resultSet.close();
+
 	    	   }	       
  		 } catch (SQLException e) {				
 				e.printStackTrace();
@@ -763,17 +801,17 @@ public class InconsistencyCommunicator {
 		 			 //insert data here
 		 			 try {
 		 		        	
-		 				 if (DEBUG) System.out.println("inserting data in conflictMessages table in given database...");
+		 			//	 if (DEBUG) System.out.println("inserting data in conflictMessages table in given database...");
 		 				 statement = conn.createStatement();
 		 				
 		 				 			 
 		 				 sql = "INSERT INTO conflictMessages"+
 		 		                   " (sentNode, message) VALUES  ('"+node.getProperty("canonicalName").toString()+"','"+message+"');";
-		 				 if (DEBUG) System.out.println("SQL: "+sql);
+		 			//	 if (DEBUG) System.out.println("SQL: "+sql);
 		 				 statement.executeUpdate(sql);
 		 			   	   	
 		 				
-		 				  if (DEBUG)  System.out.println("inserted data in conflictMessages...");
+		 			//	  if (DEBUG)  System.out.println("inserted data in conflictMessages...");
 		 			      
 		 		          
 		 		        } catch (SQLException ex) {
@@ -791,10 +829,10 @@ public class InconsistencyCommunicator {
 	 }
 	 
 	 
-	 public void informTransitiveDependencyNodes(Node node, int radius, String msg)
+	 public void informTransitiveDependencyNodes(Node node, int radiusNode, String msg)
 	 {
 		
-		 if (radius == 0)
+		 if (radiusNode == 0)
 			return;
 		else
 		{
@@ -805,15 +843,15 @@ public class InconsistencyCommunicator {
 			{
 				otherNode=r.getOtherNode(node);
 				 sendInfo(otherNode,msg);
-				 informTransitiveDependencyNodes(otherNode, radius-1, msg);
+				 informTransitiveDependencyNodes(otherNode, radiusNode-1, msg);
 			}
 		}
 	 }
 	 
-	 public void informTransitiveSubNodes(Node node, int radius, String msg)
+	 public void informTransitiveSubNodes(Node node, int radiusNode, String msg)
 	 {
 		
-		 if (radius == 0)
+		 if (radiusNode == 0)
 			return;
 		else
 		{
@@ -824,8 +862,39 @@ public class InconsistencyCommunicator {
 			{
 				otherNode=r.getOtherNode(node);
 				 sendInfo(otherNode,msg);
-				 informTransitiveDependencyNodes(otherNode, radius-1, msg);
+				 informTransitiveDependencyNodes(otherNode, radiusNode-1, msg);
 			}
 		}
+	 }
+	 
+	 public void createTableConflictMessages(Connection conn)
+	 {
+		  Statement statement = null;
+	  
+		 //create table here
+		 try {
+	        	
+			 if (DEBUG) System.out.println("Creating conflictMessages table in given database...");
+			 statement = conn.createStatement();
+		      
+		      String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"+
+		                   "(sentNode VARCHAR(200) not NULL, " +
+		                   " message VARCHAR(300), " + 
+		                   " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "; 
+		      
+		    //  if (DEBUG) System.out.println("SQL: "+sql);
+
+		      statement.executeUpdate(sql);
+		      if (DEBUG) System.out.println("Created table in given database...");
+		      
+	          
+	        } catch (SQLException ex) {
+	            // handle any errors
+	            System.out.println("SQLException: " + ex.getMessage());
+	            System.out.println("SQLState: " + ex.getSQLState());
+	            System.out.println("VendorError: " + ex.getErrorCode());
+	           
+	        }
+	    	
 	 }
 }
