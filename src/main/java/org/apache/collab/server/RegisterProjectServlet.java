@@ -79,7 +79,7 @@ public class RegisterProjectServlet extends HttpServlet{
 				 if (DEBUG.contains("TRUE")) System.out.println("inserting data in table in given database...");
 				 statement = conn.createStatement();
 			      
-				 String sql = "INSERT INTO regProject_"+projectName+
+				 String sql = "INSERT INTO regProject"+//+projectName+
 		                   " VALUES ('"+projectName+"','"+ownerName+"','"+ipAddTomcat+"');";
 				 if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
 				 statement.executeUpdate(sql);
@@ -107,11 +107,16 @@ public class RegisterProjectServlet extends HttpServlet{
 			 if (DEBUG.contains("TRUE")) System.out.println("Creating table in given database...");
 			 statement = conn.createStatement();
 		      
-		      String sql = "CREATE TABLE regProject_"+projectName+
+		   /*   String sql = "CREATE TABLE regProject_"+projectName+
 		                   "(projectname VARCHAR(30) not NULL, " +
 		                   " ownerName VARCHAR(30), " + 
 		                   " ipAddTomcat VARCHAR(30), " + 
-		                   " PRIMARY KEY ( projectname ))"; 
+		                   " PRIMARY KEY ( projectname ))"; */
+		      String sql = "CREATE TABLE regProject"+
+	                   "(projectName VARCHAR(30) not NULL, " +
+	                   " ownerName VARCHAR(30), " + 
+	                   " ipAddTomcat VARCHAR(30), " + 
+	                   " PRIMARY KEY ( projectname ))"; 
 		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
 
 		      statement.executeUpdate(sql);

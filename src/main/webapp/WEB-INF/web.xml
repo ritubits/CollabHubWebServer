@@ -53,6 +53,12 @@
 		<servlet-class>org.apache.collab.server.RegisterProjectServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>ConflictMessagesServlet</servlet-name>
+		<display-name>ConflictMessagesServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.ConflictMessagesServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>CreateDependencyGraphServlet</servlet-name>
 		<display-name>CreateDependencyGraphServlet</display-name>
 		<description></description>
@@ -103,6 +109,10 @@
 	<servlet-mapping>
 		<servlet-name>InitiateCollabHub</servlet-name>
 		<url-pattern>/InitiateCollabHub</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ConflictMessagesServlet</servlet-name>
+		<url-pattern>/ConflictMessagesServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>RegisterProjectServlet</servlet-name>

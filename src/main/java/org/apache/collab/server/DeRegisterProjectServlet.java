@@ -51,9 +51,9 @@ public class DeRegisterProjectServlet extends HttpServlet{
 	        //make connection to DB
 	        //drop table regproject_projectName
 	        // columns: ProjectName, OwnerName and Tomcat_IP
-	       Connection con= LoadDriver.createConnection(ipAddSQL);
-	       dropTableRegProject(con);
-	       LoadDriver.closeConnection();
+	       Connection conn= LoadDriver.createConnection(ipAddSQL);
+	       dropTableRegProject(conn);
+	      
 	       	  	 
 		  }//doGet 
 	 
@@ -65,12 +65,25 @@ public class DeRegisterProjectServlet extends HttpServlet{
 		 //create table here
 		 try {
 	        	
-			  String sql = "DROP TABLE regProject_"+projectName+";";
+			  String sql = "DROP TABLE IF EXISTS regProject";
 			  if (DEBUG.contains("TRUE"))  System.out.println("SQL to drop table: "+ sql);
 			  statement = conn.createStatement();
 			  statement.executeUpdate(sql);
 			  if (DEBUG.contains("TRUE"))  System.out.println("Table  deleted in given database..."); 
 	          
+			  sql = "DROP TABLE IF EXISTS conflictmessages";
+			  if (DEBUG.contains("TRUE"))  System.out.println("SQL to drop table: "+ sql);
+			  statement = conn.createStatement();
+			  statement.executeUpdate(sql);
+			  if (DEBUG.contains("TRUE"))  System.out.println("Table  deleted in given database..."); 
+			  
+			  sql = "DROP TABLE IF EXISTS userdetails_"+projectName+";";
+			  if (DEBUG.contains("TRUE"))  System.out.println("SQL to drop table: "+ sql);
+			  statement = conn.createStatement();
+			  statement.executeUpdate(sql);
+			  if (DEBUG.contains("TRUE"))  System.out.println("Table  deleted in given database..."); 
+			  
+			 
 	        } catch (SQLException ex) {
 	            // handle any errors
 	            System.out.println("SQLException: " + ex.getMessage());
@@ -78,6 +91,9 @@ public class DeRegisterProjectServlet extends HttpServlet{
 	            System.out.println("VendorError: " + ex.getErrorCode());
 	            out.print("Exception:"+ex.getMessage());
 	        }
+		 finally{
+			 LoadDriver.closeConnection();
+		 }
 	    	
 	 }
 }

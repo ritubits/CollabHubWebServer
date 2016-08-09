@@ -97,7 +97,7 @@ public class UserActivityServlet extends HttpServlet{
 					 {
 							 
 						 sql = "INSERT INTO useractivity_"+collabName+
-				                   " (filename, elementName, lineNo, activitytype) VALUES  ('"+editFilesArray[i]+"','Null','0','OPEN');";
+				                   " (filename, elementName, lineNo, activitytype) VALUES  ('"+editFilesArray[i]+"','NULL','0','OPEN');";
 						 if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
 						 statement.executeUpdate(sql);												 					    
 					 }
