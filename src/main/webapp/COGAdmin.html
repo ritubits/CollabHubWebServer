@@ -5,31 +5,49 @@
 <title>COG: Admin Module</title>
 </head>
 <body>
-<b><font face="Arial, Helvetica, sans-serif"><font size=+2>Collaboration Over GitHub: Admin Module </font></font></b>
-<p>Links for monitoring projects and user activities.
+<b><font face="Arial, Helvetica, sans-serif"><font size=+2><center>Collaboration Over GitHub: Admin Module </center></font></font></b>
 
 <br>&nbsp;
-
+<p><center>You must enter the following details before proceeding further:</center>
 <br>&nbsp;
-
-
+<form >
+Project Name:  <input type="text" maxlength=30 name="projectName"  value="GreatProject" />
+<br>
+<br>
+Owner Name:   <input type="text" maxlength=30 name="ownerName" value="Mike"/>
+<br>
+<br>
+Enter GitHub Repo URL:  <input type="text" maxlength=100 name="remoteURL" value="https://github.com/ritubits/MathTutorialProject.git"/>
+<font size="3" color="grey">(e.g.: https://github.com/ritubits/MathTutorialProject.git)</font>
+<br>
+<br>
+Enter Temporary Folder Path:  <input type="text" maxlength=100 name="tempPath" value="D:\TestGitProjectRepo"/>
+<font size="3" color="grey">(e.g.: D:\TestGitProjectRepo)</font>
+<br>
+<br>
+Enter Source Folder Path:  <input type="text" maxlength=100 name="srcPath" value="D:\TestGitProjectRepo\MathProject\src\twoDShapes"/>
+<font size="3" color="grey">(e.g.: D:\TestGitProjectRepo\MathProject\src\twoDShapes)</font>
+</form>
+<br>
+<br>
 <table BORDER=0 CELLSPACING=5 WIDTH="85%" >
 <tr VALIGN=TOP>
-<td>COGServer</td>
+<td VALIGN=TOP WIDTH="40%"><center>COGServer</center></td>
 
-<td VALIGN=TOP WIDTH="30%"><a href="http://localhost:8080/examples/jsp/COGWebClient/userDetails.jsp">Start</a></td>
+<td VALIGN=TOP WIDTH="30%"><a href="http://localhost:8080/collabserver/InitiateCollabHub"><center>Start Server</center></a></td>
 
-<td WIDTH="30%"><a href="http://localhost:8080/examples/jsp/COGWebClient/conflictMessages.jsp">Stop</a></td>
+<td WIDTH="30%"><a href="http://localhost:8080/collabserver/StopServerServlet"><center>Stop Server</center></a></td>
 </tr>
 </table>
+<br>
 
 <table BORDER=0 CELLSPACING=5 WIDTH="85%" >
 <tr VALIGN=TOP>
-<td>COGWebClient</td>
+<td VALIGN=TOP WIDTH="40%"><center>COGWebClient</center></td>
 
-<td VALIGN=TOP WIDTH="30%"><a href="/AllCollaboratorsView">AllColaborators View</a></td>
+<td VALIGN=TOP WIDTH="30%"><a href="http://localhost:8080/collabserver/userDetails"><center>AllColaborators View</center></a></td>
 
-<td WIDTH="30%"><a href="http://localhost:8080/examples/jsp/COGWebClient/conflictMessages.jsp">AllConflicts View</a></td>
+<td WIDTH="30%"><a href="http://localhost:8080/collabserver/conflictMessages"><center>AllConflicts View</center></a></td>
 
 
 </tr>

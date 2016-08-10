@@ -98,7 +98,7 @@ Owner Name:   <% out.print(ownerName); %>
 
     </TD>
  
-<td WIDTH="30%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>"><img SRC="images/view.jpg" HSPACE=4 BORDER=0  align=TOP></a><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">View</a></td>
+<td WIDTH="30%"><a href="http://localhost:8080/collabserver/collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>"><img SRC="images/view.jpg" HSPACE=4 BORDER=0  align=TOP></a><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">View</a></td>
 
     </TR>
 

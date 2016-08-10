@@ -94,6 +94,30 @@
 		<description></description>
 		<servlet-class>org.apache.collab.server.UserArtifactGraphSimulatorServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>userDetails</servlet-name>
+		<jsp-file>/userDetails.jsp</jsp-file>
+	</servlet>
+ 	<servlet>
+		<servlet-name>collabInfo</servlet-name>
+		<jsp-file>/collabInfo.jsp</jsp-file>
+	</servlet>
+		<servlet>
+		<servlet-name>conflictMessages</servlet-name>
+		<jsp-file>/conflictMessages.jsp</jsp-file>
+	</servlet>
+		<servlet-mapping>
+		<servlet-name>conflictMessages</servlet-name>
+		<url-pattern>/conflictMessages</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>collabInfo</servlet-name>
+		<url-pattern>/collabInfo</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>userDetails</servlet-name>
+		<url-pattern>/userDetails</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>EchoServlet</servlet-name>
 		<url-pattern>/echo</url-pattern>
