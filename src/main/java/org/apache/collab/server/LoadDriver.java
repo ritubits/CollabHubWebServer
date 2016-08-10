@@ -11,6 +11,11 @@ public class LoadDriver {
 	  public static Connection connect = null;
   
 	  
+	   public static Connection getConnection() {
+		   return connect;
+	   }
+	   
+	   
     public static Connection createConnection(String ipAddSQL) {
         try {
 

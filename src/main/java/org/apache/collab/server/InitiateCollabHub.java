@@ -37,8 +37,8 @@ public class InitiateCollabHub extends HttpServlet{
 	 //       PrintWriter out = response.getWriter();
 	  
 	        System.out.println(" In the InitiateCollabHub ");
-	        projectName= request.getParameter("pName");
-	        ownerName = request.getParameter("oName");
+	        projectName= "MathTutorialProject";//request.getParameter("pName");
+	        ownerName = "mike";request.getParameter("oName");
 
 	        System.out.println("projectName: "+projectName);
 	        System.out.println("ownerName: "+ownerName);

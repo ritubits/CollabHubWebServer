@@ -63,7 +63,7 @@ public class CreateDependencyGraph {
 
 	
 	 private final String DB_PATH_SERVER = "neo4jDB/Server";
-	 private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	 private  String SRC_URL = null;//"D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
 	//private static final String SRC_URL = "D:\\DummyProject\\MathTutorialProject\\src";
 	// private static final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\atmosphere-master\\atmosphere-master";
 	//private final String SRC_URL = "C:\\Users\\PSD\\Desktop\\DownloadedGitHubProjects\\clojure-master";
@@ -121,7 +121,8 @@ public class CreateDependencyGraph {
                 bean.getCurrentThreadCpuTime( ) : 0L;
         }*/
         
-	    public void initializeDB(String pName) {
+	    public void initializeDB(String pName, String srcPath) {
+	    	SRC_URL= srcPath;
 	    	lStartTime = System.currentTimeMillis();//getCpuTime( ); //
 
 	    	try {

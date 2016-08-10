@@ -20,9 +20,9 @@ import org.eclipse.jgit.api.Git;
 public class CloneRemoteRepo implements Runnable {
 
 	//private static final String REMOTE_URL = "https://github.com/ritubits/CQPAss1.git";
-	private static final String REMOTE_URL = "https://github.com/Atmosphere/atmosphere.git";
+	private static final String REMOTE_URL = "https://github.com/ritubits/MathTutorialProject.git";
 	private static final String PATH_URL = "D:\\TestGitProjectRepo";
-	private static final String SRC_URL = "D:\\TestGitProjectRepo\\ParallelCollab\\Ass1\\src";
+	private static final String SRC_URL = "D:\\TestGitProjectRepo\\MathProject\\src\\twoDShapes";
 
 
 	private String ipAddSQL;
@@ -33,13 +33,13 @@ public class CloneRemoteRepo implements Runnable {
 		ipAddSQL = ipAddDB;
 		projectName = pName;
 
-	/*	try {
+	try {
 			con = LoadDriver.createConnection(ipAddSQL);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}*/
+		}
 	}
 
 	public void run() {
@@ -73,7 +73,7 @@ public class CloneRemoteRepo implements Runnable {
 				CreateDependencyGraph dbGraph= new CreateDependencyGraph();
 			    try {
 			    	System.out.println("Going to create DB");
-					dbGraph.initializeDB(projectName);
+					dbGraph.initializeDB(projectName, SRC_URL);
 
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -84,7 +84,7 @@ public class CloneRemoteRepo implements Runnable {
 				removeDirectory(filePath);
 
 				// change this to 20 minutes
-				Thread.sleep(60 * 3000);// 1min
+				Thread.sleep(60 * 3000);// 3min
 
 			}// for
 		}// try
