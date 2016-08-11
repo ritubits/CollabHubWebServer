@@ -7,6 +7,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.ResultSet;
 //import java.io.PrintWriter;
 //import java.sql.PreparedStatement;
 //import java.sql.ResultSet;
@@ -101,6 +102,8 @@ public class RegisterProjectServlet extends HttpServlet{
 	 {
 		  Statement statement = null;
 	  
+		  deleteFromRegProjectTable(conn);
+		  
 		 //create table here
 		 try {
 	        	
@@ -112,7 +115,7 @@ public class RegisterProjectServlet extends HttpServlet{
 		                   " ownerName VARCHAR(30), " + 
 		                   " ipAddTomcat VARCHAR(30), " + 
 		                   " PRIMARY KEY ( projectname ))"; */
-		      String sql = "CREATE TABLE regProject"+
+		      String sql = "CREATE TABLE IF NOT EXISTS regProject"+
 	                   "(projectName VARCHAR(30) not NULL, " +
 	                   " ownerName VARCHAR(30), " + 
 	                   " ipAddTomcat VARCHAR(30), " + 
@@ -133,17 +136,55 @@ public class RegisterProjectServlet extends HttpServlet{
 	    	
 	 }
 	 
+		public void deleteFromRegProjectTable(Connection conn) {
+
+			Statement statement = null;
+			java.sql.DatabaseMetaData meta;
+			String sql=null;
+			try {
+				meta = conn.getMetaData();
+				String tableName = null;
+				ResultSet res = meta.getTables(null, null, null,
+						new String[] { "TABLE" });
+				System.out.println("List of tables: ");
+				while (res.next()) {
+
+					tableName = res.getString("TABLE_NAME");
+
+					if (tableName.contains("regproject")) {
+						// regproject Table exists
+						// delete * from it
+						statement = conn.createStatement();
+						sql = "DELETE FROM " + tableName;
+
+						statement.executeUpdate(sql);
+
+					}// if
+				}// while
+				res.close();
+
+			} catch (SQLException ex) {
+				// handle any errors
+				System.out.println("SQLException: " + ex.getMessage());
+				System.out.println("SQLState: " + ex.getSQLState());
+				System.out.println("VendorError: " + ex.getErrorCode());
+
+			}
+
+
+		}// delete if exists
+		
 	 public void createTableUserDetails(Connection conn)
 	 {
 		  Statement statement = null;
 	  
 		 //create table here
 		 try {
-	        	
+			 deleteFromUserDetailsTable(conn);
 			 if (DEBUG.contains("TRUE")) System.out.println("Creating table user details in given database...");
 			 statement = conn.createStatement();
 		      
-		      String sql = "CREATE TABLE userdetails_"+projectName+
+		      String sql = "CREATE TABLE IF NOT EXISTS userdetails_"+projectName+
 		                   "(projectname VARCHAR(30) not NULL, " +
 		                   " collabName VARCHAR(30), " + 
 		                   " action VARCHAR(30))"; 
@@ -163,6 +204,44 @@ public class RegisterProjectServlet extends HttpServlet{
 	    	
 	 }
 	 
+		public void deleteFromUserDetailsTable(Connection conn) {
+
+			Statement statement = null;
+			java.sql.DatabaseMetaData meta;
+			String sql=null;
+			try {
+				meta = conn.getMetaData();
+				String tableName = null;
+				ResultSet res = meta.getTables(null, null, null,
+						new String[] { "TABLE" });
+				System.out.println("List of tables: ");
+				while (res.next()) {
+
+					tableName = res.getString("TABLE_NAME");
+
+					if (tableName.contains("userdetails_")) {
+						// regproject Table exists
+						// delete * from it
+						statement = conn.createStatement();
+						sql = "DELETE FROM " + tableName;
+
+						statement.executeUpdate(sql);
+
+					}// if
+				}// while
+				res.close();
+
+			} catch (SQLException ex) {
+				// handle any errors
+				System.out.println("SQLException: " + ex.getMessage());
+				System.out.println("SQLState: " + ex.getSQLState());
+				System.out.println("VendorError: " + ex.getErrorCode());
+
+			}
+
+
+		}// delete if exists
+		
 	 public void createTableConflictMessages(Connection conn)
 	 {
 		  Statement statement = null;

@@ -185,7 +185,10 @@ public class ConflictMessagesServlet extends HttpServlet{
 			
 			System.out.println("artifactName:: "+artifactName);
 			
-			if (getActivityArtifact().contains(artifactName)) found = true;
+			if (getActivityArtifact() !=null)
+				{
+				if (getActivityArtifact().contains(artifactName)) found = true;
+				}
 
 			
 			return found;

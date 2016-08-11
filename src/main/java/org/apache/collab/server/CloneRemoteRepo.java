@@ -20,17 +20,24 @@ import org.eclipse.jgit.api.Git;
 public class CloneRemoteRepo implements Runnable {
 
 	//private static final String REMOTE_URL = "https://github.com/ritubits/CQPAss1.git";
-	private static final String REMOTE_URL = "https://github.com/ritubits/MathTutorialProject.git";
-	private static final String PATH_URL = "D:\\TestGitProjectRepo";
-	private static final String SRC_URL = "D:\\TestGitProjectRepo\\MathProject\\src\\twoDShapes";
+//	private static final String REMOTE_URL = "https://github.com/ritubits/MathTutorialProject.git";
+//	private static final String PATH_URL = "D:\\TestGitProjectRepo";
+//	private static final String SRC_URL = "D:\\TestGitProjectRepo\\MathProject\\src\\twoDShapes";
 
+	private String REMOTE_URL = null;
+	private String PATH_URL = null;
+	private String SRC_URL = null; 
 
 	private String ipAddSQL;
 	private String projectName;
 	Connection con;
 
-	public CloneRemoteRepo(String pName, String ipAddDB) {
+	public CloneRemoteRepo(String pName, String ipAddDB, String rPath, String tPath, String sPath) {
 		ipAddSQL = ipAddDB;
+		REMOTE_URL= rPath;
+		PATH_URL= tPath;
+		SRC_URL= sPath;
+		
 		projectName = pName;
 
 	try {
