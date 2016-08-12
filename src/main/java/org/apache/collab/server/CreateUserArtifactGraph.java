@@ -537,7 +537,7 @@ public class CreateUserArtifactGraph {
  							//super class node found
  							//create dependency edge from current node to super class node
  							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
- 							
+ 							System.out.println("Creating @@@ extendsDependenctEdge::");
  							dpGraph.addExtendsDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
  						}
  					}//if (superClass !=null)
@@ -559,7 +559,7 @@ public class CreateUserArtifactGraph {
  	 							//interface node found
  	 							//create dependency edge from current node to interface node
  	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
- 	 							
+ 	 							System.out.println("Creating @@@ ImplementsDependenctEdge::");
  	 							dpGraph.addImplementsDependencyEdge(graphDb, idinterfaceNode, idCurrentClassNode);
  	 						}//if (idinterfaceNode != -1)
  						}//for (SimpleType interfaces: interfacesImplemented)
@@ -604,6 +604,7 @@ public class CreateUserArtifactGraph {
 							//create dependency edge from current class node to class node
 						//uses relationship		
 						System.out.println("Creating edge from Class to class for attribute node");
+						System.out.println("Creating @@@ UsesDependenctEdge::");
 							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -638,7 +639,8 @@ public class CreateUserArtifactGraph {
 						{
 							//class node found
 							//create dependency edge from current method node to class node
-						//uses relationship							
+						//uses relationship		
+						System.out.println("Creating @@@ UsesDependenctEdge::");
 							dpGraph.addDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -698,6 +700,7 @@ public class CreateUserArtifactGraph {
 	  				if ((invokeClassNodeId != (long) -1) && (currentNodeId != (long) -1))
 	  				{
 	  					System.out.println("Creating edge from ClassInstanceCreation");
+	  					System.out.println("Creating @@@ UsesDependenctEdge::");
 	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
 	  				}
 	  				return true;
@@ -742,6 +745,7 @@ public class CreateUserArtifactGraph {
 	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
 	  				{
 	  					System.out.println("Creating edge from MethodInvocation");
+	  					System.out.println("Creating @@@ CALLSDependenctEdge::");
 	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
 	  				}
 	  				return true;
