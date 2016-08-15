@@ -42,7 +42,7 @@ public class StopCollaborationServlet extends HttpServlet{
 		 	response.setContentType("text/html");
 	 //       PrintWriter out = response.getWriter();
 	  
-		 	if (DEBUG.contains("TRUE")) System.out.println(" In the RegisterProjectServlet ");
+		 	if (DEBUG.contains("TRUE")) System.out.println(" In the StopProjectServlet ");
 	        projectName= request.getParameter("pName");
 	        collabName = request.getParameter("cName");
 	//        ipAddTomcat = request.getParameter("ipAddT");

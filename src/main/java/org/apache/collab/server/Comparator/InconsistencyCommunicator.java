@@ -806,7 +806,7 @@ public class InconsistencyCommunicator {
 		 				
 		 				 			 
 		 				 sql = "INSERT INTO conflictMessages"+
-		 		                   " (sentNode, message) VALUES  ('"+node.getProperty("canonicalName").toString()+"','"+message+"');";
+		 		                   " (sentNode, message,collabName) VALUES  ('"+node.getProperty("canonicalName").toString()+"','"+message+"','"+collabName+"');";
 		 			//	 if (DEBUG) System.out.println("SQL: "+sql);
 		 				 statement.executeUpdate(sql);
 		 			   	   	
@@ -879,7 +879,7 @@ public class InconsistencyCommunicator {
 		      
 		      String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"+
 		                   "(sentNode VARCHAR(200) not NULL, " +
-		                   " message VARCHAR(300), " + 
+		                   " message VARCHAR(300), " + " collabName VARCHAR(30), " + 
 		                   " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "; 
 		      
 		    //  if (DEBUG) System.out.println("SQL: "+sql);

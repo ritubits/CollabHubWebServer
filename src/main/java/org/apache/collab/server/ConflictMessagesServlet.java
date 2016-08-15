@@ -142,7 +142,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    			   
 				statement = con.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select * from conflictmessages";
+				sql= "select * from conflictmessages where collabName <> '"+collabName+"'";
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
 				{
