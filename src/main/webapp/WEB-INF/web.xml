@@ -94,6 +94,24 @@
 		<description></description>
 		<servlet-class>org.apache.collab.server.ODCServlet</servlet-class>
 	</servlet>
+		<servlet>
+		<servlet-name>EDCServlet</servlet-name>
+		<display-name>EDCServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.EDCServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>EInCServlet</servlet-name>
+		<display-name>EInCServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.EInCServlet</servlet-class>
+	</servlet>
+		<servlet>
+		<servlet-name>OInCServlet</servlet-name>
+		<display-name>OInCServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.OInCServlet</servlet-class>
+	</servlet>
 	<servlet>
 		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
 		<display-name>UserArtifactGraphSimulatorServlet</display-name>
@@ -140,6 +158,18 @@
 		<servlet-mapping>
 		<servlet-name>ODCServlet</servlet-name>
 		<url-pattern>/ODCServlet</url-pattern>
+	</servlet-mapping>
+			<servlet-mapping>
+		<servlet-name>EDCServlet</servlet-name>
+		<url-pattern>/EDCServlet</url-pattern>
+	</servlet-mapping>
+				<servlet-mapping>
+		<servlet-name>EInCServlet</servlet-name>
+		<url-pattern>/EInCServlet</url-pattern>
+	</servlet-mapping>
+					<servlet-mapping>
+		<servlet-name>OInCServlet</servlet-name>
+		<url-pattern>/OInCServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>InitiateCollabHub</servlet-name>

@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.Vector;
 
-public class ODCServlet extends HttpServlet{
+public class EInCServlet extends HttpServlet{
 	
 
     String ipAddSQL= null;
@@ -41,25 +41,25 @@ public class ODCServlet extends HttpServlet{
 		 	response.setContentType("text/html");
 	        PrintWriter out = response.getWriter();
 	  
-	        System.out.println(" In the ODCServlet ");       
+	        System.out.println(" In the EInCServlet ");       
 	        collabName = request.getParameter("cName");
 	
 	        if (DEBUG.contains("TRUE")) System.out.println("ipAddress SQL: "+ipAddSQL);
 	        
 	        //make connection to DB
 	      
-	      //   con= LoadDriver.createConnection(ipAddSQL);//connect;
+	       //  con= LoadDriver.createConnection(ipAddSQL);//connect;
 	         con= LoadDriver.connect;
 	        String artifact=null;
-	        String collabNames = null;
+	        String returnData = null;
 		       if (con !=null) 
 		    	   {
 		    	   artifact=getEditArtifact(collabName);
-		    	   collabNames=getODC(artifact, activityTables);
+		    	   returnData=getEInDC(artifact, activityTables);
 		    	 //  messages=getConflictMessages(con);
 		    	   System.out.println("EditArtifact:: "+artifact);
-		    	   System.out.println("CollabNames:: "+parseCollabNames(collabNames, collabName));
-		    	   out.print(parseCollabNames(collabNames, collabName));
+		    	 //  System.out.println("CollabNames:: "+parseCollabNames(collabNames, collabName));
+		    	   out.print(returnData);
 		    	   }
 		       else 
 		       {
@@ -100,9 +100,9 @@ public class ODCServlet extends HttpServlet{
 	
 	 }
 	
-	public String getODC(String artifact, Vector activityTables)
+	public String getEInDC(String artifact, Vector activityTables)
 	{
-		String collabNames= null;
+		String EDCCollabData= null;
 		
 		try {
 
@@ -134,23 +134,17 @@ public class ODCServlet extends HttpServlet{
 	   			 while (userActivityTableName.hasMoreElements())
 			    	  {
 	   				 String usertableName= userActivityTableName.nextElement().toString();
-	   				 	sql= "select filename from "+ usertableName+" where filename='"+artifact+"' and activitytype='OPEN' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
-	   				
+	   				 //	sql= "select filename, elementName, lineNo from "+ usertableName+" where filename='"+artifact+"' and activitytype='EDIT' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
+	   				 sql="select filename,elementName,lineNo from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='EDIT' and activitytime = (select max(activitytime) from "+ usertableName+");";
 	   				 	ResultSet resultSet = statement.executeQuery(sql);
-	   				 int total=0;
+	   				 
 						while (resultSet.next())
 						{
-							resultSet.last();
-							total= resultSet.getRow();
-							System.out.println("Total::+"+total);					
-							//assumes only one row
-						}
-						if (total> 0)
-						{
-							//add this to coolab
-							if (collabNames == null)
-								collabNames= usertableName;
-							else collabNames= collabNames+"," +usertableName;
+							
+							if (EDCCollabData == null)
+								EDCCollabData= parse(usertableName)+","+ resultSet.getString("filename")+","+resultSet.getInt("lineNo")+","+ resultSet.getString("elementName");
+							else EDCCollabData= EDCCollabData+"|" +parse(usertableName)+","+ resultSet.getString("filename")+","+resultSet.getInt("lineNo")+","+ resultSet.getString("elementName");
+							
 						}
 			    	   resultSet.close();
 			    	  }
@@ -158,32 +152,16 @@ public class ODCServlet extends HttpServlet{
    			// TODO Auto-generated catch block
    			e.printStackTrace();
    		}
-		return collabNames;
+		return EDCCollabData;
 	}
 	
-	public String parseCollabNames(String collabNames, String collabName)
+	
+	public String parse(String tableName)
 	{
-		String collab= null;
-		String s= null;
-		  if (collabNames !=null)
-		  {
-		  String[] temp1;
-		  String delimiter1 = "[,]";
-		  temp1 = collabNames.split(delimiter1);
-		  for(int i =0; i < temp1.length ; i++)
-		  {
-		  System.out.println("i=" + i + temp1[i]);
-		  int index= temp1[i].indexOf("_");
-		   s= temp1[i].substring(index+1, temp1[i].length());
+		
+		  int index= tableName.indexOf("_");
+		   String s= tableName.substring(index+1, tableName.length());
 		   
-		   if (!collabName.equals(collab))
-		   {
-		  if (collab == null) collab= s;
-		  else collab= collab+","+s;
-		   }
-		  }
-		  				
-		  }	
-		return collab;
+		return s;
 	}
 }
