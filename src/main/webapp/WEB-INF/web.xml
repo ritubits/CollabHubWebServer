@@ -89,6 +89,12 @@
 		<servlet-class>org.apache.collab.server.UserArtifactGraphServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>ODCServlet</servlet-name>
+		<display-name>ODCServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.ODCServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
 		<display-name>UserArtifactGraphSimulatorServlet</display-name>
 		<description></description>
@@ -106,6 +112,7 @@
 		<servlet-name>conflictMessages</servlet-name>
 		<jsp-file>/conflictMessages.jsp</jsp-file>
 	</servlet>
+	
 		<servlet-mapping>
 		<servlet-name>conflictMessages</servlet-name>
 		<url-pattern>/conflictMessages</url-pattern>
@@ -129,6 +136,10 @@
 	<servlet-mapping>
 		<servlet-name>getCollaboratorDetails</servlet-name>
 		<url-pattern>/getCollaboratorDetails</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>ODCServlet</servlet-name>
+		<url-pattern>/ODCServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>InitiateCollabHub</servlet-name>
