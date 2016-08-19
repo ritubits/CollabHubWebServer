@@ -139,10 +139,10 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    	   { 
 	    	   String sentNode=null;
 	    	   String message=null;
-	    			   
+	    		String color=null;	   
 				statement = con.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select * from conflictmessages where collabName <> '"+collabName+"'";
+				sql= "select * from conflictmessages where collabName <> '"+collabName+"' order by messagetime DESC";
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
 				{
@@ -156,10 +156,10 @@ public class ConflictMessagesServlet extends HttpServlet{
 						artifactName = sentNode;
 					else artifactName= artifactName+","+sentNode;
 					
-					
+					color= getColorString(sentNode);
 					if (conflictMessage == null)					
-						conflictMessage = message;
-					else conflictMessage= conflictMessage+","+message;
+						conflictMessage = message+"#"+color;
+					else conflictMessage= conflictMessage+","+message+"#"+color;
 					}
 					
 		
@@ -173,6 +173,42 @@ public class ConflictMessagesServlet extends HttpServlet{
 		 return conflictMessage;
 	 }
 	 
+	 public String getColorString(String sentNode)
+	 {
+		 String color=null;
+		 int index= sentNode.lastIndexOf('.');
+		 sentNode= sentNode.substring(index+1, sentNode.length());
+		 //search 
+		 Statement statement = null;
+		  String sql = null;
+		 ResultSet resultSet =null;
+		
+		  try {
+	       if (con !=null) 
+	    	   { 
+   
+				statement = con.createStatement();				    	   
+	    	   // Result set get the result of the SQL query
+				 sql= "select filename, activitytype, activitytime from useractivity_"+collabName+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+collabName+");";
+				resultSet = statement.executeQuery(sql);
+				while (resultSet.next())
+				{
+					if (sentNode.equals(resultSet.getString("filename")))
+					{
+						color="cyan";
+						
+					}
+					else color= "yellow";
+				}
+	    	   }
+		  }catch (SQLException e)
+		  {
+			  e.printStackTrace();
+		  }
+		  
+		 return color;
+			
+	 }
 		public boolean artifactFound(String artifactName)
 		{
 			boolean found=false;
