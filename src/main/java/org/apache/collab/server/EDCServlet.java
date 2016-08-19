@@ -141,8 +141,8 @@ public class EDCServlet extends HttpServlet{
 						while (resultSet.next())
 						{
 							if (EDCCollabData == null)
-								EDCCollabData= parse(usertableName)+","+ resultSet.getInt("lineNo")+","+ resultSet.getString("elementName");
-							else EDCCollabData= EDCCollabData+"|" +parse(usertableName)+","+ resultSet.getInt("lineNo")+","+ resultSet.getString("elementName");
+								EDCCollabData= parse(usertableName)+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
+							else EDCCollabData= EDCCollabData+"|" +parse(usertableName)+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
 						}
 			    	   resultSet.close();
 			    	  }
