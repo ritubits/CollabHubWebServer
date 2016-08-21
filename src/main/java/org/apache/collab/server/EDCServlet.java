@@ -55,7 +55,7 @@ public class EDCServlet extends HttpServlet{
 		       if (con !=null) 
 		    	   {
 		    	   artifact=getEditArtifact(collabName);
-		    	   returnData=getODC(artifact, activityTables);
+		    	   returnData=getODC(artifact, activityTables,collabName);
 		    	 //  messages=getConflictMessages(con);
 		    	   System.out.println("EditArtifact:: "+artifact);
 		    	//   System.out.println("CollabNames:: "+parseCollabNames(collabNames, collabName));
@@ -100,7 +100,7 @@ public class EDCServlet extends HttpServlet{
 	
 	 }
 	
-	public String getODC(String artifact, Vector activityTables)
+	public String getODC(String artifact, Vector activityTables, String cName)
 	{
 		String EDCCollabData= null;
 		
@@ -130,6 +130,7 @@ public class EDCServlet extends HttpServlet{
 	   			      //get data from individual activity table
 	   			   statement = con.createStatement();
 	   			    String sql=null;  
+	   			    String clientName=null;
 	   			   Enumeration userActivityTableName= activityTables.elements();
 	   			 while (userActivityTableName.hasMoreElements())
 			    	  {
@@ -140,9 +141,13 @@ public class EDCServlet extends HttpServlet{
 	   				 
 						while (resultSet.next())
 						{
-							if (EDCCollabData == null)
-								EDCCollabData= parse(usertableName)+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
-							else EDCCollabData= EDCCollabData+"|" +parse(usertableName)+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
+							clientName= parse(usertableName);
+							if (!clientName.equalsIgnoreCase(cName))
+							{
+								if (EDCCollabData == null)
+									EDCCollabData= clientName+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
+								else EDCCollabData= EDCCollabData+"|" +clientName+","+ resultSet.getString("elementName")+","+resultSet.getInt("lineNo");
+							}
 						}
 			    	   resultSet.close();
 			    	  }

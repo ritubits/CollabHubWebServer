@@ -176,7 +176,7 @@ public class ODCServlet extends HttpServlet{
 		  int index= temp1[i].indexOf("_");
 		   s= temp1[i].substring(index+1, temp1[i].length());
 		   
-		   if (!collabName.equals(collab))
+		   if (!collabName.equalsIgnoreCase(collab))
 		   {
 		  if (collab == null) collab= s;
 		  else collab= collab+","+s;

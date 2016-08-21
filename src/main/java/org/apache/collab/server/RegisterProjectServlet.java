@@ -255,6 +255,7 @@ public class RegisterProjectServlet extends HttpServlet{
 		      String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"+
 		                   "(sentNode VARCHAR(30) not NULL, " +
 		                   " message VARCHAR(200), " + 
+		                   " collabName VARCHAR(30), " + 
 		                   " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "; 
 		      
 		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);

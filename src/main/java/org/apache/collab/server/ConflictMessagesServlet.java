@@ -54,9 +54,9 @@ public class ConflictMessagesServlet extends HttpServlet{
 		       if (con !=null) 
 		    	   {
 		    	   getActivtyData(collabName);
-		    	   messages=getConflictMessages(con);
+		    	   messages=getConflictMessages(con, collabName);
 		    	   System.out.println("ConflictMessageS:: "+messages);
-		    	   out.print(messages);
+		    	   out.print((messages));
 		    	   }
 		       else 
 		       {
@@ -126,7 +126,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 				}	
 		}
 
-	 public String getConflictMessages(Connection con)
+	 public String getConflictMessages(Connection con, String collabName)
 	 {
 		 Statement statement = null;
 		  String sql = null;
@@ -140,6 +140,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    	   String sentNode=null;
 	    	   String message=null;
 	    		String color=null;	   
+	    		
 				statement = con.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
 				sql= "select * from conflictmessages where collabName <> '"+collabName+"' order by messagetime DESC";
@@ -157,9 +158,17 @@ public class ConflictMessagesServlet extends HttpServlet{
 					else artifactName= artifactName+","+sentNode;
 					
 					color= getColorString(sentNode);
-					if (conflictMessage == null)					
-						conflictMessage = message+"#"+color;
-					else conflictMessage= conflictMessage+","+message+"#"+color;
+
+						if (conflictMessage == null)					
+							conflictMessage = "#"+color+message;
+						else 
+							{
+								if (!conflictMessage.contains(message))
+								{
+									conflictMessage= conflictMessage+","+"#"+color+message;
+								}
+							}
+					
 					}
 					
 		
@@ -182,7 +191,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 		 Statement statement = null;
 		  String sql = null;
 		 ResultSet resultSet =null;
-		
+		String fileName=null;
 		  try {
 	       if (con !=null) 
 	    	   { 
@@ -193,12 +202,15 @@ public class ConflictMessagesServlet extends HttpServlet{
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
 				{
-					if (sentNode.equals(resultSet.getString("filename")))
+					fileName= resultSet.getString("filename");
+					System.out.println("from getColorString sentNode::"+sentNode);
+					System.out.println("from getColorString fileName::"+fileName);
+					if (sentNode.equals(fileName))
 					{
-						color="cyan";
+						color="EDC";//"cyan";
 						
 					}
-					else color= "yellow";
+					else color= "EIC";//"yellow";
 				}
 	    	   }
 		  }catch (SQLException e)
@@ -230,4 +242,6 @@ public class ConflictMessagesServlet extends HttpServlet{
 			return found;
 			
 		}
+		
+
 }
