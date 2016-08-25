@@ -18,7 +18,6 @@ public class getCollaboratorDetails extends HttpServlet{
 
 	//this servlet will connect to DB and obtains user activity data
 	String projectName =null;
-    String collabName= null;
     String ipAddTomcat= null;
     String ipAddSQL= null;
     PrintWriter out =null;
@@ -54,14 +53,12 @@ public class getCollaboratorDetails extends HttpServlet{
 	        out = response.getWriter();
 	  
 	        if (DEBUG.contains("TRUE")) System.out.println(" In the getCollaboratorDetails ");
-	        projectName= request.getParameter("pName");
-	        collabName = request.getParameter("cName");
+	     //   projectName= request.getParameter("pName");
 	        
 
 	        if (DEBUG.contains("TRUE"))
 	        {
-	        System.out.println("projectName: "+projectName);
-	        System.out.println("collabName: "+collabName);
+	     //   System.out.println("projectName: "+projectName);;
 	        System.out.println("ipAddress Tomcat: "+ipAddTomcat);
 	        System.out.println("ipAddress SQL: "+ipAddSQL);
 	        }
@@ -69,6 +66,7 @@ public class getCollaboratorDetails extends HttpServlet{
 	        //does not use the existing connection	 
 	        try {
 	     	   con= LoadDriver.createConnection(ipAddSQL);
+	     	   projectName= getProjectName(con);
 		       String out = getDataUserActivity(con);
 		  	 	PrintWriter outWriter = response.getWriter();
 		  	 	
@@ -82,7 +80,31 @@ public class getCollaboratorDetails extends HttpServlet{
 		}
 		  }//doGet 
 	 
-
+	 public String getProjectName(Connection con)
+	 {
+		 String pName=null;
+		  try
+		  {
+	       Statement statement = con.createStatement();
+		      
+			 String sql = "SELECT distinct(projectName) FROM regproject";
+			 ResultSet rs = statement.executeQuery(sql);
+		
+		      while(rs.next()){
+		    	  pName = rs.getString("projectName");
+		      }
+		     
+		      rs.close();
+		  }
+		  catch (Exception e)
+		  {
+			  e.printStackTrace();
+		  }
+		 return pName;
+		 
+	 }
+	 
+	 
 	 public String getDataUserActivity(Connection conn)
 	 {
 		 String out = null;

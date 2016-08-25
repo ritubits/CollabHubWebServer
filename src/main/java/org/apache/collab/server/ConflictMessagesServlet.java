@@ -185,6 +185,8 @@ public class ConflictMessagesServlet extends HttpServlet{
 	 public String getColorString(String sentNode)
 	 {
 		 String color=null;
+		 String fName=null;
+		 int index2=0;
 		 int index= sentNode.lastIndexOf('.');
 		 sentNode= sentNode.substring(index+1, sentNode.length());
 		 //search 
@@ -203,14 +205,17 @@ public class ConflictMessagesServlet extends HttpServlet{
 				while (resultSet.next())
 				{
 					fileName= resultSet.getString("filename");
-					System.out.println("from getColorString sentNode::"+sentNode);
-					System.out.println("from getColorString fileName::"+fileName);
-					if (sentNode.equals(fileName))
+
+					index2= fileName.indexOf(".");
+					 fName= fileName.substring(index2+1, fileName.length());
+						System.out.println("from getColorString sentNode::"+sentNode);
+						System.out.println("from getColorString fileName::"+fName);
+					if (sentNode.contains(fName))
 					{
 						color="EDC";//"cyan";
 						
 					}
-					else color= "EIC";//"yellow";
+					else color= "EDC";//"yellow";
 				}
 	    	   }
 		  }catch (SQLException e)

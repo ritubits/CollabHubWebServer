@@ -798,6 +798,7 @@ public class InconsistencyCommunicator {
 		    	   Statement statement = null;
 		 		  String sql = null;
 
+		 		  message= addLineNo(message);
 		 			 //insert data here
 		 			 try {
 		 		        	
@@ -828,7 +829,56 @@ public class InconsistencyCommunicator {
 		       //do not close this connection
 	 }
 	 
-	 
+	 public String addLineNo(String message)
+	 {
+		 String newMsg=null;
+		 String eName=null;
+		 int line=0;
+	       if (conn !=null) 
+    	   {
+    	   	//updateUserActivityTable(con);
+    	   Statement statement = null;
+ 		  String sql = null;
+ 		
+ 			 try { 		        	
+ 				 statement = conn.createStatement();
+ 				
+ 				 			 
+ 				 sql = "select filename, elementName, lineNo from useractivity_"+collabName+" where activitytype='EDIT' and activitytime = (select max(activitytime) from useractivity_"+collabName+");";
+ 				ResultSet resultSet = statement.executeQuery(sql);
+ 			   	   	int index=0;
+ 				while (resultSet.next())
+				{
+ 					eName= resultSet.getString("elementName");
+ 					line = resultSet.getInt("lineNo");
+ 					eName= eName.substring(1, eName.length());
+ 					index= eName.indexOf("(");
+ 					if (index !=-1) eName= eName.substring(0,index);
+ 					System.out.println("Index from Conflcit Messages@@@:: "+ eName);
+ 					if (message.matches("(.*)"+eName+"(.*)"))
+ 					{
+ 						if (line !=0 ) newMsg= message+"@LineNo::"+line;
+ 					}
+ 					else newMsg= message;
+ 					
+				}
+ 			      
+ 		          
+ 		        } catch (SQLException ex) {
+ 		            // handle any errors
+ 		            System.out.println("SQLException: " + ex.getMessage());
+ 		            System.out.println("SQLState: " + ex.getSQLState());
+ 		            System.out.println("VendorError: " + ex.getErrorCode());		 		           
+ 		        }
+    	   }
+       else 
+       {
+    	   System.out.println("No connection exists:");//need to forward this error
+       }
+       //do not close this connection
+
+		 return newMsg;
+	 }
 	 public void informTransitiveDependencyNodes(Node node, int radiusNode, String msg)
 	 {
 		
