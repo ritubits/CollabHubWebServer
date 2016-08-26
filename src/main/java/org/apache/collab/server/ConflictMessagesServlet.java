@@ -212,10 +212,10 @@ public class ConflictMessagesServlet extends HttpServlet{
 						System.out.println("from getColorString fileName::"+fName);
 					if (sentNode.contains(fName))
 					{
-						color="EDC";//"cyan";
+						color="EIC";//"cyan";
 						
 					}
-					else color= "EDC";//"yellow";
+					else color= "EIC";//"yellow";
 				}
 	    	   }
 		  }catch (SQLException e)

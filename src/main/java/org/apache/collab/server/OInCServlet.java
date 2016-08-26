@@ -57,7 +57,7 @@ public class OInCServlet extends HttpServlet{
 		    	   artifact=getEditArtifact(collabName);
 		    	   returnData=getOInDC(artifact, activityTables);
 
-		    	   System.out.println("EditArtifact:: "+artifact);
+		    	   System.out.println("OINDATA:::::::::::::::: "+returnData);
 		    	   out.print(returnData);
 		    	   }
 		       else 
@@ -133,13 +133,13 @@ public class OInCServlet extends HttpServlet{
 	   			 while (userActivityTableName.hasMoreElements())
 			    	  {
 	   				 String usertableName= userActivityTableName.nextElement().toString();
-	   				 	sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
-	   				 
+	   				// 	sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
+	   				 sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' order by activitytime DESC;";
 	   				 	ResultSet resultSet = statement.executeQuery(sql);
-	   				 
-						while (resultSet.next())
+	   				 int i=0;
+						while (resultSet.next() && i<=4)
 						{
-							
+							i++;
 							if (EDCCollabData == null)
 								EDCCollabData= parse(usertableName)+","+ resultSet.getString("filename");
 							else EDCCollabData= EDCCollabData+"|" +parse(usertableName)+","+ resultSet.getString("filename");
