@@ -90,7 +90,8 @@ public class CollabInfoBean {
 	    			   
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select * from conflictmessages where collabName <>"+collabName;
+				sql= "select * from conflictmessages where collabName <> '"+collabName+"'";
+				System.out.println("From CollabInfoBean:::"+ sql);
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
 				{

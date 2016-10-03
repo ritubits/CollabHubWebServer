@@ -798,7 +798,7 @@ public class InconsistencyCommunicator {
 		    	   Statement statement = null;
 		 		  String sql = null;
 
-		 		  message= addLineNo(message);
+		 		//= addLineNo(message);
 		 			 //insert data here
 		 			 try {
 		 		        	

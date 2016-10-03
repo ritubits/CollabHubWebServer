@@ -153,6 +153,13 @@ public class CompareGraphs {
 							
 					 long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
 					 System.out.println("serverNodeID::"+serverNodeID);
+					if (serverNodeID == -1)
+					{
+						//node does not exist
+						 System.out.println("Node does not exist");
+					}
+					else
+					{
 					 Node serverClassNode= graphDbServer.getNodeById(serverNodeID);
 					found = false;
 					
@@ -204,6 +211,7 @@ public class CompareGraphs {
 							}
 					 }
 					  
+				}
 				}
 		    }
 		 
@@ -348,19 +356,30 @@ public class CompareGraphs {
 			   //get class node id from HashMap
 			   long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
 			   System.out.println("serverNodeID::"+serverNodeID);
-			   Node classNodeFoundOnServer= graphDbServer.getNodeById(serverNodeID);
 			   
-			   if (classNodeFoundOnServer == null)
+			   if (serverNodeID== -1)
 			   {
-				   //class does not exist on server
+				   //inform addition of node
+				 //class does not exist on server
 				   //message new class
 				   invokeCase1(clientNode, graphDbServer);//addition of a new class
 			   }
+			   
 			   else
 			   {
-				   System.out.println("Class Node exists");
-					checkConnectingNodesExist(clientNode, classNodeFoundOnServer); // class exits
-					invokeCheckClassProperties(clientNode, classNodeFoundOnServer);
+				   Node classNodeFoundOnServer= graphDbServer.getNodeById(serverNodeID);
+				   if (classNodeFoundOnServer == null)
+				   {
+					   //class does not exist on server
+					   //message new class
+					   invokeCase1(clientNode, graphDbServer);//addition of a new class
+				   }
+				   else
+				   {
+					   System.out.println("Class Node exists");
+						checkConnectingNodesExist(clientNode, classNodeFoundOnServer); // class exits
+						invokeCheckClassProperties(clientNode, classNodeFoundOnServer);
+				   }
 			   }
 			}
 	    }

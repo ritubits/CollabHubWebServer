@@ -150,6 +150,7 @@ public class EDCServlet extends HttpServlet{
 							}
 						}
 			    	   resultSet.close();
+			    	   System.out.println("EDCCollabData::"+ EDCCollabData);
 			    	  }
 		}		   		 catch (Exception e) {
    			// TODO Auto-generated catch block

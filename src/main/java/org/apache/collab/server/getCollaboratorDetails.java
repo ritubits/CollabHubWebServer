@@ -63,17 +63,23 @@ public class getCollaboratorDetails extends HttpServlet{
 	        System.out.println("ipAddress SQL: "+ipAddSQL);
 	        }
 	        //make connection to DB
-	        //does not use the existing connection	 
+	        //does not use the existing connection
+	        PrintWriter outWriter =response.getWriter();
 	        try {
 	     	   con= LoadDriver.createConnection(ipAddSQL);
 	     	   projectName= getProjectName(con);
-		       String out = getDataUserActivity(con);
-		  	 	PrintWriter outWriter = response.getWriter();
-		  	 	
-		  	  if (DEBUG.contains("TRUE")) System.out.println(out);
-		  	 	
-		  	 	outWriter.print(out);
+	     	   if (projectName !=null)
+	     	   {
+			       String out = getDataUserActivity(con);
+			  	 			  	 	
+			  	  if (DEBUG.contains("TRUE")) System.out.println(out);
+			  	 	
+			  	 	outWriter.print(out);
 			//	con.close();
+	     	   }
+	     	   else
+	     		  outWriter.print("null");
+	     	   
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -87,6 +93,9 @@ public class getCollaboratorDetails extends HttpServlet{
 		  {
 	       Statement statement = con.createStatement();
 		      
+	       if (existsRegTable(con))
+	       
+	       {
 			 String sql = "SELECT distinct(projectName) FROM regproject";
 			 ResultSet rs = statement.executeQuery(sql);
 		
@@ -95,11 +104,14 @@ public class getCollaboratorDetails extends HttpServlet{
 		      }
 		     
 		      rs.close();
-		  }
+		  
+	       }
+	       }
 		  catch (Exception e)
 		  {
 			  e.printStackTrace();
 		  }
+		  
 		 return pName;
 		 
 	 }
@@ -206,6 +218,33 @@ public class getCollaboratorDetails extends HttpServlet{
 
 		        }
 		    	
+		 }
+		 public boolean existsRegTable(Connection con)
+		 {
+			 boolean exists= false;
+			 try {
+
+		   	       java.sql.DatabaseMetaData meta;
+		   		
+		   			meta = con.getMetaData();
+		   			String tableName = null;
+		   			Statement statement =null;
+		   			 ResultSet res = meta.getTables(null, null, null, new String[] {"TABLE"});
+		   		//	 if (DEBUG.contains("TRUE"))  System.out.println("List of tables: "); 
+		   			       while (res.next()) {
+		   			    	   
+		   			    	   tableName = res.getString("TABLE_NAME");
+		   			    	   if (tableName.contains("regproject"))
+		   			    	   {		   			    		  
+		   			    		   exists=true;
+		   			    		// if (DEBUG.contains("TRUE")) System.out.println("UserActivity tables:: "+ tableName);
+		   			    	   }
+		   			       }
+			 }catch (Exception e)
+			 {
+				 e.printStackTrace();
+			 }
+			 return exists;
 		 }
 		 
 		 public String startProcessing(Connection con)

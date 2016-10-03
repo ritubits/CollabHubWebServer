@@ -205,14 +205,14 @@ public class ConflictMessagesServlet extends HttpServlet{
 				while (resultSet.next())
 				{
 					fileName= resultSet.getString("filename");
-
+					System.out.println("from getColorString fileName::"+fileName);
 					index2= fileName.indexOf(".");
-					 fName= fileName.substring(index2+1, fileName.length());
+					 fName= fileName.substring(0, index2);
 						System.out.println("from getColorString sentNode::"+sentNode);
 						System.out.println("from getColorString fileName::"+fName);
 					if (sentNode.contains(fName))
 					{
-						color="EIC";//"cyan";
+						color="EDC";//"cyan";
 						
 					}
 					else color= "EIC";//"yellow";
