@@ -59,7 +59,7 @@ public class CreateUserArtifactGraph {
 	 GraphDatabaseService graphDb;
 	 Node artifactNode;
 	    String tryBody=null;
-	    
+	    CompilationUnit cu = null;  
 	    long lEndTime;//System.currentTimeMillis();
 		long difference;
 		long lStartTime;
@@ -167,7 +167,7 @@ public class CreateUserArtifactGraph {
         	//artifactNode = graphDb.createNode(dGraphNodeType.CLASS);      
         	System.out.println("created artifactNode object:: "+fileName);     	   
    	  	           	
-			CompilationUnit cu = parse(fileContent, fileName);
+			cu = parse(fileContent, fileName);
 			String smallClassName= parse(fileName);
 			String className=null;
 			String packName = null;
@@ -252,8 +252,8 @@ public class CreateUserArtifactGraph {
      						//		System.out.println("SimpleName()::"+smallAttributeName);
      								attributeName= className+"."+smallAttributeName;
      						//		System.out.println("getInitializer::"+s3);
-     								
-     								aNode= dpGraph.addAttributeNode(graphDb, artifactNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+     								 int lineNumber = cu.getLineNumber(fd.getStartPosition());
+     								aNode= dpGraph.addAttributeNode(graphDb, artifactNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
      								}	//if    					
      							}//for variable declaration     					
      					}//field declaration
@@ -346,7 +346,8 @@ public class CreateUserArtifactGraph {
 						//		System.out.println("getInitializer::"+initializer);
 								
 								//create VariableDeclarationNode
-								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+								 int lineNumber = cu.getLineNumber(node.getStartPosition());
+								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
 							}	
 						}
 					return false;

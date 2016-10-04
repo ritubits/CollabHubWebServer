@@ -160,7 +160,7 @@ public class dependencyGraphNodes {
         return mNode;
     }
     
-    public Node addAttributeNode(GraphDatabaseService graphDb, Node cNode, String smallAttributeName, String attributeName, String modifier, String dataType, String initializer)
+    public Node addAttributeNode(GraphDatabaseService graphDb, Node cNode, String smallAttributeName, String attributeName, String modifier, String dataType, String initializer, int lineno)
     {
  //   	System.out.println("Creating Method Node::"+methodName);
     	Node aNode = graphDb.createNode(dGraphNodeType.ATTRIBUTE);
@@ -169,7 +169,8 @@ public class dependencyGraphNodes {
     	aNode.setProperty( "canonicalName", attributeName );
     	aNode.setProperty( "nodeType", "ATTRIBUTE" );
     	aNode.setProperty( "modifier", modifier );
-    	aNode.setProperty( "dataType", dataType );  	
+    	aNode.setProperty( "dataType", dataType );  
+    	aNode.setProperty( "lineNumber", lineno );  
     	if (initializer !=null)    	aNode.setProperty( "initializer", initializer );
     	else aNode.setProperty( "initializer", "null" );
     	
@@ -188,7 +189,7 @@ public class dependencyGraphNodes {
         return aNode;
     }
     
-    public Node addVariableDeclarationNode(GraphDatabaseService graphDb, Node mNode, String smallAttributeName, String attributeName, String modifier, String dataType, String initializer)
+    public Node addVariableDeclarationNode(GraphDatabaseService graphDb, Node mNode, String smallAttributeName, String attributeName, String modifier, String dataType, String initializer, int lineNo)
     {
  //   	System.out.println("Creating Method Node::"+methodName);
     	Node aNode = graphDb.createNode(dMethodNodeType.VariableDeclarationNode);
@@ -197,7 +198,8 @@ public class dependencyGraphNodes {
     	aNode.setProperty( "canonicalName", attributeName );
     	aNode.setProperty( "nodeType", "METHOD-ATTRIBUTE" );
     	aNode.setProperty( "modifier", modifier );
-    	aNode.setProperty( "dataType", dataType );  	
+    	aNode.setProperty( "dataType", dataType ); 
+    	aNode.setProperty( "lineNumber", lineNo );
     	if (initializer !=null)    	aNode.setProperty( "initializer", initializer );
     	else aNode.setProperty( "initializer", "null" );
     //	aNode.setProperty( "initializer", initializer );

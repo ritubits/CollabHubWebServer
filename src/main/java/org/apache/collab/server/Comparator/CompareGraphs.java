@@ -566,19 +566,20 @@ public class CompareGraphs {
 	  public void invokeCheckAttributeProperties(Node clientAttributeNode, Node serverAttributeNode )
 	  {		  
 		  //modifier, datatype and initializer (may be null)
+		  String lineNumber= clientAttributeNode.getProperty("lineNumber").toString();
 		  
 		  if (!(clientAttributeNode.getProperty("modifier").toString().equals(serverAttributeNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
 			 // System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different modifier");
-			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "modifier");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "modifier", lineNumber);
 		  }
 		  
 		  if (!(clientAttributeNode.getProperty("dataType").toString().equals(serverAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
 			  //System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
-			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "dataType");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "dataType", lineNumber);
 			  //this also leads to creation of a dependency edge
 			  invokeAttributeDependencyEdgeCreation(clientAttributeNode);
 		  }
@@ -587,7 +588,7 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  //System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different initializer");
-			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "initializer");
+			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "initializer", lineNumber);
 		  }
 	  }
 	  
@@ -800,18 +801,20 @@ public class CompareGraphs {
 		  r= serverMethodAttributeNode.getSingleRelationship(methodRelTypes.BODY, Direction.OUTGOING);
 		  serverMethodNode= r.getOtherNode(serverMethodAttributeNode);
 		  
+		  String lineNumber= clientMethodAttributeNode.getProperty("lineNumber").toString();
+		  
 		  if (!(clientMethodAttributeNode.getProperty("modifier").toString().equals(serverMethodAttributeNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different modifier");
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "modifier");
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "modifier", lineNumber);
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("dataType").toString().equals(serverMethodAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");			  
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "dataType");
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "dataType", lineNumber);
 			 
 			  invokeMethodDependencyEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
 		  }
@@ -820,7 +823,7 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different initializer");
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "initializer");
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "initializer", lineNumber);
 		  }
 
 	  }

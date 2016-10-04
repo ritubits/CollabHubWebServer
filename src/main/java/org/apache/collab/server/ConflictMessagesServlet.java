@@ -119,8 +119,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 			
 					}
 		    	   resultSet.close();
-
-		    	   }	       
+		    	   }
 			 } catch (SQLException e) {				
 					e.printStackTrace();
 				}	
@@ -140,7 +139,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    	   String sentNode=null;
 	    	   String message=null;
 	    		String color=null;	   
-	    		
+	    		String sentCollab= null;
 				statement = con.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
 				sql= "select * from conflictmessages where collabName <> '"+collabName+"' order by messagetime DESC";
@@ -150,15 +149,15 @@ public class ConflictMessagesServlet extends HttpServlet{
 					
 					sentNode= resultSet.getString("sentNode");
 					message= resultSet.getString("message");
-					
+					sentCollab = resultSet.getString("collabName");//message sent by this collaborator
 					if (artifactFound(sentNode))
 					{
 					if (artifactName == null)					
 						artifactName = sentNode;
 					else artifactName= artifactName+","+sentNode;
 					
-					color= getColorString(sentNode);
-
+					//color= getColorString(sentNode);
+					color= getCollabType(sentCollab);
 						if (conflictMessage == null)					
 							conflictMessage = "#"+color+message;
 						else 
@@ -226,11 +225,61 @@ public class ConflictMessagesServlet extends HttpServlet{
 		 return color;
 			
 	 }
+	 
+	 public String getCollabType(String sentCollab)
+	 {
+		 String color=null;
+		 String myFileName=null;
+		 String collabFileName=null;
+		 
+		 Statement statement = null;
+		  String sql = null;
+		 ResultSet resultSet =null;
+		String fileName=null;
+		  try {
+	       if (con !=null) 
+	    	   { 
+   
+				statement = con.createStatement();				    	   
+	    	   // Result set get the result of the SQL query
+				 sql= "select filename, activitytype, activitytime from useractivity_"+collabName+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+collabName+");";
+				resultSet = statement.executeQuery(sql);
+				while (resultSet.next())
+				{
+					myFileName= resultSet.getString("filename");
+				}
+				resultSet.close();
+				
+				
+				 sql= "select filename, activitytype, activitytime from useractivity_"+sentCollab+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+sentCollab+");";
+				resultSet = statement.executeQuery(sql);
+				while (resultSet.next())
+				{
+					collabFileName= resultSet.getString("filename");
+				}
+				resultSet.close();
+	    	   }
+	       
+	       if (myFileName.equalsIgnoreCase(collabFileName))
+	       {
+	    	   color="EDC";
+	       }
+	       else color="EIC";
+	       
+		  }catch (SQLException e)
+		  {
+			  e.printStackTrace();
+		  }
+		  
+		 return color;
+			
+	 }
 		public boolean artifactFound(String artifactName)
 		{
+			//This method checks if the sentNode is the same as the current edit artifact
+			//Then returns true else false
+			
 			boolean found=false;
-		
-
 			System.out.println("ActivityData:: "+getActivityArtifact());
 			
 			int index= artifactName.lastIndexOf('.');

@@ -74,7 +74,7 @@ public class CreateDependencyGraph {
 	      GraphDatabaseService graphDb;
 	      Node rootNode;
 	    String tryBody=null;
-	    
+	    CompilationUnit cu = null; 
 	    public  static enum dGraphNodeType implements Label {
 	    	PROJECT, PACKAGE, CLASS, INTERFACE, METHOD, ATTRIBUTE;
 	    }   
@@ -365,8 +365,8 @@ public class CreateDependencyGraph {
      						//		System.out.println("SimpleName()::"+smallAttributeName);
      								attributeName= className+"."+smallAttributeName;
      						//		System.out.println("getInitializer::"+s3);
-     								
-     								aNode= dpGraph.addAttributeNode(graphDb, cNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+     								 int lineNumber = cu.getLineNumber(fd.getStartPosition());
+     								aNode= dpGraph.addAttributeNode(graphDb, cNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
      								}	//if    					
      							}//for variable declaration     					
      					}//field declaration
@@ -785,7 +785,8 @@ public class CreateDependencyGraph {
 						//		System.out.println("getInitializer::"+initializer);
 								
 								//create VariableDeclarationNode
-								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer );
+								 int lineNumber = cu.getLineNumber(node.getStartPosition());
+								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
 							}	
 						}
 					return false;
