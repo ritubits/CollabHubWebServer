@@ -132,7 +132,7 @@ public class dependencyGraphNodes {
         return interfaceNode;
     }
     
-    public Node addMethodNode(GraphDatabaseService graphDb, Node cNode, String smallMethodName, String methodName, String modifier, String returnType, String parameterList, String body)
+    public Node addMethodNode(GraphDatabaseService graphDb, Node cNode, String smallMethodName, String methodName, String modifier, String returnType, String parameterList, String body, int lineNumber)
     {
  //   	System.out.println("Creating Method Node::"+methodName);
     	Node mNode = graphDb.createNode(dGraphNodeType.METHOD);
@@ -143,6 +143,7 @@ public class dependencyGraphNodes {
     	mNode.setProperty( "modifier", modifier );
     	mNode.setProperty( "returnType", returnType );  	
     	mNode.setProperty( "parameterList", parameterList );
+    	mNode.setProperty( "lineNumber", lineNumber );
     	//System.out.println("Method ")
     	mNode.setProperty( "body", body );
     	

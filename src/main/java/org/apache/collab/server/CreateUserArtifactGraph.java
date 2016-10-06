@@ -252,7 +252,11 @@ public class CreateUserArtifactGraph {
      						//		System.out.println("SimpleName()::"+smallAttributeName);
      								attributeName= className+"."+smallAttributeName;
      						//		System.out.println("getInitializer::"+s3);
-     								 int lineNumber = cu.getLineNumber(fd.getStartPosition());
+     								
+     								 int lineNumber = 0;
+     								if (fd!=null && cu !=null) {
+     									lineNumber= cu.getLineNumber(fd.getStartPosition());
+     								 }
      								aNode= dpGraph.addAttributeNode(graphDb, artifactNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
      								}	//if    					
      							}//for variable declaration     					
@@ -292,7 +296,7 @@ public class CreateUserArtifactGraph {
 	  				    // add method node
 	  				  String param=null;
 	  				List parameterList= node.parameters();
-	  				if (parameterList.isEmpty()) param = parameterList.toString();
+	  				if (!parameterList.isEmpty()) param = parameterList.toString();
 	  				else param = "null";
 	  				
 	  				String returnTypeString=null;
@@ -300,7 +304,12 @@ public class CreateUserArtifactGraph {
 	  				if (returnType !=null) returnTypeString = returnType.toString();
 	  				else returnTypeString = "null";
 	  				
-	  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), returnTypeString,  param, methodBody);
+	  				int lineNumber = 0;
+					 if (node!=null && cu !=null)
+					 {
+					 lineNumber= cu.getLineNumber(node.getStartPosition());
+					 }
+	  				    Node mNode= dpGraph.addMethodNode(graphDb, cNode, smallMethodName, mName, Modifier.toString(mod), returnTypeString,  param, methodBody, lineNumber);
 	  				  if (node.getBody() !=null) visitMethodBlock(dpGraph,graphDb, node.getBody(), mNode);
 	  				    return false; // do not continue 
 	  				  }
@@ -346,7 +355,11 @@ public class CreateUserArtifactGraph {
 						//		System.out.println("getInitializer::"+initializer);
 								
 								//create VariableDeclarationNode
-								 int lineNumber = cu.getLineNumber(node.getStartPosition());
+								 int lineNumber = 0;
+								 if (node!=null && cu !=null)
+								 {
+								 lineNumber= cu.getLineNumber(node.getStartPosition());
+								 }
 								dpGraph.addVariableDeclarationNode(graphDb, mNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
 							}	
 						}
@@ -361,7 +374,7 @@ public class CreateUserArtifactGraph {
 		 
 		 Block block= methodBlock;
 		 
-			if (block != null) {			
+			if (block != null && cu !=null) {			
 				 int lineNumber = cu.getLineNumber(block.getStartPosition()) - 1;
 
 		//		System.out.println("Line no:: "+lineNumber); 

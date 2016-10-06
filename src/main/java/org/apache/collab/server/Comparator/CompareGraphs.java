@@ -632,6 +632,7 @@ public class CompareGraphs {
 	  public void checkMethodsExist(Node methodNode, Node clientNode, Node serverClassNode)
 	  {
 		  //get the corresponding class node at the server
+		  String lineNumber= methodNode.getProperty("lineNumber").toString();
 		  
 		  if (DEBUG) System.out.println("In checkMethodsExist");
 		  String clientMethodName=null;
@@ -670,7 +671,7 @@ public class CompareGraphs {
 					//method does not exist
 					//addition of attribute node in client
 					  if (DEBUG) System.out.println("Method does not exists:: "+methodNode);
-					 communicator.informAdditionMethodNodeCase1(methodNode, clientNode, serverClassNode);
+					 communicator.informAdditionMethodNodeCase1(methodNode, clientNode, serverClassNode, lineNumber);
 				}
 		 }
 	  }

@@ -145,11 +145,11 @@ public class InconsistencyCommunicator {
 		
 	}
 	
-	public void informAdditionMethodNodeCase1(Node clientMethodNode, Node clientClassNode, Node serverClassNode)
+	public void informAdditionMethodNodeCase1(Node clientMethodNode, Node clientClassNode, Node serverClassNode, String lineNumber)
 	{
 		if (DEBUG) System.out.println("In informAdditionMethodNodeCase1");
 		// inform parent of N1 
-		sendInfo(serverClassNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"), " ");
+		sendInfo(serverClassNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"), lineNumber);
 		
 		//inform all dependencies on parent of N1
 		  Node otherNode;
@@ -158,7 +158,7 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						 sendInfo(otherNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"), " ");
+						 sendInfo(otherNode, msg_add_method+clientMethodNode.getProperty("name")+ "| to the class :|"+ clientClassNode.getProperty("name"), lineNumber);
 					}
 		
 	}
@@ -716,7 +716,7 @@ public class InconsistencyCommunicator {
 		
 		 if (!lineNo.equalsIgnoreCase(" "))
 		 {
-			 message= message + "@LineNo::"+lineNo+" "+ msg_collaborator+collabName;
+			 message= message + msg_collaborator+collabName + "@LineNo::"+lineNo;
 		 }
 		 else
 			 message= message + msg_collaborator+collabName;
