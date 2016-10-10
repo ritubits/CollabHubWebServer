@@ -260,7 +260,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 				resultSet.close();
 	    	   }
 	       
-	       if (myFileName.equalsIgnoreCase(collabFileName))
+	       if ((myFileName!=null) && (myFileName.equalsIgnoreCase(collabFileName)))
 	       {
 	    	   color="EDC";
 	       }

@@ -442,12 +442,12 @@ public class CompareGraphs {
 	   {
 		 // System.out.println(" invokeCheckClassProperties-- still to be implemented");
 		  //modifier, imports and packageName, extends, implements (may be null)
-		  
+		  String lineNumber= clientNode.getProperty("lineNumber").toString();
 		  if (!(clientNode.getProperty("modifier").toString().equals(serverNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
 			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different modifier");
-			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "modifier");			  
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "modifier", lineNumber);			  
 		  }
 		  
 		  if (!(clientNode.getProperty("imports").toString().equals(serverNode.getProperty("imports").toString())))
@@ -455,28 +455,28 @@ public class CompareGraphs {
 			  //different imports
 			 // System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different imports");
 			  //invoke change in dependency edges for imports
-			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "imports");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "imports", lineNumber);
 		  }
 		  
 		  if (!(clientNode.getProperty("packageName").toString().equals(serverNode.getProperty("packageName").toString())))
 		  {
 			  //different modifier
 			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different packageName");
-			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "packageName");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "packageName", lineNumber);
 		  }
 		  
 		  if (!(clientNode.getProperty("extends").toString().equals(serverNode.getProperty("extends").toString())))
 		  {
 			  //different modifier
 			//  System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different extends");
-			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "extends");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "extends", lineNumber);
 		  }
 		  
 		  if (!(clientNode.getProperty("implements").toString().equals(serverNode.getProperty("implements").toString())))
 		  {
 			  //different modifier
 			  //System.out.println("Send to Client::"+ clientNode.getProperty("name")+"has a different implements");
-			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "implements");
+			  communicator.informPropertyChangeClassNodeCase3(clientNode, serverNode, "implements", lineNumber);
 		  }
 		  
 	   }
@@ -556,7 +556,8 @@ public class CompareGraphs {
 					//attribute does not exist
 					//addition of attribute node in client
 					invokeAttributeDependencyEdgeCreation(attributeNode);
-					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode);
+					 String lineNumber= attributeNode.getProperty("lineNumber").toString();
+					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode, lineNumber);
 					
 				}
 		 }
@@ -722,16 +723,21 @@ public class CompareGraphs {
 	  {
 
 		  //get client body in an array
-		  String clientBody[]= clientMethodBody.split(",");
-		  String serverBody[]= serverMethodBody.split(",");
+		  
+		  String lineNumber= clientMethodNode.getProperty("lineNumber").toString();
+		  String clientBody[]= clientMethodBody.split(";");
+		  String serverBody[]= serverMethodBody.split(";");
 		  int i;
 		  for (i=0; i< clientBody.length && i < serverBody.length; i++)
 		  {
+			  System.out.println("ClientBody[i]:: "+i + " "+ clientBody[i]);
+			  System.out.println("serverBody[i]:: "+i + " "+ serverBody[i]);
+			  
 			  if (!clientBody[i].equals(serverBody[i]))
 			  {
 				  // inform communicator
-				  System.out.println("Body modified at::"+ clientBody[i]);
-				  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY MODIFIED");
+				  System.out.println("Body modified at:: "+ i + " "+ clientBody[i]);
+				  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY MODIFIED", i+2+Integer.parseInt(lineNumber));
 			  }
 		  }
 		  
@@ -739,13 +745,13 @@ public class CompareGraphs {
 		  {
 			  //added content to client body
 			  // inform communicator
-			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "BODY ADDED");
+			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "BODY ADDED", i+2+Integer.parseInt(lineNumber));
 		  }
 		  else
 		  {
 			  if (clientBody.length < serverBody.length){
 			  //deleted content from method
-			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY DELETED");
+			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY DELETED", i+2+Integer.parseInt(lineNumber));
 			  }
 		  }
 	  }
