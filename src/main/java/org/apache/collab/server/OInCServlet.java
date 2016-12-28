@@ -118,8 +118,13 @@ public class OInCServlet extends HttpServlet{
 	   			    	   if (tableName.contains("useractivity"))
 	   			    	   {
 	   			    		   //add to table array for activities
+	   			    		   //add table to array only if the collaborator is indirect collaborator
+	   			    		  if  (checkIndirectCollaborator(tableName,artifact))
+	   			    		  {
 	   			    		   activityTables.addElement(tableName);
 	   			    		 if (DEBUG.contains("TRUE")) System.out.println("UserActivity tables:: "+ tableName);
+	   			    		  }
+	   			    		
 	   			    	   }
 	   			       }
 	   			      res.close();
@@ -134,7 +139,8 @@ public class OInCServlet extends HttpServlet{
 			    	  {
 	   				 String usertableName= userActivityTableName.nextElement().toString();
 	   				// 	sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
-	   				 sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' order by activitytime DESC;";
+	   				 //sql= "select filename from "+ usertableName+" where filename<>'"+artifact+"' and activitytype='OPEN' order by activitytime DESC;";
+	   				 sql= "select distinct(filename) from "+ usertableName+" where activitytype='OPEN' order by activitytime DESC;";
 	   				 	ResultSet resultSet = statement.executeQuery(sql);
 	   				 int i=0;
 						while (resultSet.next() && i<=4)
@@ -162,5 +168,41 @@ public class OInCServlet extends HttpServlet{
 		   String s= tableName.substring(index+1, tableName.length());
 		   
 		return s;
+	}
+	
+	boolean checkIndirectCollaborator(String tableName, String artifact)
+	{
+		String collabName= parse(tableName);
+		String editArtifact=null; 
+		Statement statement = null;
+		  String sql = null;
+		 ResultSet resultSet =null;
+		  try {
+		       if (con !=null) 
+		    	   { 
+		    			   
+					statement = con.createStatement();				    	   
+		    	   // Result set get the result of the SQL query
+					sql= "select filename, activitytime from useractivity_"+collabName +" where activitytype='EDIT' and activitytime = (select max(activitytime) from useractivity_"+collabName+");";
+					resultSet = statement.executeQuery(sql);
+					while (resultSet.next())
+					{
+						
+						editArtifact= resultSet.getString("filename");						
+						//assumes only one row
+					}
+		    	   resultSet.close();
+		    	   }	       
+			 } catch (SQLException e) {				
+					e.printStackTrace();
+				}	
+		  
+		  {
+			  //debug statements
+			  System.out.println("In::OINSER:: "+ editArtifact);
+			  System.out.println("In::OINSER:: "+ artifact);		  
+		  }
+		  if ((editArtifact!=null) && (!editArtifact.equals(artifact))) 	return true;
+		  else return false;
 	}
 }

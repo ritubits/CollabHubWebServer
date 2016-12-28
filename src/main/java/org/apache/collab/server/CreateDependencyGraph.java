@@ -315,20 +315,24 @@ public class CreateDependencyGraph {
      						{implemented ="[null]";
      					//	System.out.println("Implemented list is null");
      						}
+     					 int lineNumber = 0;
+							if (t!=null && cu !=null) {
+								lineNumber= cu.getLineNumber(t.getStartPosition());
+							 }
         				if (isInterface)
         				{
         					if (packageNode !=null)
-        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier, lineNumber);
         					else	
-        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier);
+        						cNode= dpGraph.addConnectingInterfaceNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, lineNumber);
         					//writeToFile(smallClassName+" INTERFACE ");
         				}
         				else 
         					{
         					if (packageNode !=null)
-        						cNode= dpGraph.addConnectingClassNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
+        						cNode= dpGraph.addConnectingClassNode(graphDb, packageNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented, lineNumber);
         					else
-        						cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
+        						cNode= dpGraph.addConnectingClassNode(graphDb, rootNode, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented, lineNumber);
         					//writeToFile(smallClassName+" CLASS ");
         					}
         				
@@ -366,7 +370,7 @@ public class CreateDependencyGraph {
      								attributeName= className+"."+smallAttributeName;
      						//		System.out.println("getInitializer::"+s3);
      								
-     								 int lineNumber = 0;
+     								 lineNumber = 0;
      								 if (fd!=null && cu !=null) lineNumber= cu.getLineNumber(fd.getStartPosition());
      								aNode= dpGraph.addAttributeNode(graphDb, cNode, smallAttributeName, attributeName,attributeModifier,attributeType, initializer, lineNumber );
      								}	//if    					
@@ -1054,11 +1058,16 @@ public class CreateDependencyGraph {
     	//write hash to file
     	try
 		{
-    	File configfile = new File("neo4jDB/Server/HashMap.txt");
+    	File configfile = new File("neo4jDB/HashMap.txt");
         
         if (!configfile.exists()) {
         	configfile.createNewFile();
         	}
+        else {
+        	//delete existing file and create new
+        	configfile.delete();
+        	configfile.createNewFile();
+        }
     	
 		FileWriter fw = new FileWriter(configfile.getAbsoluteFile(), true);
 		BufferedWriter bw = new BufferedWriter(fw);

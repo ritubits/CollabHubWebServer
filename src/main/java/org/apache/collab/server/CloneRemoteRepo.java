@@ -91,7 +91,7 @@ public class CloneRemoteRepo implements Runnable {
 				removeDirectory(filePath);
 
 				// change this to 20 minutes
-				Thread.sleep(600 * 3000);// 3min
+				Thread.sleep(600 * 30000);
 
 			}// for
 		}// try

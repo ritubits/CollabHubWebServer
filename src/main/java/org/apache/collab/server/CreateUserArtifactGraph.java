@@ -1,15 +1,19 @@
 package org.apache.collab.server;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Map.Entry;
 
 import org.apache.collab.server.Comparator.CompareGraphs;
 import org.apache.collab.server.CreateDependencyGraph.RelTypes;
@@ -213,11 +217,15 @@ public class CreateUserArtifactGraph {
      						{implemented ="[null]";
      					//	System.out.println("Implemented list is null");
      						}
+     					 int lineNumber = 0;
+							if (t!=null && cu !=null) {
+								lineNumber= cu.getLineNumber(t.getStartPosition());
+							 }
         				if (isInterface)
         				{
-        					artifactNode= dpGraph.createIndependentInterfaceNode(graphDb, smallClassName, className, cu.imports().toString(), packName, modifier);
+        					artifactNode= dpGraph.createIndependentInterfaceNode(graphDb, smallClassName, className, cu.imports().toString(), packName, modifier, lineNumber);
         				}
-        				else artifactNode= dpGraph.createIndependentClassNode(graphDb, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented);
+        				else artifactNode= dpGraph.createIndependentClassNode(graphDb, smallClassName, className, cu.imports().toString(), packName, modifier, extend, implemented, lineNumber);
         				
      					//System.out.println("Class modifiers::"+Modifier.toString(t.getModifiers()));
      					FieldDeclaration[] fieldArr = t.getFields();
@@ -253,7 +261,7 @@ public class CreateUserArtifactGraph {
      								attributeName= className+"."+smallAttributeName;
      						//		System.out.println("getInitializer::"+s3);
      								
-     								 int lineNumber = 0;
+     								 lineNumber = 0;
      								if (fd!=null && cu !=null) {
      									lineNumber= cu.getLineNumber(fd.getStartPosition());
      								 }
@@ -545,6 +553,7 @@ public class CreateUserArtifactGraph {
  					{
  						//search for Class node in hashmap
  				//		System.out.println("Searching for superClassNode::"+superClass);
+ 						
  						idSuperNode= searchClassNode(superClass.toString(), nodeHashMap);
  						if (idSuperNode != -1)
  						{
@@ -552,6 +561,10 @@ public class CreateUserArtifactGraph {
  							//create dependency edge from current node to super class node
  							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  							System.out.println("Creating @@@ extendsDependenctEdge::");
+ 							
+ 							//write to dependencyEdge file
+ 	 						writeDependencyEdgesToFile(idCurrentClassNode, idSuperNode, "EXTENDS");
+ 	 						
  							dpGraph.addExtendsDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
  						}
  					}//if (superClass !=null)
@@ -574,6 +587,10 @@ public class CreateUserArtifactGraph {
  	 							//create dependency edge from current node to interface node
  	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  	 							System.out.println("Creating @@@ ImplementsDependenctEdge::");
+ 	 							
+ 	 							//write to dependencyEdge file
+ 	 	 						writeDependencyEdgesToFile(idCurrentClassNode, idinterfaceNode, "IMPLEMENTS");
+ 	 	 						
  	 							dpGraph.addImplementsDependencyEdge(graphDb, idinterfaceNode, idCurrentClassNode);
  	 						}//if (idinterfaceNode != -1)
  						}//for (SimpleType interfaces: interfacesImplemented)
@@ -715,6 +732,9 @@ public class CreateUserArtifactGraph {
 	  				{
 	  					System.out.println("Creating edge from ClassInstanceCreation");
 	  					System.out.println("Creating @@@ UsesDependenctEdge::");
+	  					
+	  				//write to dependencyEdge file
+	 					writeDependencyEdgesToFile(currentNodeId, invokeClassNodeId, "USES");
 	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
 	  				}
 	  				return true;
@@ -760,6 +780,9 @@ public class CreateUserArtifactGraph {
 	  				{
 	  					System.out.println("Creating edge from MethodInvocation");
 	  					System.out.println("Creating @@@ CALLSDependenctEdge::");
+	  					
+	  				//write to dependencyEdge file
+	 					writeDependencyEdgesToFile(currentMethodNodeId, invokeMethodNodeId, "CALLS");
 	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
 	  				}
 	  				return true;
@@ -816,4 +839,31 @@ public class CreateUserArtifactGraph {
 	
 			 
 	 }
+	 
+	   public void writeDependencyEdgesToFile(long fromNode, long toNode, String edgeType)
+	    {
+	    	//write hash to file
+	    	try
+			{
+	    	File dependencyfile = new File("neo4jDB/Client/"+collabName+"edges.txt");
+	        
+	        if (!dependencyfile.exists()) {
+	        	dependencyfile.createNewFile();
+	        	}
+	    	
+			FileWriter fw = new FileWriter(dependencyfile.getAbsoluteFile(), true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			
+			
+			  bw.write(fromNode+"|"+toNode+"|"+edgeType);
+			  bw.newLine();
+		
+			
+			bw.close();
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+	    	
+	    }
 }

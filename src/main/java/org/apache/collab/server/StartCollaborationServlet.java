@@ -106,7 +106,7 @@ public class StartCollaborationServlet extends HttpServlet{
 			 if (DEBUG.contains("TRUE")) System.out.println("Creating table in given database...");
 			 statement = conn.createStatement();
 		      
-		      String sql = "CREATE TABLE useractivity_"+collabName+
+		      String sql = "CREATE TABLE IF NOT EXISTS useractivity_"+collabName+
 		                   "(filename VARCHAR(30) not NULL, " +
 		                   " elementName VARCHAR(30), " + 
 		                   " lineNo INTEGER not NULL, " + 

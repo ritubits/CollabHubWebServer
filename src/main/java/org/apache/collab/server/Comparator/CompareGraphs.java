@@ -232,7 +232,11 @@ public class CompareGraphs {
 			
 			 long serverNodeID= getCanonicalClassNodeID(clientNode.getProperty("canonicalName").toString());
 			 System.out.println("serverNodeID::"+serverNodeID);
-			 Node serverClassNode= graphDbServer.getNodeById(serverNodeID);
+			 Node serverClassNode= null;
+			 if (serverNodeID != -1)
+			 {
+			 serverClassNode= graphDbServer.getNodeById(serverNodeID);
+			 }
 			//get the corresponding class node at the server
 			  String serverMethodName=null;
 			//  serverClassNode= graphDbServer.findNode(dGraphNodeType.CLASS, "name", clientNode.getProperty("name").toString());
@@ -486,6 +490,30 @@ public class CompareGraphs {
 		  System.out.println("Invoking case1:: Addition of classNode");
 		  //new node has been added 
 		  communicator.informAdditionClassNodeCase1(clientNode);
+		  
+		  //check for addition of dependency edges here
+		  String extendsProperty= clientNode.getProperty("extends").toString();
+		  if (!extendsProperty.equalsIgnoreCase("null"))
+		  {
+			  //extends not null
+			  //check it extends a class existing in the server
+			  //then means addition/modification of a dependency edge
+			  System.out.println("extendsProperty:: "+extendsProperty);
+			  
+			  //search class node in server
+			  long serverNodeID= getCanonicalClassNodeID(extendsProperty);
+			  if (serverNodeID==-1)
+			  {
+				  //no such node exists on the server
+			  }
+			  else
+			  {
+				  //inform communicator
+				  communicator.informAdditionOfClassDependencyEdge(clientNode, serverNodeID, "EXTENDS");
+				  
+			  }
+			  
+		  }
 	   }
 	  
 	  public void checkConnectingNodesExist(Node clientNode, Node serverClassNode)
@@ -880,7 +908,7 @@ public class CompareGraphs {
 					String  key=null;
 					String value = null;
 							
-					br = new BufferedReader(new FileReader("neo4jDB/Server/HashMap.txt"));
+					br = new BufferedReader(new FileReader("neo4jDB/HashMap.txt"));
 					while ((sCurrentLine = br.readLine()) != null) {
 					//	System.out.println("sCurrentLine:"+sCurrentLine);
 						index = sCurrentLine.indexOf(":");

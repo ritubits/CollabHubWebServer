@@ -67,6 +67,7 @@ public class InconsistencyCommunicator {
 	
 	String msg_add_attribute_dependency= "| Message: Addition/Modification of attribute dependency : |";
 	String msg_add_method_attribute_dependency= "| Message: Addition/Modification of attribute dependency to the method : ";
+	String msg_add_class_dependency= "| Message: Addition of dependency edge: ";
 	
 	String msg_change_class_properties= "| Message: Change in class property: |";
 	String msg_change_attribute_properties= "| Message: Change in attribute property: |";
@@ -379,6 +380,118 @@ public class InconsistencyCommunicator {
 			}
 	}
 	
+	public void informAdditionOfClassDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		if (DEBUG) System.out.println("In informAdditionOfClassDependencyEdge");
+		// N1- clientClassNode
+		// N2 - serverClassNode
+
+		//get serverClassNode to which extends edge would be created
+		
+		//get node N2
+		System.out.println("serverNodeID::"+serverNodeID);
+		if (graphDbServer== null) System.out.println("graphDbSetver Is NULL");  
+		Node serverClassNode= graphDbServer.getNodeById(serverNodeID);
+		   
+		   
+		
+		//1) Inform node N2: serverClassNode
+		if (serverClassNode !=null) sendInfo(serverClassNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+		
+		//2) inform all dependencies of N2
+		 if (serverClassNode !=null)
+			{
+			Node otherNode =null;
+			
+			Iterable<Relationship> relations=null;
+			  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverClassNode);
+					sendInfo(otherNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+				}
+			}
+				
+		//3) inform parent of N2	
+		Node serverParent=null;
+		// get parent of N1 from serverGraph
+		Relationship r1= serverClassNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r1!=null) serverParent = r1.getOtherNode(serverClassNode);
+		if (serverParent !=null)
+					sendInfo(serverParent ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+		
+		
+		// 4) inform all dependencies on parent of N2
+		  Node otherNode =null;
+			Iterable<Relationship> relations=null;
+				  relations= serverParent.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverParent);						
+						sendInfo(otherNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+					}
+		
+					
+		//5) Inform node N1: clientAttributeNode
+		if (clientClassNode!=null) 
+			sendInfo(clientClassNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+		
+
+							
+
+		// -dependency of parent exist in the serverGrpah
+		// get the same node as this classNode in the server Graph
+		// to get the parent 
+		// and the dependencies of this node
+		// and get the dependencies of parent of this node
+		
+	    //6) Inform all dependencies of N1
+		//get them from the server graph
+
+		
+		 serverNodeID= getCanonicalClassNodeID(clientClassNode.getProperty("canonicalName").toString());
+		   System.out.println("serverNodeID::"+serverNodeID);
+		   if (graphDbServer== null) System.out.println("graphDbSetver Is NULL");  
+		   Node clientClassNodeInServer= graphDbServer.getNodeById(serverNodeID);
+		   
+		if (clientClassNodeInServer !=null)
+			{
+			otherNode =null;
+			
+				relations=null;
+				  relations= clientClassNodeInServer.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(clientClassNodeInServer);
+						sendInfo(otherNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+					}
+			}
+		
+		
+	    //7) Inform parent of N1 : clientClassNode	
+		Node clientParent=null;
+		// get parent of N1 from serverGraph
+		Relationship r2= clientClassNodeInServer.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+		if (r2!=null) clientParent = r2.getOtherNode(clientClassNodeInServer);
+		if (serverParent !=null)
+					sendInfo(clientParent ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+		
+		
+		//8) Inform all dependencies of parent of N1-clientClassNode 
+		   
+		if (clientParent !=null)
+			{
+			otherNode =null;
+			
+				relations=null;
+				  relations= clientParent.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(clientParent);
+						sendInfo(otherNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
+					}
+			}
+	}
 	   long getCanonicalClassNodeID(String className)
 	   {
 			System.out.println("className::"+className);

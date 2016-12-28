@@ -69,7 +69,7 @@ public class dependencyGraphNodes {
     	else return existingPackageNode;
     }
     
-    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented)
+    public Node addConnectingClassNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented, int lineNumber)
     {
     
 //    	System.out.println("Creating Class Node::"+className);
@@ -81,6 +81,7 @@ public class dependencyGraphNodes {
     	classNode.setProperty( "modifier", modifier );
     	classNode.setProperty( "imports", imports );
     	classNode.setProperty( "packageName", packageName );
+    	classNode.setProperty( "lineNumber", lineNumber );
     	if (extend!=null)  	classNode.setProperty( "extends", extend );
     	else classNode.setProperty( "extends", "null" );
     	classNode.setProperty( "implements", implemented );
@@ -102,7 +103,7 @@ public class dependencyGraphNodes {
         return classNode;
     }
     
-    public Node addConnectingInterfaceNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String interfaceName, String imports, String packageName, String modifier)
+    public Node addConnectingInterfaceNode(GraphDatabaseService graphDb, Node pNode, String smallClassName, String interfaceName, String imports, String packageName, String modifier, int lineNumber)
     {
 //    	System.out.println("Creating Class Node::"+className);
     	Node interfaceNode = graphDb.createNode(dGraphNodeType.INTERFACE);
@@ -113,6 +114,7 @@ public class dependencyGraphNodes {
     	interfaceNode.setProperty( "modifier", modifier );
     	interfaceNode.setProperty( "imports", imports );
     	interfaceNode.setProperty( "packageName", packageName );
+    	interfaceNode.setProperty( "lineNumber", lineNumber );
  //   	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(interfaceNode.getId(), smallClassName);
     	nodeCanonicalHashMap.put(interfaceNode.getId(), interfaceName);
@@ -305,7 +307,7 @@ public class dependencyGraphNodes {
     	 return pNode;
     }
     
-    public Node createIndependentClassNode(GraphDatabaseService graphDb, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented)
+    public Node createIndependentClassNode(GraphDatabaseService graphDb, String smallClassName, String className, String imports, String packageName, String modifier, String extend, String implemented, int lineNumber)
     {
     
 //    	System.out.println("Creating Class Node::"+className);
@@ -317,6 +319,7 @@ public class dependencyGraphNodes {
     	classNode.setProperty( "modifier", modifier );
     	classNode.setProperty( "imports", imports );
     	classNode.setProperty( "packageName", packageName );
+    	classNode.setProperty( "lineNumber", lineNumber );
     	if (extend!=null)  	classNode.setProperty( "extends", extend );
     	else classNode.setProperty( "extends", "null" );
     	classNode.setProperty( "implements", implemented );
@@ -327,7 +330,7 @@ public class dependencyGraphNodes {
         return classNode;
     }
     
-    public Node createIndependentInterfaceNode(GraphDatabaseService graphDb, String smallClassName, String interfaceName, String imports, String packageName, String modifier)
+    public Node createIndependentInterfaceNode(GraphDatabaseService graphDb, String smallClassName, String interfaceName, String imports, String packageName, String modifier, int lineNumber)
     {
 //    	System.out.println("Creating Class Node::"+className);
     	Node interfaceNode = graphDb.createNode(dGraphNodeType.INTERFACE);
@@ -338,6 +341,7 @@ public class dependencyGraphNodes {
     	interfaceNode.setProperty( "modifier", modifier );
     	interfaceNode.setProperty( "imports", imports );
     	interfaceNode.setProperty( "packageName", packageName );
+    	interfaceNode.setProperty( "lineNumber", lineNumber );
  //   	System.out.println("cNode Id:"+classNode.getId());
     	nodeHashMap.put(interfaceNode.getId(), smallClassName);
   //  	nodeCanonicalHashMap.put(interfaceNode.getId(), interfaceName);
