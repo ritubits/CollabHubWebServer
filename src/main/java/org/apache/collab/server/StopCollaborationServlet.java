@@ -58,7 +58,12 @@ public class StopCollaborationServlet extends HttpServlet{
 	        }
 	        
 	       con= LoadDriver.connect;
-	       if (con !=null) RemoveDatafromTable(con);
+	       if (con !=null) 
+	    	   
+	    	   {
+	    	   RemoveDatafromTable(con);
+	    	   RemoveTableUserActivity(con);
+	    	   }
 	       else 
 	       {
 	    	   System.out.println("No connection exists:");//need to forward this error
@@ -79,11 +84,39 @@ public class StopCollaborationServlet extends HttpServlet{
 			      
 				 statement = conn.createStatement();
 			      String sql = "DELETE FROM userdetails_"+projectName+
-			                   "WHERE collabname = '"+collabName+"'";
+			                   " WHERE collabname = '"+collabName+"'";
 			      if (DEBUG.contains("TRUE")) System.out.println(sql);
 			      statement.executeUpdate(sql);
 			   	   		            
 			      if (DEBUG.contains("TRUE")) System.out.println("removed data from userDetails table in given database...");
+			      
+		          
+		        } catch (SQLException ex) {
+		            // handle any errors
+		            System.out.println("SQLException: " + ex.getMessage());
+		            System.out.println("SQLState: " + ex.getSQLState());
+		            System.out.println("VendorError: " + ex.getErrorCode());
+		            out.print("Exception:"+ex.getMessage());
+		        }
+		    	
+	  	 }
+	 
+	 public void RemoveTableUserActivity(Connection conn)
+	 {
+		  Statement statement = null;
+
+			 //insert data here
+			 try {
+		        	
+				 if (DEBUG.contains("TRUE")) System.out.println("removing data from activity table in given database...");
+				 statement = conn.createStatement();
+			      
+				 statement = conn.createStatement();
+			      String sql = "DROP TABLE IF EXISTS useractivity_"+collabName;	                 
+			      if (DEBUG.contains("TRUE")) System.out.println(sql);
+			      statement.executeUpdate(sql);
+			   	   		            
+			      if (DEBUG.contains("TRUE")) System.out.println("removed data from activity table in given database...");
 			      
 		          
 		        } catch (SQLException ex) {

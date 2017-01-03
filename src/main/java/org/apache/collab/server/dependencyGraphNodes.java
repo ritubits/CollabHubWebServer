@@ -54,7 +54,8 @@ public class dependencyGraphNodes {
 
 
     	nodeHashMap.put(packageNode.getId(), packName);//adding canonical name
-    	 
+    	nodeCanonicalHashMap.put(packageNode.getId(), packName);//adding canonical name
+    	
      	relationship = packageNode.createRelationshipTo( rootNode, RelTypes.CONNECTING );
         relationship.setProperty( "edgeType", "OWNER" ); 
         
@@ -208,7 +209,8 @@ public class dependencyGraphNodes {
     //	aNode.setProperty( "initializer", initializer );
     	
     	methodHashMap.put(aNode.getId(), smallAttributeName);//adding canonical name
-    	
+    	nodeHashMap.put(aNode.getId(), smallAttributeName);
+    	nodeCanonicalHashMap.put(aNode.getId(), attributeName);//adding canonical name
      	relationship = aNode.createRelationshipTo( mNode, methodRelTypes.BODY );
      
         relationship.setProperty( "edgeType", "BODY" );
@@ -226,7 +228,7 @@ public class dependencyGraphNodes {
     	//adding edge from superclass id to sub class it
     	Node subClassNode =	graphDb.getNodeById(subClassID);
     	Node superClassNode =	graphDb.getNodeById(superClassID);
-   // 	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+superClassNode.getProperty("name"));
+   	System.out.println("Adding extends edge from::"+subClassNode.getProperty("name")+"to"+superClassNode.getProperty("name"));
     	    	
      	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
         relationship.setProperty( "edgeType", "EXTENDS" );
@@ -240,7 +242,7 @@ public class dependencyGraphNodes {
     	//adding edge from superclass id to sub class it
     	Node subClassNode =	graphDb.getNodeById(subClassID);
     	Node interfaceNode =	graphDb.getNodeById(interfaceID);
-    //	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+interfaceNode.getProperty("name"));
+    	System.out.println("Adding implements edge from::"+subClassNode.getProperty("name")+"to"+interfaceNode.getProperty("name"));
     	    	
      	relationship = subClassNode.createRelationshipTo(interfaceNode, RelTypes.DEPENDENCY );
         relationship.setProperty( "edgeType", "IMPLEMENTS" );
@@ -254,7 +256,7 @@ public class dependencyGraphNodes {
     	//adding edge from superclass id to sub class it
     	Node classNode =	graphDb.getNodeById(classID);
     	Node importClassNode =	graphDb.getNodeById(importID);
-    //	System.out.println("Adding edge from::"+subClassNode.getProperty("name")+"to"+interfaceNode.getProperty("name"));
+    	System.out.println("Adding imports edge from::"+classNode.getProperty("name")+"to"+importClassNode.getProperty("name"));
     	    	
      	relationship = classNode.createRelationshipTo(importClassNode, RelTypes.DEPENDENCY );
         relationship.setProperty( "edgeType", "IMPORTS" );
@@ -275,7 +277,7 @@ public class dependencyGraphNodes {
     	 
     	if (!exists)
     	{
-    	//	System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
+    		System.out.println("Adding "+ edgeType+" edge from:: "+subClassNode.getProperty("name")+" to "+superClassNode.getProperty("name"));
 	     	relationship = subClassNode.createRelationshipTo(superClassNode, RelTypes.DEPENDENCY );
 	        relationship.setProperty( "edgeType", edgeType );
 	        relationship.setProperty( "name", subClassNode.getProperty("canonicalName").toString()+"::"+superClassNode.getProperty("canonicalName").toString());        

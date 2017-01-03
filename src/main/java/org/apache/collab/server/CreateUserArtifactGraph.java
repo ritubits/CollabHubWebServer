@@ -636,6 +636,10 @@ public class CreateUserArtifactGraph {
 						//uses relationship		
 						System.out.println("Creating edge from Class to class for attribute node");
 						System.out.println("Creating @@@ UsesDependenctEdge::");
+						
+						//write to dependencyEdge file
+	 					writeDependencyEdgesToFile(attributeNodeClassId, otherNodeClassId, "USES");
+	 					
 							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -672,6 +676,10 @@ public class CreateUserArtifactGraph {
 							//create dependency edge from current method node to class node
 						//uses relationship		
 						System.out.println("Creating @@@ UsesDependenctEdge::");
+						
+						//write to dependencyEdge file
+	 					writeDependencyEdgesToFile(attributeMethodNodeId, otherClassNodeId, "USES");
+	 					
 							dpGraph.addDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId, "USES");
 						}//if (idinterfaceNode != -1)
 				}
@@ -845,11 +853,16 @@ public class CreateUserArtifactGraph {
 	    	//write hash to file
 	    	try
 			{
-	    	File dependencyfile = new File("neo4jDB/Client/"+collabName+"edges.txt");
+	    	File dependencyfile = new File("neo4jDB/"+collabName+"edges.txt");
 	        
 	        if (!dependencyfile.exists()) {
 	        	dependencyfile.createNewFile();
 	        	}
+	        else {
+	        	//delete existing file and create new
+	        	dependencyfile.delete();
+	        	dependencyfile.createNewFile();
+	        }
 	    	
 			FileWriter fw = new FileWriter(dependencyfile.getAbsoluteFile(), true);
 			BufferedWriter bw = new BufferedWriter(fw);

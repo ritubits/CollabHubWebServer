@@ -773,13 +773,13 @@ public class CompareGraphs {
 		  {
 			  //added content to client body
 			  // inform communicator
-			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "BODY ADDED", i+2+Integer.parseInt(lineNumber));
+			 communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY ADDED", i+2+Integer.parseInt(lineNumber));
 		  }
 		  else
 		  {
 			  if (clientBody.length < serverBody.length){
 			  //deleted content from method
-			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, clientBody[i], "BODY DELETED", i+2+Integer.parseInt(lineNumber));
+			  communicator.informMethodBodyChange(clientMethodNode, serverMethodNode, serverBody[i], "BODY DELETED", i+2+Integer.parseInt(lineNumber));
 			  }
 		  }
 	  }
