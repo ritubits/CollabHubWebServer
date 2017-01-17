@@ -28,7 +28,8 @@ String collabName=null;
 Vector uNames= new Vector();
 
 
-projectName= userB.getProjectDetails();;
+projectName= userB.getProjectDetails();
+
 userName = userB.getUserDetails();
 
 if (userName !=null)
@@ -62,6 +63,11 @@ uNames.add(temp1[i]);
 <TD VALIGN=TOP > 
 Project Name:   <% 
 System.out.println("ProjectName::"+projectName);
+if (projectName==null)
+{
+	out.print("No active project");
+}
+else
 out.print(projectName); %>
  </TD>
 <TD VALIGN=TOP > </A>
@@ -70,7 +76,13 @@ out.print(projectName); %>
 <TR VALIGN=TOP>
 <TD VALIGN=TOP > </A>
 <TD VALIGN=TOP > 
-Owner Name:   <% out.print(ownerName); %>
+Owner Name:   <% 
+if (ownerName==null)
+{
+	out.print("No active collaborator/owner");
+}
+else
+	out.print(ownerName); %>
  </TD>
 <TD VALIGN=TOP > </A>
 </TR>

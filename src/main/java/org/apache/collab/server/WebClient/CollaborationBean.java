@@ -30,15 +30,20 @@ public class CollaborationBean {
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select projectName, ownerName from regProject";// assumes only one row exists
+				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'regProject';";
 				resultSet = statement.executeQuery(sql);
-				while (resultSet.next())
-				{
-					projectName = resultSet.getString("projectName");
-					ownerName = resultSet.getString("ownerName");					
-				}
-	    	   resultSet.close();
+				int count=resultSet.getRow();;
 
+				if (count>0)
+				{
+					sql= "select projectName, ownerName from regProject";// assumes only one row exists
+					while (resultSet.next())
+					{
+						projectName = resultSet.getString("projectName");
+						ownerName = resultSet.getString("ownerName");					
+					}
+		    	   resultSet.close();
+				}
 	    	   }	       
 		 } catch (SQLException e) {				
 				e.printStackTrace();

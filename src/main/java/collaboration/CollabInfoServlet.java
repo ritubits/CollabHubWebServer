@@ -18,6 +18,7 @@ public class CollabInfoServlet extends HttpServlet{
 	// mike:g.java|geeta:k.java|sita:r.java|sita:g.java
 	///
 	
+	
 	String projectNamefromPlugin =null;
 	String responseContent= null;
 	File projectFile= null;
