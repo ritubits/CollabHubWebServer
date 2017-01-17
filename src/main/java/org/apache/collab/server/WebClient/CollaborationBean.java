@@ -66,6 +66,13 @@ public class CollaborationBean {
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
+				
+				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'userdetails_"+projectName+"';";
+				resultSet = statement.executeQuery(sql);
+				int count=resultSet.getRow();;
+
+				if (count>0)
+				{
 				sql= "select collabName from userdetails_"+projectName;
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
@@ -76,7 +83,11 @@ public class CollaborationBean {
 		
 				}
 	    	   resultSet.close();
-
+				}
+				else
+				{
+					collabNames = "No data to display";
+				}
 	    	   }	       
 		 } catch (SQLException e) {				
 				e.printStackTrace();

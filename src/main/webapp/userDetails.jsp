@@ -109,11 +109,12 @@ else
 	out.print(collabName); %>
 
     </TD>
- 
+ <% if (!collabName.equals("No data to display"))
+ {%>
 <td WIDTH="30%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">View</a></td>
 
     </TR>
-
+<% } %>
 <%
     }
 %>

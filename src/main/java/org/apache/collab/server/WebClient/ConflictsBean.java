@@ -37,6 +37,13 @@ public class ConflictsBean {
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
+				
+				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'conflictmessages';";
+				resultSet = statement.executeQuery(sql);
+				int count=resultSet.getRow();;
+
+				if (count>0)
+				{
 				sql= "select * from conflictmessages";
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
@@ -54,7 +61,12 @@ public class ConflictsBean {
 		
 				}
 	    	   resultSet.close();
-
+				}
+				else
+				{
+					artifactName = "No conflict messages";
+					conflictMessage = "No conflict messages";
+				}
 	    	   }	       
 		 } catch (SQLException e) {				
 				e.printStackTrace();
