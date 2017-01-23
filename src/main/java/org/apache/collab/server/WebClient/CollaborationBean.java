@@ -24,22 +24,28 @@ public class CollaborationBean {
 		Statement statement = null;
 		  String sql = null;
 		 ResultSet resultSet =null;
+		 String sql1 = null;
+		 ResultSet resultSet1 =null;
 		
 		  try {
 	       if (conn !=null) 
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'regProject';";
-				resultSet = statement.executeQuery(sql);
-				int count=resultSet.getRow();;
-
+				sql1= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'regProject';";
+				resultSet1 = statement.executeQuery(sql1);
+				resultSet1.last();
+				int count=resultSet1.getRow();
+				System.out.println("Count from CollaborayionBean::"+count);
+				
 				if (count>0)
 				{
 					sql= "select projectName, ownerName from regProject";// assumes only one row exists
+					resultSet = statement.executeQuery(sql);
 					while (resultSet.next())
 					{
 						projectName = resultSet.getString("projectName");
+						System.out.println("ProjectName from CollaborayionBean::"+projectName);
 						ownerName = resultSet.getString("ownerName");					
 					}
 		    	   resultSet.close();
@@ -48,7 +54,7 @@ public class CollaborationBean {
 		 } catch (SQLException e) {				
 				e.printStackTrace();
 			}
-
+		  
 		  return projectName;
 	
 	}
@@ -69,6 +75,7 @@ public class CollaborationBean {
 				
 				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'userdetails_"+projectName+"';";
 				resultSet = statement.executeQuery(sql);
+				resultSet.last();
 				int count=resultSet.getRow();;
 
 				if (count>0)

@@ -40,8 +40,9 @@ public class ConflictsBean {
 				
 				sql= "select table_name from INFORMATION_SCHEMA.tables where table_schema= 'collaborationhub' and table_name= 'conflictmessages';";
 				resultSet = statement.executeQuery(sql);
-				int count=resultSet.getRow();;
-
+				resultSet.last();
+				int count=resultSet.getRow();
+				
 				if (count>0)
 				{
 				sql= "select * from conflictmessages";

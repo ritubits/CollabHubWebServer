@@ -29,7 +29,7 @@ Vector uNames= new Vector();
 
 
 projectName= userB.getProjectDetails();
-
+System.out.println("ProjectName from userDetails.jsp::"+projectName);
 userName = userB.getUserDetails();
 
 if (userName !=null)
@@ -62,7 +62,7 @@ uNames.add(temp1[i]);
 <TD VALIGN=TOP > </A>
 <TD VALIGN=TOP > 
 Project Name:   <% 
-System.out.println("ProjectName::"+projectName);
+
 if (projectName==null)
 {
 	out.print("No active project");
