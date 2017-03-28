@@ -111,8 +111,8 @@ else
     </TD>
  <% if (!collabName.equals("No data to display"))
  {%>
-<td WIDTH="30%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">View</a></td>
-
+<td WIDTH="30%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">ViewInfo</a></td>
+<td WIDTH="30%"><a href="LivePreview.jsp?pName=<%=projectName%>&cName=<%=collabName%>">LivePreview</a></td>
     </TR>
 <% } %>
 <%

@@ -126,6 +126,10 @@
 		<servlet-name>collabInfo</servlet-name>
 		<jsp-file>/collabInfo.jsp</jsp-file>
 	</servlet>
+	<servlet>
+		<servlet-name>LivePreview</servlet-name>
+		<jsp-file>/LivePreview.jsp</jsp-file>
+	</servlet>
 		<servlet>
 		<servlet-name>conflictMessages</servlet-name>
 		<jsp-file>/conflictMessages.jsp</jsp-file>

@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.collab.server.Comparator.CompareGraphs;
+import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.http.fileupload.FileItemIterator;
 import org.apache.tomcat.util.http.fileupload.FileItemStream;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
@@ -39,7 +41,10 @@ public class UserArtifactGraphServlet extends HttpServlet {
 
     String ipAddTomcat= null;
     String ipAddSQL= null;
-
+    
+	private String DEST_PATH = "neo4jDB/Client/temp/";
+	private String SRC_PATH = "neo4jDB/Client/"; 
+	
     String DEBUG=null;
 	 private static final String DB_PATH_SERVER = "neo4jDB/Server";
 	 GraphDatabaseService graphDbServer;
@@ -136,15 +141,22 @@ public class UserArtifactGraphServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 	    
-	/*    try {
-            FileWriter writer = new FileWriter(fileName, true);
+	//writing content to file for remote viewing
+	    try {
+            FileWriter writer = new FileWriter(SRC_PATH+collabName+"_artifact.txt", false);
             writer.write(fileContent);
             
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
 	    
+	    File source = new File(SRC_PATH+collabName+"_artifact.txt");
+	    File dest = new File(DEST_PATH+collabName+"_artifact.txt");
+	    
+	  //  copyToProjectRepo(source, dest);
+	    
+	    copyFileUsingApacheCommonsIO(source,dest);
 	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, collabName);
         userArtifactGraph.createGraph();
 
@@ -194,8 +206,11 @@ public class UserArtifactGraphServlet extends HttpServlet {
 	        graphDb.shutdown();
 	        System.out.println( "DB server shuting down complete" );
 	    }
-}
-	
 
+	
+private void copyFileUsingApacheCommonsIO(File source, File dest) throws IOException {
+    FileUtils.copyFile(source, dest);
+}
+}
 
 
