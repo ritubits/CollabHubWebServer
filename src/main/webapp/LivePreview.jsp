@@ -7,6 +7,11 @@
 <script type="text/javascript">
 window.setTimeout(function(){ document.location.reload(true); }, 15000);
 </script>
+<style>
+body {
+    background-color: #F0F8FF;
+}
+</style>
 <title>Live Preview View</title>
 </head>
 <body>
@@ -68,18 +73,23 @@ else
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
-<div  style="height:500px;width:500px;overflow:scroll;background-color:#F0F8FF;">
+<TABLE WIDTH=100%  >
+<TR VALIGN=TOP>
+<td WIDTH="20%"><div  style="height:500px;width:200px;background-color:#F0F8FF;">
+
+<pre><font size="2" face="Courier New" > 
+</font></pre>
+</div></td>
+
+<td WIDTH="60%"><div  style="height:500px;width:700px;overflow:scroll;background-color:#F0F8FF;">
 
 <pre><font size="2" face="Courier New" ><%=content %> 
 </font></pre>
-</div>
-
-
-
+</div></td>
+<td WIDTH="20%"></td>
+</TR>
+</TABLE>
 
 </body>
 </html>

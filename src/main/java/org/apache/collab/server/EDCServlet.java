@@ -67,8 +67,9 @@ public class EDCServlet extends HttpServlet{
 		    	   System.out.println("No connection exists:");//need to forward this error
 		       }
 		       //do not close this connection
-
-	  	 
+		       
+		     //  System.out.println("Forwarding to LivePreview JSp");//need to forward this error
+		    //   request.getRequestDispatcher("/LivePreview.jsp").forward(request,response);
 		  }//doGet 
 
 	public String getEditArtifact(String collabName)
@@ -156,6 +157,8 @@ public class EDCServlet extends HttpServlet{
    			// TODO Auto-generated catch block
    			e.printStackTrace();
    		}
+		
+
 		return EDCCollabData;
 	}
 	

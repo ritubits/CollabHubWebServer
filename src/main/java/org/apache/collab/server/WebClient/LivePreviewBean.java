@@ -30,7 +30,7 @@ public class LivePreviewBean {
 	 
 	 public String readCollaboratorEditFile()
 	 {
-		 
+		int lineNo=1; 
 		BufferedReader br = null;
 		FileReader fr = null;
 		String content=null;
@@ -40,15 +40,15 @@ public class LivePreviewBean {
 			try {
 
 				fr = new FileReader(fileName);
-				String sCurrentLine;
-
-				   
 				BufferedReader reader = new BufferedReader(new FileReader(fileName));
 		        StringBuilder outBuilder = new StringBuilder();
 		        String line;
 		        while ((line = reader.readLine()) != null) {
-		        	outBuilder.append(line);
+		        	
+		        	if (lineNo<10) outBuilder.append("    "+lineNo+":   "+line);
+		        	else outBuilder.append("   "+lineNo+":   "+line);
 		        	outBuilder.append('\n');
+		        	lineNo++;
 		        }
 		        reader.close();
 		        content= outBuilder.toString();
