@@ -68,8 +68,8 @@ public class EDCServlet extends HttpServlet{
 		       }
 		       //do not close this connection
 		       
-		     //  System.out.println("Forwarding to LivePreview JSp");//need to forward this error
-		    //   request.getRequestDispatcher("/LivePreview.jsp").forward(request,response);
+		      // System.out.println("Forwarding to LivePreview JSp");//need to forward this error
+		     //  request.getRequestDispatcher("/LivePreview.jsp").forward(request,response);
 		  }//doGet 
 
 	public String getEditArtifact(String collabName)

@@ -113,6 +113,12 @@
 		<servlet-class>org.apache.collab.server.OInCServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>LivePreviewServlet</servlet-name>
+		<display-name>LivePreviewServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.LivePreviewServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
 		<display-name>UserArtifactGraphSimulatorServlet</display-name>
 		<description></description>
@@ -171,9 +177,13 @@
 		<servlet-name>EInCServlet</servlet-name>
 		<url-pattern>/EInCServlet</url-pattern>
 	</servlet-mapping>
-					<servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>OInCServlet</servlet-name>
 		<url-pattern>/OInCServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>LivePreviewServlet</servlet-name>
+		<url-pattern>/LivePreviewServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>InitiateCollabHub</servlet-name>
