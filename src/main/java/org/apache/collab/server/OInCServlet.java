@@ -41,7 +41,7 @@ public class OInCServlet extends HttpServlet{
 		 	response.setContentType("text/html");
 	        PrintWriter out = response.getWriter();
 	  
-	        System.out.println(" In the EInCServlet ");       
+	        System.out.println(" In the OInCServlet ");       
 	        collabName = request.getParameter("cName");
 	
 	        if (DEBUG.contains("TRUE")) System.out.println("ipAddress SQL: "+ipAddSQL);
