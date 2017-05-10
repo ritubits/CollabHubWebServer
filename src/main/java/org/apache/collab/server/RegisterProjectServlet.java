@@ -19,6 +19,8 @@ public class RegisterProjectServlet extends HttpServlet{
 	//this servlet will connect to DB and create the regProject_projectName table
 	String projectName =null;
     String ownerName= null;
+	String levelNumber =null;
+    String collabNumber= null;
     String ipAddTomcat= null;
     String ipAddSQL= null;
     PrintWriter out =null;
@@ -45,6 +47,8 @@ public class RegisterProjectServlet extends HttpServlet{
 		 	if (DEBUG.contains("TRUE")) System.out.println(" In the RegisterProjectServlet ");
 	        projectName= request.getParameter("pName");
 	        ownerName = request.getParameter("oName");
+	        levelNumber = request.getParameter("levelNumber");
+	        collabNumber = request.getParameter("collabNumber");
 //	        ipAddTomcat = request.getParameter("ipAddT");
 //	        ipAddSQL = request.getParameter("ipAddSQL");
 	        
@@ -81,7 +85,7 @@ public class RegisterProjectServlet extends HttpServlet{
 				 statement = conn.createStatement();
 			      
 				 String sql = "INSERT INTO regProject"+//+projectName+
-		                   " VALUES ('"+projectName+"','"+ownerName+"','"+ipAddTomcat+"');";
+		                   " VALUES ('"+projectName+"','"+ownerName+"','"+ipAddTomcat+"','"+levelNumber+"','"+collabNumber+"');";
 				 if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
 				 statement.executeUpdate(sql);
 			   	   		            
@@ -119,6 +123,8 @@ public class RegisterProjectServlet extends HttpServlet{
 	                   "(projectName VARCHAR(30) not NULL, " +
 	                   " ownerName VARCHAR(30), " + 
 	                   " ipAddTomcat VARCHAR(30), " + 
+	                   " levelNumber VARCHAR(10), " + 
+	                   " allowedCollab VARCHAR(2), " + 
 	                   " PRIMARY KEY ( projectname ))"; 
 		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
 

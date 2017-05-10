@@ -70,6 +70,12 @@
 		<description></description>
 		<servlet-class>org.apache.collab.server.InitiateCollabHub</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>AllowedCollaboratorServlet</servlet-name>
+		<display-name>AllowedCollaboratorServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.AllowedCollaboratorServlet</servlet-class>
+	</servlet>
 		<servlet>
 		<servlet-name>DeRegisterProjectServlet</servlet-name>
 		<display-name>DeRegisterProjectServlet</display-name>
@@ -136,12 +142,12 @@
 		<servlet-name>LivePreview</servlet-name>
 		<jsp-file>/LivePreview.jsp</jsp-file>
 	</servlet>
-		<servlet>
+	<servlet>
 		<servlet-name>conflictMessages</servlet-name>
 		<jsp-file>/conflictMessages.jsp</jsp-file>
 	</servlet>
 	
-		<servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>conflictMessages</servlet-name>
 		<url-pattern>/conflictMessages</url-pattern>
 	</servlet-mapping>
@@ -188,6 +194,10 @@
 	<servlet-mapping>
 		<servlet-name>InitiateCollabHub</servlet-name>
 		<url-pattern>/InitiateCollabHub</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AllowedCollaboratorServlet</servlet-name>
+		<url-pattern>/AllowedCollaboratorServlet</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ConflictMessagesServlet</servlet-name>
