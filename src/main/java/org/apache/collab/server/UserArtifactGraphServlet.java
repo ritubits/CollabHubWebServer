@@ -79,7 +79,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 		System.out.println(ServletFileUpload.isMultipartContent(request));
 		
-
+		System.out.println("In UserArtifactGraphServlet");
 	    
 	    try {
 	 // Create a factory for disk-based file items
@@ -142,7 +142,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 		}
 	    
 	//writing content to file for remote viewing
-	    try {
+	/*    try {
             FileWriter writer = new FileWriter(SRC_PATH+collabName+"_artifact.txt", false);
             writer.write(fileContent);
             
@@ -156,7 +156,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 	    
 	  //  copyToProjectRepo(source, dest);
 	    
-	    copyFileUsingApacheCommonsIO(source,dest);
+	    copyFileUsingApacheCommonsIO(source,dest);*/
 	   CreateUserArtifactGraph userArtifactGraph= new CreateUserArtifactGraph(fileContent, fileName, collabName);
         userArtifactGraph.createGraph();
 

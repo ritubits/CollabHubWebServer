@@ -14,7 +14,7 @@ import java.sql.Statement;
 public class ConflictMessagesServlet extends HttpServlet{
 	
 
-    String ipAddSQL= null;
+ //   String ipAddSQL= null;
     String collabName= null;
     String artifactName= null;
 	 String conflictMessage= null;
@@ -31,7 +31,7 @@ public class ConflictMessagesServlet extends HttpServlet{
     	//read parameters from web.xml
     	//read ipAddTomcat and ipAddSQL
     	super.init(config);
-    	ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
+//    	ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
     	DEBUG = getServletContext().getInitParameter("DEBUG");
     }
     
@@ -45,7 +45,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	        System.out.println(" In the ConflictMessagesServlet ");       
 	        collabName = request.getParameter("cName");
 	
-	        if (DEBUG.contains("TRUE")) System.out.println("ipAddress SQL: "+ipAddSQL);
+//	        if (DEBUG.contains("TRUE")) System.out.println("ipAddress SQL: "+ipAddSQL);
 	        
 	        //make connection to DB
 	      
