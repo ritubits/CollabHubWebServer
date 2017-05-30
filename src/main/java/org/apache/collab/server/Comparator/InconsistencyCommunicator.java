@@ -701,7 +701,7 @@ public class InconsistencyCommunicator {
 		
 		if (serverClassNode !=null)
 			// 1) inform node N1
-			sendInfo(clientMethodNode ,msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
+			sendInfo(clientMethodNode ,msg_change_method_properties+propertyChanged+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
 	
 		
 		// 2) inform dependencies of N1
@@ -711,14 +711,14 @@ public class InconsistencyCommunicator {
 			for (Relationship r: relations)
 			{
 				otherNode=r.getOtherNode(serverMethodNode);
-				sendInfo(otherNode , msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
+				sendInfo(otherNode , msg_change_method_properties+propertyChanged+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
 			}
 		
 		// 3) inform parent of N1
 		// inform serverClassNode;
 			// get parent of N1 from serverGraph		
 			if (serverClassNode !=null)
-				sendInfo(serverClassNode , msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
+				sendInfo(serverClassNode , msg_change_method_properties+propertyChanged+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), " ");
 			
 			
 		// 4) inform dependencies of parent of N1
@@ -730,7 +730,7 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode ,msg_change_method_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name")," ");
+						sendInfo(otherNode ,msg_change_method_properties+propertyChanged+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name")," ");
 					}
 				}			
 	}

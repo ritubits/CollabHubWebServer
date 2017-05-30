@@ -240,24 +240,37 @@ public class ConflictMessagesServlet extends HttpServlet{
 	       if (con !=null) 
 	    	   { 
    
-				statement = con.createStatement();				    	   
-	    	   // Result set get the result of the SQL query
-				 sql= "select filename, activitytype, activitytime from useractivity_"+collabName+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+collabName+");";
+				statement = con.createStatement();		
+				sql= "SELECT useractivity_"+collabName+ "FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_'"+collabName+";";
 				resultSet = statement.executeQuery(sql);
+				int num=0;
 				while (resultSet.next())
 				{
-					myFileName= resultSet.getString("filename");
+					resultSet.last();
+					num= resultSet.getRow();
 				}
-				resultSet.close();
+	    	   resultSet.close();
+	    	   
+	    	   if (num >0)
+	    	   {
+		    	   // Result set get the result of the SQL query
+					 sql= "select filename, activitytype, activitytime from useractivity_"+collabName+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+collabName+");";
+					resultSet = statement.executeQuery(sql);
+					while (resultSet.next())
+					{
+						myFileName= resultSet.getString("filename");
+					}
+					resultSet.close();
 				
 				
-				 sql= "select filename, activitytype, activitytime from useractivity_"+sentCollab+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+sentCollab+");";
-				resultSet = statement.executeQuery(sql);
-				while (resultSet.next())
-				{
-					collabFileName= resultSet.getString("filename");
-				}
-				resultSet.close();
+					 sql= "select filename, activitytype, activitytime from useractivity_"+sentCollab+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+sentCollab+");";
+					resultSet = statement.executeQuery(sql);
+					while (resultSet.next())
+					{
+						collabFileName= resultSet.getString("filename");
+					}
+					resultSet.close();
+	    	   }
 	    	   }
 	       
 	       if ((myFileName!=null) && (myFileName.equalsIgnoreCase(collabFileName)))
