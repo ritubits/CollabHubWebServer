@@ -205,7 +205,9 @@ public class CompareGraphs {
 										if (!found)
 										{
 											//attribute does not exist
-											communicator.informDeletionOfClassAttributeCase2(clientNode, otherNode);
+											//add line no of deleted attribute
+											String lineNumber= otherNode.getProperty("lineNumber").toString();
+											communicator.informDeletionOfClassAttributeCase2(clientNode, otherNode, lineNumber);
 										}
 								}
 							}
@@ -282,7 +284,8 @@ public class CompareGraphs {
 								{
 									//attribute does not exist
 									//invokeDeletionOfClassAttribute();
-									communicator.informDeletionOfClassMethodCase2(clientNode, otherNode);
+									String lineNumber= otherNode.getProperty("lineNumber").toString();
+									communicator.informDeletionOfClassMethodCase2(clientNode, otherNode, lineNumber);
 								}
 						}
 					}
@@ -337,7 +340,8 @@ public class CompareGraphs {
 							if (!found)
 							{
 								//method attribute does not exist
-								communicator.informDeletionOfMethodAttributeCase2(otherNode, clientMethodNode, serverMethodNode);
+								String lineNumber= otherNode.getProperty("lineNumber").toString();
+								communicator.informDeletionOfMethodAttributeCase2(otherNode, clientMethodNode, serverMethodNode, lineNumber);
 								found=false;
 							}
 					}
@@ -709,26 +713,27 @@ public class CompareGraphs {
 	  public void invokeCheckMethodProperties(Node clientMethodNode, Node serverMethodNode )
 	  {		  
 	    	//modifier, returnType and parameterList, body (may be null)
+		  String lineNumber= serverMethodNode.getProperty("lineNumber").toString();
 		  
 		  if (!(clientMethodNode.getProperty("modifier").toString().equals(serverMethodNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different modifier");
-			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "modifier");
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has a different modifier");
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "modifier", lineNumber);
 		  }
 		  
 		  if (!(clientMethodNode.getProperty("returnType").toString().equals(serverMethodNode.getProperty("returnType").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different returnType");
-			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "returnType");
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has a different returnType");
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "returnType", lineNumber);
 		  }
 		  
 		  if (!(clientMethodNode.getProperty("parameterList").toString().equals(serverMethodNode.getProperty("parameterList").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has s different parameterList");
-			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "parameterList");
+			  System.out.println("Send to Client::"+ clientMethodNode.getProperty("name")+"has a different parameterList");
+			  communicator.informPropertyChangeMethodNodeCase3(clientMethodNode, serverMethodNode, "parameterList", lineNumber);
 		  }
 		  
 		  //check for body
@@ -816,7 +821,8 @@ public class CompareGraphs {
 					//method does not exist
 					//addition of attribute node in client
 					invokeMethodDependencyEdgeCreation(otherClientNode, clientMethodNode, serverMethodNode);
-					 communicator.informAdditionMethodAttributeNodeCase1(otherClientNode, clientMethodNode, serverMethodNode);
+					String lineNumber= otherClientNode.getProperty("lineNumber").toString();
+					 communicator.informAdditionMethodAttributeNodeCase1(otherClientNode, clientMethodNode, serverMethodNode, lineNumber);
 				}
 			}
 	  }

@@ -241,7 +241,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    	   { 
    
 				statement = con.createStatement();		
-				sql= "SELECT useractivity_"+collabName+ "FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_'"+collabName+";";
+				sql= "SELECT useractivity_"+collabName+ "FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_"+collabName+";";
 				resultSet = statement.executeQuery(sql);
 				int num=0;
 				while (resultSet.next())
