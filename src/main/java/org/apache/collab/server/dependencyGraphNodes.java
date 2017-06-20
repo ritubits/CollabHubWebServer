@@ -38,7 +38,7 @@ public class dependencyGraphNodes {
     HashMap<Long, String> methodHashMap = new HashMap<Long, String>();
     HashMap<Long, String> methodEdgeHashMap = new HashMap<Long, String>();
     
-    public Node addPackageNode(GraphDatabaseService graphDb, Node rootNode, String packName)
+    public Node addPackageNode(GraphDatabaseService graphDb, Node rootNode, String packName, String projectName)
     {
     
 //    	System.out.println("Creating Class Node::"+className);
@@ -51,7 +51,7 @@ public class dependencyGraphNodes {
     	packageNode.setProperty( "name", packName );
     	packageNode.setProperty( "canonicalName", packName );
     	packageNode.setProperty( "nodeType", "PACKAGE" );
-
+    	packageNode.setProperty( "projectName", projectName );
 
     	nodeHashMap.put(packageNode.getId(), packName);//adding canonical name
     	nodeCanonicalHashMap.put(packageNode.getId(), packName);//adding canonical name

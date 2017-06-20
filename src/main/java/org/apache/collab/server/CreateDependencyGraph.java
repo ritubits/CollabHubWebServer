@@ -271,7 +271,8 @@ public class CreateDependencyGraph {
      					//className= packName+"."+(f.getName()).substring(0, index);
      					
      					//create package node, if the same does not exist
-     					packageNode= dpGraph.addPackageNode(graphDb, rootNode, packName);
+     					String projName= rootNode.getProperty("name").toString();
+     					packageNode= dpGraph.addPackageNode(graphDb, rootNode, packName, projName);
      				}
      				else 
      					{

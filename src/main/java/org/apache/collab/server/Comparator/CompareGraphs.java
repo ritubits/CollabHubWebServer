@@ -116,6 +116,7 @@ public class CompareGraphs {
 	        	 txServer= graphDbServer.beginTx();
 
 	        	 compareMainClassNode();
+	        	 compareMainInterfaceNode();
 	        	compareDeletionOfNodes();
 	        	compareDeletionOfMethods();
         	System.out.println("created graph");
@@ -349,6 +350,11 @@ public class CompareGraphs {
 	    	
 	    }
 	    
+	    
+	    public void compareMainInterfaceNode()
+	    {
+	    //to be implemented
+	    }
 	    
 	   public void compareMainClassNode()
 	    {
