@@ -519,7 +519,7 @@ public class CompareGraphs {
 			  else
 			  {
 				  //inform communicator
-				  communicator.informAdditionOfClassDependencyEdge(clientNode, serverNodeID, "EXTENDS");
+				  communicator.informAdditionOfExtendsDependencyEdge(clientNode, serverNodeID, "EXTENDS");
 				  
 			  }
 			  
@@ -593,7 +593,7 @@ public class CompareGraphs {
 				{
 					//attribute does not exist
 					//addition of attribute node in client
-					invokeAttributeDependencyEdgeCreation(attributeNode);
+					invokeAttributeConnectingEdgeCreation(attributeNode);
 					 String lineNumber= attributeNode.getProperty("lineNumber").toString();
 					communicator.informAdditionAttributeNodeCase1(attributeNode, serverClassNode, lineNumber);
 					
@@ -620,7 +620,7 @@ public class CompareGraphs {
 			  //System.out.println("Send to Client::"+ clientAttributeNode.getProperty("name")+"has s different datatype");
 			  communicator.informPropertyChangeAttributeNodeCase3(clientAttributeNode, serverAttributeNode, "dataType", lineNumber);
 			  //this also leads to creation of a dependency edge
-			  invokeAttributeDependencyEdgeCreation(clientAttributeNode);
+			  invokeAttributeConnectingEdgeCreation(clientAttributeNode);
 		  }
 		  
 		  if (!(clientAttributeNode.getProperty("initializer").toString().equals(serverAttributeNode.getProperty("initializer").toString())))
@@ -632,14 +632,14 @@ public class CompareGraphs {
 	  }
 	  
 	  
-	  public void invokeAttributeDependencyEdgeCreation(Node clientAttributeNode)
+	  public void invokeAttributeConnectingEdgeCreation(Node clientAttributeNode)
 	  {
 		  String dataType= clientAttributeNode.getProperty("dataType").toString();
 		  //search this datatype class in server, if exists... 
 		  Node serverClassNode = searchDatatypeClassInServerGraph(dataType);
 		  
-		  //invoke creation of dependency edge
-		 if (serverClassNode !=null) communicator.informAdditionOfAttributeDependencyEdge(clientAttributeNode, serverClassNode);
+		  //invoke creation of connecting edge
+		 if (serverClassNode !=null) communicator.informAdditionOfAttributeConnectingEdge(clientAttributeNode, serverClassNode);
 	  }
 	  
 	  public Node searchDatatypeClassInServerGraph(String dataType)
@@ -709,6 +709,7 @@ public class CompareGraphs {
 				{
 					//method does not exist
 					//addition of attribute node in client
+					//invokeMethodConnectingEdgeCreation(methodNode);
 					  if (DEBUG) System.out.println("Method does not exists:: "+methodNode);
 					 communicator.informAdditionMethodNodeCase1(methodNode, clientNode, serverClassNode, lineNumber);
 				}
@@ -826,7 +827,7 @@ public class CompareGraphs {
 				{
 					//method does not exist
 					//addition of attribute node in client
-					invokeMethodDependencyEdgeCreation(otherClientNode, clientMethodNode, serverMethodNode);
+					invokeMethodConnectingEdgeCreation(otherClientNode, clientMethodNode, serverMethodNode);
 					String lineNumber= otherClientNode.getProperty("lineNumber").toString();
 					 communicator.informAdditionMethodAttributeNodeCase1(otherClientNode, clientMethodNode, serverMethodNode, lineNumber);
 				}
@@ -853,36 +854,36 @@ public class CompareGraphs {
 		  if (!(clientMethodAttributeNode.getProperty("modifier").toString().equals(serverMethodAttributeNode.getProperty("modifier").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different modifier");
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different modifier");
 			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "modifier", lineNumber);
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("dataType").toString().equals(serverMethodAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different dataType");			  
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different dataType");			  
 			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "dataType", lineNumber);
 			 
-			  invokeMethodDependencyEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
+			  invokeMethodConnectingEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("initializer").toString().equals(serverMethodAttributeNode.getProperty("initializer").toString())))
 		  {
 			  //different modifier
-			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has s different initializer");
+			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different initializer");
 			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "initializer", lineNumber);
 		  }
 
 	  }
 	  
-	  public void invokeMethodDependencyEdgeCreation(Node clientMethodAttributeNode, Node clientMethodNode, Node serverMethodNode)
+	  public void invokeMethodConnectingEdgeCreation(Node clientMethodAttributeNode, Node clientMethodNode, Node serverMethodNode)
 	  {
 		  String dataType= clientMethodAttributeNode.getProperty("dataType").toString();
 		  //search this datatype class in server, if exists... 
 		  Node serverClassNode = searchDatatypeClassInServerGraph(dataType);
 		  
 		  //invoke creation of dependency edge
-		 if (serverClassNode !=null) communicator.informAdditionOfMethodAttributeDependencyEdge(clientMethodAttributeNode, clientMethodNode, serverClassNode);
+		 if (serverClassNode !=null) communicator.informAdditionOfMethodAttributeConnectingEdge(clientMethodAttributeNode, clientMethodNode, serverClassNode);
 	  }
 	  
 	  

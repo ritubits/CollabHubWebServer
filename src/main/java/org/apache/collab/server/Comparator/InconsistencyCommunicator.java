@@ -24,7 +24,7 @@ public class InconsistencyCommunicator {
 
 	String collabName=null;
 	String ipAddSQL=null;
-	boolean DEBUG= true;
+	boolean DEBUG= false;
 	Connection conn=null;
 	GraphDatabaseService graphDbServer=null;
 	HashMap<Long, String> nodeCanonicalHashMap=null;
@@ -34,20 +34,21 @@ public class InconsistencyCommunicator {
 		collabName=cName;
 		if (DEBUG) System.out.println("In InconsistencyCommunicator::Collab::"+collabName);
 		ipAddSQL= ipSQL;
-	//	conn= LoadDriver.connect;
+		conn= LoadDriver.connect;
+		createTableConflictMessages(conn);
 		graphDbServer= server;
 		nodeCanonicalHashMap = nodeMap;
 		
 		
 		//added here only for checking... remove afterwards
-			try {
+/*			try {
 		conn = LoadDriver.createConnection(ipAddSQL);
 		createTableConflictMessages(conn);
 
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
-	}
+	}*/
 		
 	}
 	
@@ -335,9 +336,14 @@ public class InconsistencyCommunicator {
 		
 	}
 	
-	public void informAdditionOfAttributeDependencyEdge(Node clientAttributeNode, Node serverClassNode)
+	public void informAdditionOfMethodConnectingEdge(Node clientAttributeNode, Node serverClassNode)
 	{
-		if (DEBUG) System.out.println("In informAdditionOfAttributeDependencyEdge");
+		
+	}
+	
+	public void informAdditionOfAttributeConnectingEdge(Node clientAttributeNode, Node serverClassNode)
+	{
+		if (DEBUG) System.out.println("In informAdditionOfAttributeConnectingEdge");
 		// N1- clientAttributeNode
 		// N2 - serverAttributeNode
 		
@@ -363,7 +369,8 @@ public class InconsistencyCommunicator {
 		}
 		
 		//1) Inform node N2: serverAttributeNode
-		if (serverAttributeNode !=null) sendInfo(serverAttributeNode ,msg_add_attribute_dependency+clientAttributeNode.getProperty("name")+ "| to the class: |"+ clientClassNode.getProperty("name"), " ");
+		if (serverAttributeNode !=null) 
+			sendInfo(serverAttributeNode ,msg_add_attribute_dependency+clientAttributeNode.getProperty("name")+ "| to the class: |"+ clientClassNode.getProperty("name"), " ");
 		
 		//2) inform all dependencies of N2
 		 
@@ -441,9 +448,137 @@ public class InconsistencyCommunicator {
 			}
 	}
 	
-	public void informAdditionOfClassDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+
+	   long getCanonicalClassNodeID(String className)
+	   {
+			System.out.println("className::"+className);
+		   //get id of class name in nodeHashMap else return -1
+			Long id = (long) -1;
+
+				    for (Map.Entry<Long, String> entry : nodeCanonicalHashMap.entrySet()) {
+				        if (Objects.equals(className, entry.getValue())) {
+				            id= entry.getKey();
+				            break;
+				        }
+				    }
+					return id;
+	   }
+	   
+	public void informAdditionOfMethodAttributeConnectingEdge(Node clientMethodAttributeNode, Node clientMethodNode, Node serverClassNode)
 	{
-		if (DEBUG) System.out.println("In informAdditionOfClassDependencyEdge");
+		if (DEBUG) System.out.println("In informAdditionOfMethodAttributeConnectingEdge");
+		// N1- clientMethodNode
+		// N2 - serverMethodNode
+		
+		//get node N2
+		Node serverMethodNode=null;
+		Node otherNode=null;
+		Iterable<Relationship> relations= serverClassNode.getRelationships(RelTypes.CONNECTING);
+		for (Relationship r: relations)
+		{
+			otherNode=r.getOtherNode(serverClassNode);
+			if (otherNode.getProperty("name").toString().equals(clientMethodNode.getProperty("name").toString())) 
+			{
+				serverMethodNode= otherNode;
+			}
+		}
+		
+		//1) Inform node N2: serverMethodNode
+		if (serverMethodNode !=null) sendInfo(serverMethodNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+		
+		//2) inform all dependencies of N2
+		 
+		if (serverMethodNode !=null)
+			{
+			otherNode =null;
+			
+			relations=null;
+			  relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
+				for (Relationship r: relations)
+				{
+					otherNode=r.getOtherNode(serverMethodNode);
+					 sendInfo(otherNode,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+				}
+			}
+				
+		//3) inform parent of N2
+		sendInfo(serverClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");		
+		
+		// 4) inform all dependencies on parent of N2
+		  otherNode =null;
+				relations=null;
+				  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverClassNode);
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+					}
+		
+					
+		//5) Inform node N1: clientAttributeNode
+		if (clientMethodNode!=null) sendInfo(clientMethodNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+			
+	    //6) Inform all dependencies of N1
+		if (clientMethodNode!=null)
+		{
+		otherNode =null;
+				relations=null;
+				  relations= clientMethodNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(serverClassNode);
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+					}
+		}
+					
+	    //7) Inform parent of N1 : clientClassNode					
+		Node clientClassNode=null;
+		if (clientMethodNode!=null)
+		{
+			Relationship r1= clientMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
+			if (r1!=null) clientClassNode = r1.getOtherNode(clientMethodNode);
+			if (clientClassNode !=null)
+				sendInfo(clientClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name")+ "to the class: "+ clientClassNode.getProperty("name"), " ");
+		}
+		
+		  //8) Inform all dependencies of parent of N1-clientClassNode
+		if (clientClassNode !=null)
+			{
+			otherNode =null;
+			
+				relations=null;
+				  relations= clientClassNode.getRelationships(RelTypes.DEPENDENCY);
+					for (Relationship r: relations)
+					{
+						otherNode=r.getOtherNode(clientClassNode);
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+					}
+			}
+	}
+	
+	public void informAdditionOfImplementsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		
+	}
+	
+	public void informAdditionOfImportsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		
+	}
+	
+	public void informAdditionOfUsesDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		
+	}
+	
+	public void informAdditionOfCallsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		
+	}
+	
+	public void informAdditionOfExtendsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	{
+		if (DEBUG) System.out.println("In informAdditionOfExtendsDependencyEdge");
 		// N1- clientClassNode
 		// N2 - serverClassNode
 
@@ -550,111 +685,6 @@ public class InconsistencyCommunicator {
 					{
 						otherNode=r.getOtherNode(clientParent);
 						sendInfo(otherNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientClassNode.getProperty("name")+ "| to the class: |"+ serverClassNode.getProperty("name"), " ");
-					}
-			}
-	}
-	   long getCanonicalClassNodeID(String className)
-	   {
-			System.out.println("className::"+className);
-		   //get id of class name in nodeHashMap else return -1
-			Long id = (long) -1;
-
-				    for (Map.Entry<Long, String> entry : nodeCanonicalHashMap.entrySet()) {
-				        if (Objects.equals(className, entry.getValue())) {
-				            id= entry.getKey();
-				            break;
-				        }
-				    }
-					return id;
-	   }
-	public void informAdditionOfMethodAttributeDependencyEdge(Node clientMethodAttributeNode, Node clientMethodNode, Node serverClassNode)
-	{
-		if (DEBUG) System.out.println("In informAdditionOfMethodAttributeDependencyEdge");
-		// N1- clientMethodNode
-		// N2 - serverMethodNode
-		
-		//get node N2
-		Node serverMethodNode=null;
-		Node otherNode=null;
-		Iterable<Relationship> relations= serverClassNode.getRelationships(RelTypes.CONNECTING);
-		for (Relationship r: relations)
-		{
-			otherNode=r.getOtherNode(serverClassNode);
-			if (otherNode.getProperty("name").toString().equals(clientMethodNode.getProperty("name").toString())) 
-			{
-				serverMethodNode= otherNode;
-			}
-		}
-		
-		//1) Inform node N2: serverMethodNode
-		if (serverMethodNode !=null) sendInfo(serverMethodNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
-		
-		//2) inform all dependencies of N2
-		 
-		if (serverMethodNode !=null)
-			{
-			otherNode =null;
-			
-			relations=null;
-			  relations= serverMethodNode.getRelationships(RelTypes.DEPENDENCY);
-				for (Relationship r: relations)
-				{
-					otherNode=r.getOtherNode(serverMethodNode);
-					 sendInfo(otherNode,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
-				}
-			}
-				
-		//3) inform parent of N2
-		sendInfo(serverClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");		
-		
-		// 4) inform all dependencies on parent of N2
-		  otherNode =null;
-				relations=null;
-				  relations= serverClassNode.getRelationships(RelTypes.DEPENDENCY);
-					for (Relationship r: relations)
-					{
-						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
-					}
-		
-					
-		//5) Inform node N1: clientAttributeNode
-		if (clientMethodNode!=null) sendInfo(clientMethodNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
-			
-	    //6) Inform all dependencies of N1
-		if (clientMethodNode!=null)
-		{
-		otherNode =null;
-				relations=null;
-				  relations= clientMethodNode.getRelationships(RelTypes.DEPENDENCY);
-					for (Relationship r: relations)
-					{
-						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
-					}
-		}
-					
-	    //7) Inform parent of N1 : clientClassNode					
-		Node clientClassNode=null;
-		if (clientMethodNode!=null)
-		{
-			Relationship r1= clientMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
-			if (r1!=null) clientClassNode = r1.getOtherNode(clientMethodNode);
-			if (clientClassNode !=null)
-				sendInfo(clientClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name")+ "to the class: "+ clientClassNode.getProperty("name"), " ");
-		}
-		
-		  //8) Inform all dependencies of parent of N1-clientClassNode
-		if (clientClassNode !=null)
-			{
-			otherNode =null;
-			
-				relations=null;
-				  relations= clientClassNode.getRelationships(RelTypes.DEPENDENCY);
-					for (Relationship r: relations)
-					{
-						otherNode=r.getOtherNode(clientClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
 					}
 			}
 	}
@@ -920,7 +950,7 @@ public class InconsistencyCommunicator {
 		 }
 		 else
 			 message= message + msg_collaborator+collabName;
-		 System.out.println("Send Info to::"+ node.getProperty("canonicalName")+ message);
+		 if (DEBUG) System.out.println("Send Info to::"+ node.getProperty("canonicalName")+ message);
 		// sendInfoToDB(node, message);
 		//filterMessage(node, "Send Info to::"+ node.getProperty("canonicalName")+ message);
 		filterMessage(node, message);
@@ -970,16 +1000,16 @@ public class InconsistencyCommunicator {
 				if (DEBUG) System.out.println("SQL::from filterMessage::"+sql);
 	    	   resultSet = statement.executeQuery(sql);
 	    	   resultSet.last();
-	    	   System.out.println("Resultset is ::"+resultSet.getRow());
+	    	   if (DEBUG)  System.out.println("Resultset is ::"+resultSet.getRow());
 	    	   if (resultSet.getRow() == 0) 
 	    	   {
 	    		   exists=false;
-	    		   System.out.println("Resultset is null");
+	    		   if (DEBUG)  System.out.println("Resultset is null");
 	    	   }
 	    	   else 
 	    		   {
 	    		   exists =true;
-	    		   System.out.println("Resultset is not null");
+	    		   if (DEBUG)  System.out.println("Resultset is not null");
 	    		   }
 	    	   
 	    	   resultSet.close();

@@ -45,7 +45,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 	private String DEST_PATH = "neo4jDB/Client/temp/";
 	private String SRC_PATH = "neo4jDB/Client/"; 
 	
-    String DEBUG=null;
+    String DEBUG="FALSE";
 	 private static final String DB_PATH_SERVER = "neo4jDB/Server";
 	 GraphDatabaseService graphDbServer;
 	 
@@ -74,7 +74,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 	    String fileContent= null;
 	    PrintWriter out =null;
 	    
-		System.out.println(request.getParameter("text"));
+	    if (DEBUG.equals("TRUE")) System.out.println(request.getParameter("text"));
 		String partName = "text"; // or "data"
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 		System.out.println(ServletFileUpload.isMultipartContent(request));
@@ -130,7 +130,7 @@ public class UserArtifactGraphServlet extends HttpServlet {
 			        reader.close();
 			        fileContent= outBuilder.toString();
 			        
-			        System.out.println(fileContent);  
+			      if (DEBUG.equals("TRUE"))  System.out.println(fileContent);  
 
 	        }
 	   

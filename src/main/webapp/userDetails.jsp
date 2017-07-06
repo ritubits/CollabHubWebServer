@@ -26,7 +26,7 @@ String ownerName = null;
 String userName = null;
 String collabName=null;
 Vector uNames= new Vector();
-
+String DEBUG="FALSE";
 
 projectName= userB.getProjectDetails();
 System.out.println("ProjectName from userDetails.jsp::"+projectName);
@@ -39,7 +39,7 @@ String delimiter1 = "[,]";
 temp1 = userName .split(delimiter1);
 for(int i =0; i < temp1.length ; i++)
 {
-System.out.println("i=" + i + temp1[i]);
+	if (DEBUG.equals("TRUE")) System.out.println("i=" + i + temp1[i]);
 uNames.add(temp1[i]);
 }
 				
@@ -111,8 +111,9 @@ else
     </TD>
  <% if (!collabName.equals("No data to display"))
  {%>
-<td WIDTH="30%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">ViewInfo</a></td>
-<td WIDTH="30%"><a href="LivePreview.jsp?pName=<%=projectName%>&cName=<%=collabName%>">LivePreview</a></td>
+<td WIDTH="50%"><a href="collabInfo.jsp?pName=<%=projectName%>&cName=<%=collabName%>">ViewInfo</a></td>
+<!-- <td WIDTH="30%"><a href="LivePreview.jsp?pName=<%=projectName%>&cName=<%=collabName%>">LivePreview</a></td> -->
+
     </TR>
 <% } %>
 <%

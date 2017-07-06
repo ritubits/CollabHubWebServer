@@ -23,7 +23,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	 String activityType=null;
 	 Connection con=null;
     PrintWriter out =null;
-    String DEBUG=null;
+    String DEBUG="FALSE";
     
     public void init(ServletConfig config) throws ServletException  
     {
@@ -55,8 +55,8 @@ public class ConflictMessagesServlet extends HttpServlet{
 		    	   {
 		    	   getActivtyData(collabName);
 		    	   messages=getConflictMessages(con, collabName);
-		    	   System.out.println("ConflictMessageS:: "+messages);
-		    	   out.print((messages));
+		    	   if (DEBUG.contains("TRUE")) System.out.println("ConflictMessageS:: "+messages);
+		    	   if (DEBUG.contains("TRUE")) out.print((messages));
 		    	   }
 		       else 
 		       {
@@ -207,8 +207,8 @@ public class ConflictMessagesServlet extends HttpServlet{
 					System.out.println("from getColorString fileName::"+fileName);
 					index2= fileName.indexOf(".");
 					 fName= fileName.substring(0, index2);
-						System.out.println("from getColorString sentNode::"+sentNode);
-						System.out.println("from getColorString fileName::"+fName);
+					 if (DEBUG.contains("TRUE")) System.out.println("from getColorString sentNode::"+sentNode);
+					 if (DEBUG.contains("TRUE")) System.out.println("from getColorString fileName::"+fName);
 					if (sentNode.contains(fName))
 					{
 						color="EDC";//"cyan";
@@ -241,7 +241,8 @@ public class ConflictMessagesServlet extends HttpServlet{
 	    	   { 
    
 				statement = con.createStatement();		
-				sql= "SELECT useractivity_"+collabName+ "FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_"+collabName+";";
+				sql= "SELECT table_name FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_"+collabName+"'"+";";
+				if (DEBUG.contains("TRUE")) System.out.println(sql);
 				resultSet = statement.executeQuery(sql);
 				int num=0;
 				while (resultSet.next())
@@ -263,6 +264,20 @@ public class ConflictMessagesServlet extends HttpServlet{
 					resultSet.close();
 				
 				
+					num =0;
+					
+					sql= "SELECT table_name FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_"+sentCollab+"'"+";";
+					if (DEBUG.contains("TRUE")) System.out.println(sql);
+					resultSet = statement.executeQuery(sql);
+					while (resultSet.next())
+					{
+						resultSet.last();
+						num= resultSet.getRow();
+					}
+		    	   resultSet.close();
+		    	   
+		    	   if (num >0)
+		    	   {
 					 sql= "select filename, activitytype, activitytime from useractivity_"+sentCollab+ " where activitytype='EDIT' and activitytime= (select max(activitytime ) from useractivity_"+sentCollab+");";
 					resultSet = statement.executeQuery(sql);
 					while (resultSet.next())
@@ -270,6 +285,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 						collabFileName= resultSet.getString("filename");
 					}
 					resultSet.close();
+		    	   }
 	    	   }
 	    	   }
 	       
@@ -293,12 +309,12 @@ public class ConflictMessagesServlet extends HttpServlet{
 			//Then returns true else false
 			
 			boolean found=false;
-			System.out.println("ActivityData:: "+getActivityArtifact());
+			if (DEBUG.contains("TRUE")) System.out.println("ActivityData:: "+getActivityArtifact());
 			
 			int index= artifactName.lastIndexOf('.');
 			artifactName= artifactName.substring(index+1, artifactName.length());
 			
-			System.out.println("artifactName:: "+artifactName);
+			if (DEBUG.contains("TRUE")) System.out.println("artifactName:: "+artifactName);
 			
 			if (getActivityArtifact() !=null)
 				{

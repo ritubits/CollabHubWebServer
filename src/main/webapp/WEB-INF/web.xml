@@ -146,6 +146,12 @@
 		<servlet-name>conflictMessages</servlet-name>
 		<jsp-file>/conflictMessages.jsp</jsp-file>
 	</servlet>
+	<servlet>
+		<servlet-name>COGWebControllerServlet</servlet-name>
+		<display-name>COGWebControllerServlet</display-name>
+		<description></description>
+		<servlet-class>org.apache.collab.server.WebClient.COGWebControllerServlet</servlet-class>
+	</servlet>
 	
 	<servlet-mapping>
 		<servlet-name>conflictMessages</servlet-name>
@@ -234,6 +240,10 @@
 	<servlet-mapping>
 		<servlet-name>UserArtifactGraphSimulatorServlet</servlet-name>
 		<url-pattern>/UserArtifactGraphSimulatorServlet</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>COGWebControllerServlet</servlet-name>
+		<url-pattern>/COGWebControllerServlet</url-pattern>
 	</servlet-mapping>
 	
 	   <security-constraint>

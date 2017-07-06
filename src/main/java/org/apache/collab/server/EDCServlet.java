@@ -18,7 +18,7 @@ public class EDCServlet extends HttpServlet{
 
     String ipAddSQL= null;
 	Connection con=null;
-    String DEBUG=null;
+    String DEBUG="TRUE";
 
     
     public void init(ServletConfig config) throws ServletException  
@@ -41,23 +41,20 @@ public class EDCServlet extends HttpServlet{
 		 	response.setContentType("text/html");
 	        PrintWriter out = response.getWriter();
 	  
-	        System.out.println(" In the ODCServlet ");       
+	        if (DEBUG.contains("TRUE")) System.out.println(" In the EDCServlet ");       
 	        collabName = request.getParameter("cName");
 	
-	        if (DEBUG.contains("TRUE")) System.out.println("ipAddress SQL: "+ipAddSQL);
-	        
-	        //make connection to DB
-	      
-	       //  con= LoadDriver.createConnection(ipAddSQL);//connect;
-	         con= LoadDriver.connect;
+	        con= LoadDriver.connect;
 	        String artifact=null;
 	        String returnData = null;
 		       if (con !=null) 
 		    	   {
 		    	   artifact=getEditArtifact(collabName);
-		    	   returnData=getODC(artifact, activityTables,collabName);
+		    	   if (DEBUG.contains("TRUE")) System.out.println("EditArtifact:: "+artifact+ "of "+ collabName );
+		    	   
+		    	   returnData=getEDC(artifact, activityTables,collabName);
 		    	 //  messages=getConflictMessages(con);
-		    	   System.out.println("EditArtifact:: "+artifact);
+
 		    	//   System.out.println("CollabNames:: "+parseCollabNames(collabNames, collabName));
 		    	   out.print(returnData);
 		    	   }
@@ -74,9 +71,9 @@ public class EDCServlet extends HttpServlet{
 
 	public String getEditArtifact(String collabName)
 	 {
-		String editArtifact=null; 
-		Statement statement = null;
-		  String sql = null;
+		 String editArtifact=null; 
+		 Statement statement = null;
+		 String sql = null;
 		 ResultSet resultSet =null;
 		  try {
 		       if (con !=null) 
@@ -101,7 +98,7 @@ public class EDCServlet extends HttpServlet{
 	
 	 }
 	
-	public String getODC(String artifact, Vector activityTables, String cName)
+	public String getEDC(String artifact, Vector activityTables, String cName)
 	{
 		String EDCCollabData= null;
 		
@@ -138,11 +135,14 @@ public class EDCServlet extends HttpServlet{
 	   				 String usertableName= userActivityTableName.nextElement().toString();
 	   				 //	sql= "select filename, elementName, lineNo from "+ usertableName+" where filename='"+artifact+"' and activitytype='EDIT' and MINUTE(activitytime) >= MINUTE(NOW()-INTERVAL 5 MINUTE);";
 	   				 sql="select filename,elementName,lineNo from "+ usertableName+" where filename='"+artifact+"' and activitytype='EDIT' and activitytime = (select max(activitytime) from "+ usertableName+");";
-	   				 	ResultSet resultSet = statement.executeQuery(sql);
+	   				if (DEBUG.contains("TRUE")) System.out.println(sql);
+	   					ResultSet resultSet = statement.executeQuery(sql);
 	   				 
 						while (resultSet.next())
 						{
 							clientName= parse(usertableName);
+							if (DEBUG.contains("TRUE")) System.out.println("clientName::"+ clientName);
+							
 							if (!clientName.equalsIgnoreCase(cName))
 							{
 								if (EDCCollabData == null)
@@ -151,14 +151,11 @@ public class EDCServlet extends HttpServlet{
 							}
 						}
 			    	   resultSet.close();
-			    	   System.out.println("EDCCollabData::"+ EDCCollabData);
+			    	   if (DEBUG.contains("TRUE")) System.out.println("EDCCollabData::"+ EDCCollabData);
 			    	  }
 		}		   		 catch (Exception e) {
-   			// TODO Auto-generated catch block
-   			e.printStackTrace();
-   		}
-		
-
+						e.printStackTrace();
+   					}
 		return EDCCollabData;
 	}
 	

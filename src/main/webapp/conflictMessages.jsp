@@ -24,7 +24,7 @@ Vector aNames= new Vector();
 
 String messageName = null;
 Vector mNames= new Vector();
-
+String DEBUG="FALSE";
 userConflict.getConflictMessageDetails();
 artifactName = userConflict.getArtifactNames();
 messageName = userConflict.getConflictMessages();
@@ -36,7 +36,7 @@ String delimiter1 = "[,]";
 temp1 = messageName.split(delimiter1);
 for(int i =0; i < temp1.length ; i++)
 {
-System.out.println("i=" + i + temp1[i]);
+	if (DEBUG.equals("TRUE")) System.out.println("i=" + i + temp1[i]);
 mNames.add(temp1[i]);
 }
 				
@@ -50,7 +50,7 @@ String delimiter1 = "[,]";
 temp1 = artifactName .split(delimiter1);
 for(int i =0; i < temp1.length ; i++)
 {
-System.out.println("i=" + i + temp1[i]);
+	if (DEBUG.equals("TRUE")) System.out.println("i=" + i + temp1[i]);
 aNames.add(temp1[i]);
 }
 				

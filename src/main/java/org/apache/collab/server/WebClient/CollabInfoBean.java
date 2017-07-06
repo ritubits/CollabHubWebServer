@@ -50,7 +50,8 @@ public class CollabInfoBean {
 	    	   { 
 				statement = conn.createStatement();				    	   
 	    	   // Result set get the result of the SQL query
-				sql= "select filename, activitytype, max(activitytime) from (select * from useractivity_"+collabName+" order by filename ASC, activitytime DESC) as t2 group by filename;";
+				//sql= "select filename, activitytype, max(activitytime) from (select * from useractivity_"+collabName+" order by filename ASC, activitytime DESC) as t2 group by filename;";
+				sql= "select filename, activitytype, activitytime from useractivity_"+collabName+" where activitytime= (select max(activitytime) from useractivity_"+collabName+");";
 				resultSet = statement.executeQuery(sql);
 				while (resultSet.next())
 				{
