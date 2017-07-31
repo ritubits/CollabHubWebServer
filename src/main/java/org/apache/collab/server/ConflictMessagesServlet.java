@@ -23,7 +23,7 @@ public class ConflictMessagesServlet extends HttpServlet{
 	 String activityType=null;
 	 Connection con=null;
     PrintWriter out =null;
-    String DEBUG="FALSE";
+    String DEBUG="TRUE";
     
     public void init(ServletConfig config) throws ServletException  
     {
@@ -32,7 +32,7 @@ public class ConflictMessagesServlet extends HttpServlet{
     	//read ipAddTomcat and ipAddSQL
     	super.init(config);
 //    	ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
-    	DEBUG = getServletContext().getInitParameter("DEBUG");
+    	//DEBUG = getServletContext().getInitParameter("DEBUG");
     }
     
 	 public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -242,7 +242,7 @@ public class ConflictMessagesServlet extends HttpServlet{
    
 				statement = con.createStatement();		
 				sql= "SELECT table_name FROM information_schema.tables	WHERE table_schema = 'collaborationhub'	AND table_name = 'useractivity_"+collabName+"'"+";";
-				if (DEBUG.contains("TRUE")) System.out.println(sql);
+				if (DEBUG.equals("TRUE")) System.out.println(sql);
 				resultSet = statement.executeQuery(sql);
 				int num=0;
 				while (resultSet.next())

@@ -484,7 +484,7 @@ public class InconsistencyCommunicator {
 		}
 		
 		//1) Inform node N2: serverMethodNode
-		if (serverMethodNode !=null) sendInfo(serverMethodNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+		if (serverMethodNode !=null) sendInfo(serverMethodNode ,msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 		
 		//2) inform all dependencies of N2
 		 
@@ -497,12 +497,12 @@ public class InconsistencyCommunicator {
 				for (Relationship r: relations)
 				{
 					otherNode=r.getOtherNode(serverMethodNode);
-					 sendInfo(otherNode,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+					 sendInfo(otherNode,msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 				}
 			}
 				
 		//3) inform parent of N2
-		sendInfo(serverClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");		
+		sendInfo(serverClassNode ,msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");		
 		
 		// 4) inform all dependencies on parent of N2
 		  otherNode =null;
@@ -511,12 +511,12 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 					}
 		
 					
 		//5) Inform node N1: clientAttributeNode
-		if (clientMethodNode!=null) sendInfo(clientMethodNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+		if (clientMethodNode!=null) sendInfo(clientMethodNode, msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 			
 	    //6) Inform all dependencies of N1
 		if (clientMethodNode!=null)
@@ -527,7 +527,7 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 					}
 		}
 					
@@ -538,7 +538,7 @@ public class InconsistencyCommunicator {
 			Relationship r1= clientMethodNode.getSingleRelationship(RelTypes.CONNECTING, Direction.OUTGOING);
 			if (r1!=null) clientClassNode = r1.getOtherNode(clientMethodNode);
 			if (clientClassNode !=null)
-				sendInfo(clientClassNode ,msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name")+ "to the class: "+ clientClassNode.getProperty("name"), " ");
+				sendInfo(clientClassNode ,msg_add_method_attribute_dependency+clientMethodNode.getProperty("name")+ " |to the class: "+ clientClassNode.getProperty("name"), " ");
 		}
 		
 		  //8) Inform all dependencies of parent of N1-clientClassNode
@@ -551,7 +551,7 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(clientClassNode);
-						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodAttributeNode.getProperty("name"), " ");
+						sendInfo(otherNode, msg_add_method_attribute_dependency+clientMethodNode.getProperty("name"), " ");
 					}
 			}
 	}
@@ -890,7 +890,7 @@ public class InconsistencyCommunicator {
 				}			
 	}
 	
-	public void informPropertyChangeMethodAttributeNodeCase3(Node clientMethodNode, Node serverMethodNode, String propertyChanged, String lineNumber)
+	public void informPropertyChangeMethodAttributeNodeCase3(Node clientMethodNode, Node serverMethodNode, Node clientMethodAttributeNode, String propertyChanged, String lineNumber)
 	{
 		//get clientClassNode
 		Node serverClassNode=null;
@@ -902,8 +902,8 @@ public class InconsistencyCommunicator {
 		if (serverClassNode !=null)
 		{
 			// 1) inform node N1
-			sendInfo(clientMethodNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
-			informTransitiveSubNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
+			sendInfo(clientMethodNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
+			informTransitiveSubNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
 		}
 		
 		// 2) inform dependencies of N1
@@ -913,8 +913,8 @@ public class InconsistencyCommunicator {
 			for (Relationship r: relations)
 			{
 				otherNode=r.getOtherNode(serverMethodNode);
-				sendInfo(otherNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
-				informTransitiveDependencyNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
+				sendInfo(otherNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
+				informTransitiveDependencyNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
 			}
 		
 		// 3) inform parent of N1
@@ -922,8 +922,8 @@ public class InconsistencyCommunicator {
 			// get parent of N1 from serverGraph		
 			if (serverClassNode !=null)
 				{
-				sendInfo(serverClassNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
-				informTransitiveSubNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
+				sendInfo(serverClassNode , msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
+				informTransitiveSubNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
 				}
 			
 			
@@ -936,8 +936,8 @@ public class InconsistencyCommunicator {
 					for (Relationship r: relations)
 					{
 						otherNode=r.getOtherNode(serverClassNode);
-						sendInfo(otherNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
-						informTransitiveDependencyNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
+						sendInfo(otherNode ,msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"),lineNumber);
+						informTransitiveDependencyNodes(clientMethodNode, radius, msg_change_method_attribute_properties+propertyChanged+"|of attribute |"+clientMethodAttributeNode.getProperty("name")+"|of method |"+clientMethodNode.getProperty("name")+"|of class |"+ serverClassNode.getProperty("name"), lineNumber);
 					}
 				}			
 	}

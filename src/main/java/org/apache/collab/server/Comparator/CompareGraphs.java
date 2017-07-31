@@ -855,14 +855,14 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different modifier");
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "modifier", lineNumber);
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, clientMethodAttributeNode, "modifier", lineNumber);
 		  }
 		  
 		  if (!(clientMethodAttributeNode.getProperty("dataType").toString().equals(serverMethodAttributeNode.getProperty("dataType").toString())))
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different dataType");			  
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "dataType", lineNumber);
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, clientMethodAttributeNode, "dataType", lineNumber);
 			 
 			  invokeMethodConnectingEdgeCreation(clientMethodAttributeNode, clientMethodNode, serverMethodNode);
 		  }
@@ -871,7 +871,7 @@ public class CompareGraphs {
 		  {
 			  //different modifier
 			  System.out.println("Send to Client::"+ clientMethodAttributeNode.getProperty("name")+"has a different initializer");
-			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, "initializer", lineNumber);
+			  communicator.informPropertyChangeMethodAttributeNodeCase3(clientMethodNode, serverMethodNode, clientMethodAttributeNode, "initializer", lineNumber);
 		  }
 
 	  }
@@ -944,5 +944,18 @@ public class CompareGraphs {
 						ex.printStackTrace();
 					}
 				}					
-		 }	    
+		 }	
+		 
+		 public void compareDependencyEdges()
+		 {
+			 String artifactFileData = null;
+			 String projectFileData=null;
+			 String[] temp1;
+			  String delimiter1 = "[;]";
+			  temp1 = artifactFileData.split(delimiter1);
+			  for(int i =0; i < temp1.length ; i++)
+			  {
+			  System.out.println("data from compareDependencyEdges" + i + temp1[i]);
+			  }
+		 }
 }
