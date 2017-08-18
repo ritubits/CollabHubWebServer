@@ -556,23 +556,79 @@ public class InconsistencyCommunicator {
 			}
 	}
 	
-	public void informAdditionOfImplementsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	public void informAdditionOfImplementsDependencyEdge(String clientNodeName,String serverNodeName, String dependencyType)
 	{
 		
 	}
 	
-	public void informAdditionOfImportsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	public void informAdditionOfImportsDependencyEdge(String clientNodeName,String serverNodeName, String dependencyType)
 	{
 		
 	}
 	
-	public void informAdditionOfUsesDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	public void informAdditionOfUsesDependencyEdge(String clientNodeName,String serverNodeName, String dependencyType)
 	{
+		// uses edge created from clientNode to serverNode
+		if (DEBUG) System.out.println("In informAdditionOfUsesDependencyEdge");
+		// N1- clientClassNode
+		// N2 - serverClassNode
+			Node currentServerClassNode= null;// stores N2
+		//get serverClassNode to which uses edge would be created
+		
+		//get node N2
+		
+		Node tempServerClassNode=null;
+		 ResourceIterator<Node> serverClassNodes= graphDbServer.findNodes(dGraphNodeType.CLASS);
+			while (serverClassNodes.hasNext() )
+			{
+				tempServerClassNode= serverClassNodes.next();
+				 if (tempServerClassNode.getProperty("canonicalName").toString().equals(serverNodeName))
+				 {
+					 //server class node found
+					 currentServerClassNode=tempServerClassNode;
+					 break;
+				 }
+			}
+			
+			//1) Inform node N2: serverClassNode
+			if (currentServerClassNode !=null) sendInfo(currentServerClassNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+clientNodeName+"| to the class: |"+ currentServerClassNode.getProperty("name"), " ");
+					
+			
 		
 	}
 	
-	public void informAdditionOfCallsDependencyEdge(Node clientClassNode,long serverNodeID, String dependencyType)
+	public void informAdditionOfCallsDependencyEdge(String fromNodeName,String toNodeName, String dependencyType)
 	{
+		if (DEBUG) System.out.println("In informAdditionOfCallsDependencyEdge");
+		System.out.println("fromNodeName::"+fromNodeName);
+		System.out.println("toNodeName::"+toNodeName);
+		
+		// calls edge created from fromNodeName to toNodeName
+		//inform toNodeName in server
+		// N1- clientClassNode
+		// N2 - serverClassNode
+		Node currentServerClassNode= null;// stores N2
+		//get serverClassNode to which calls edge would be created
+		
+		//get node N2
+		
+		Node tempServerClassNode=null;
+		 ResourceIterator<Node> serverClassNodes= graphDbServer.findNodes(dGraphNodeType.METHOD);
+			while (serverClassNodes.hasNext() )
+			{
+				tempServerClassNode= serverClassNodes.next();
+				 if (tempServerClassNode.getProperty("canonicalName").toString().equals(toNodeName))
+				 {
+					 //server class node found
+					 currentServerClassNode=tempServerClassNode;
+					 break;
+				 }
+			}
+			
+			//1) Inform node N2: serverClassNode
+			if (currentServerClassNode !=null) sendInfo(currentServerClassNode ,msg_add_class_dependency+"|"+dependencyType+"|from|"+fromNodeName+"| to the method: |"+ currentServerClassNode.getProperty("name"), " ");
+					
+			
 		
 	}
 	

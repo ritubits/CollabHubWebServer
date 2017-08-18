@@ -140,7 +140,10 @@ public class CreateDependencyGraph {
 	    		 graphDb = graphBuilder.newGraphDatabase();                  
 	            registerShutdownHook( graphDb );
 
-	            initializeDependencyEdgesFile(dependencyFile);
+	            initializeDependencyEdgesFile();
+	            
+	            if (dependencyFile ==null) System.out.println(" Dp is  null after initializeDependencyEdgesFile");
+	            
 				createDB();
 			//	writeHashTableToFile(dpGraph.getClassCanonicalNodeHashMap());
 				writeHashTableToFile(dpGraph.getCanonicalNodeHashMap());
@@ -477,8 +480,9 @@ public class CreateDependencyGraph {
  							//create dependency edge from current node to super class node
  							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  							
+ 							writeDependencyEdgesToFile(smallClassName, superClass.toString(), "EXTENDS");
  							//write to dependencyEdge file
- 	 						writeDependencyEdgesToFile(idCurrentClassNode, idSuperNode, "EXTENDS", dependencyFile);
+ 	 						//writeDependencyEdgesToFile(idCurrentClassNode, idSuperNode, "EXTENDS");
  							dpGraph.addExtendsDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
  						}
  					}//if (superClass !=null)
@@ -501,8 +505,9 @@ public class CreateDependencyGraph {
  	 							//create dependency edge from current node to interface node
  	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  	 							
+ 	 							writeDependencyEdgesToFile(smallClassName, interfaces.toString(), "IMPLEMENTS");
  	 						//write to dependencyEdge file
- 	 	 						writeDependencyEdgesToFile(idCurrentClassNode, idinterfaceNode, "IMPLEMENTS", dependencyFile);
+ 	 	 					//	writeDependencyEdgesToFile(idCurrentClassNode, idinterfaceNode, "IMPLEMENTS");
  	 							dpGraph.addImplementsDependencyEdge(graphDb, idinterfaceNode, idCurrentClassNode);
  	 						}//if (idinterfaceNode != -1)
  						}//for (SimpleType interfaces: interfacesImplemented)
@@ -529,8 +534,9 @@ public class CreateDependencyGraph {
  	 							//create dependency edge from current node to interface node
  	 							idCurrentClassNode= searchClassNode(smallClassName, nodeHashMap);
  	 							
+ 	 							writeDependencyEdgesToFile(smallClassName, importClass, "IMPORTS");
  	 						//write to dependencyEdge file
- 	 	 						writeDependencyEdgesToFile(idCurrentClassNode, importClassId, "IMPORTS", dependencyFile);
+ 	 	 					//	writeDependencyEdgesToFile(idCurrentClassNode, importClassId, "IMPORTS");
  	 	 						
  	 	 						dpGraph.addImportsDependencyEdge(graphDb, importClassId, idCurrentClassNode);
  	 						}//if (idinterfaceNode != -1)
@@ -585,8 +591,9 @@ public class CreateDependencyGraph {
 						//uses relationship		
 					//	System.out.println("Creating edge from Class to class for attribute node");
 						
+						
 						//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(attributeNodeClassId, otherNodeClassId, "USES", dependencyFile);
+	 					//writeDependencyEdgesToFile(attributeNodeClassId, otherNodeClassId, "USES");
 	 							
 						dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
@@ -628,7 +635,7 @@ public class CreateDependencyGraph {
 							//create dependency edge from current method node to class node
 						//uses relationship	
 						//write to dependencyEdge file
-	 						writeDependencyEdgesToFile(attributeMethodNodeId, otherClassNodeId, "USES", dependencyFile);
+	 					//	writeDependencyEdgesToFile(attributeMethodNodeId, otherClassNodeId, "USES");
 	 						
 							dpGraph.addDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId, "USES");
 						}//if (idinterfaceNode != -1)
@@ -852,10 +859,12 @@ public class CreateDependencyGraph {
                     }
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
-	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
+	  					currentParentName = parse(className)+"."+parentMethodDeclarationNode.getName().toString();
 	  				else
-	  					currentParentName = className;
+	  					currentParentName = parse(className);
 	  				//create node from currentParentname to node.getType() if exists
+	  				
+	  				writeDependencyEdgesToFile(currentParentName, classInstanceCreation, "USES");
 	  				
 	  				//Long invokeClassNodeId = searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", classInstanceCreation);
 	  				Long invokeClassNodeId = searchHashNode(classInstanceCreation, nodeCanonicalHashMap);
@@ -868,8 +877,10 @@ public class CreateDependencyGraph {
 	  				{
 	  					//System.out.println("Creating edge from ClassInstanceCreation");
 	  					
+	  					
+	  					
 	  				//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(currentNodeId, invokeClassNodeId, "USES", dependencyFile);
+	 				//	writeDependencyEdgesToFile(currentNodeId, invokeClassNodeId, "USES");
 	 						
 	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
 	  				}
@@ -894,10 +905,12 @@ public class CreateDependencyGraph {
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
-	  				currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
-	  				else currentMethodName = className;
+	  				currentMethodName = parse(className)+"."+parentMethodDeclarationNode.getName().toString();
+	  				else currentMethodName = parse(className);
 	  		//		System.out.println("currentMethodName: "+currentMethodName);
 	  	
+	  				writeDependencyEdgesToFile(currentMethodName, invokedMethodName, "CALLS");
+	  				
 	  				//create calls edge from currentMethodName to invokedMethodName
 	  				//Long invokeMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", invokedMethodName);
 	  				Long invokeMethodNodeId = searchHashNode(invokedMethodName, nodeCanonicalHashMap); 
@@ -908,7 +921,7 @@ public class CreateDependencyGraph {
 	  				{
 	  					//System.out.println("Creating edge from MethodInvocation");
 	  				//write to dependencyEdge file
-	 						writeDependencyEdgesToFile(currentMethodNodeId, invokeMethodNodeId, "CALLS", dependencyFile);
+	 						//writeDependencyEdgesToFile(currentMethodNodeId, invokeMethodNodeId, "CALLS");
 	 						
 	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
 	  				}
@@ -1116,36 +1129,39 @@ public class CreateDependencyGraph {
     }
 	  
     
-    public void initializeDependencyEdgesFile(File dp)
+    public void initializeDependencyEdgesFile()
     {
     
     	//write hash to file
     	try
 		{
-    	File dependencyfile = new File("neo4jDB/serverEdges.txt");
+    		dependencyFile = new File("neo4jDB/serverEdges.txt");
         
-	        if (!dependencyfile.exists()) {
-	        	dependencyfile.createNewFile();
+	        if (!dependencyFile.exists()) {
+	        	dependencyFile.createNewFile();
 	        	}
 	        else {
 	        	//delete existing file and create new
-	        	dependencyfile.delete();
-	        	dependencyfile.createNewFile();
+	        	dependencyFile.delete();
+	        	dependencyFile.createNewFile();
 	        }
 	        
-	    	dp= dependencyfile;
+	    	    	
+	    	if (dependencyFile ==null) System.out.println(" Dp is null from initializeDependencyEdgesFile");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
 
+
     }
-	   public void writeDependencyEdgesToFile(long fromNode, long toNode, String edgeType, File dp)
+/*	   public void writeDependencyEdgesToFile(long fromNode, long toNode, String edgeType)
 	    {
 	    	//write hash to file
-	    	try
+	   	try
 			{
        
-			FileWriter fw = new FileWriter(dp.getAbsoluteFile(), true);
+	   		if (dependencyFile == null) System.out.println(" dp is  null in writeDependencyEdges");
+			FileWriter fw = new FileWriter(dependencyFile.getAbsoluteFile(), true);
 			BufferedWriter bw = new BufferedWriter(fw);
 				
 			System.out.println("Writing server dependency edges: "+fromNode+"|"+toNode+"|"+edgeType);
@@ -1155,9 +1171,29 @@ public class CreateDependencyGraph {
 			
 			} catch (IOException e) {
 				e.printStackTrace();
-			} 
-	    	
+			}     	
+	    }*/
+	   
+	   public void writeDependencyEdgesToFile(String fromNode, String toNode, String edgeType)
+	    {
+	    	//write hash to file
+	   	try
+			{
+      
+	   		if (dependencyFile == null) System.out.println(" dp is  null in writeDependencyEdges");
+			FileWriter fw = new FileWriter(dependencyFile.getAbsoluteFile(), true);
+			BufferedWriter bw = new BufferedWriter(fw);
+				
+			System.out.println("Writing server dependency edges: "+fromNode+"|"+toNode+"|"+edgeType);
+			bw.write(fromNode+"|"+toNode+"|"+edgeType+";");
+		//	bw.newLine();
+			bw.close();
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			}     	
 	    }
+	   
     public String[] parseToStringArray(String eFiles)
 	    {	    	    	
 			final String[] temp2;						
@@ -1167,6 +1203,15 @@ public class CreateDependencyGraph {
 			     	
 	    	return temp2;
 	    }
+    
+	public String parse(String fileName)
+	{
+		String fName= null;
+		int i = fileName.indexOf(".java");
+		if (i!= -1) fName= fileName.substring(0, i);
+		else fName=fileName;
+		return fName;
+	}
 	   
 	    public Vector parseImports(String line)
 	    {  	

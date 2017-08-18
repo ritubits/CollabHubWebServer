@@ -122,7 +122,7 @@ public class CreateUserArtifactGraph {
     		 graphDb = graphBuilder.newGraphDatabase();                  
             registerShutdownHook( graphDb );
             
-            initializeDependencyEdgesFile(dependencyFile);
+            initializeDependencyEdgesFile();
 			createDB();
 			shutDown(graphDb);	
 		} catch (Exception e) {
@@ -565,7 +565,7 @@ public class CreateUserArtifactGraph {
  							System.out.println("Creating @@@ extendsDependenctEdge::");
  							
  							//write to dependencyEdge file
- 	 						writeDependencyEdgesToFile(idCurrentClassNode, idSuperNode, "EXTENDS", dependencyFile);
+ 	 						writeDependencyEdgesToFile(idCurrentClassNode, idSuperNode, "EXTENDS");
  	 						
  							dpGraph.addExtendsDependencyEdge(graphDb, idSuperNode, idCurrentClassNode);
  						}
@@ -591,7 +591,7 @@ public class CreateUserArtifactGraph {
  	 							System.out.println("Creating @@@ ImplementsDependenctEdge::");
  	 							
  	 							//write to dependencyEdge file
- 	 	 						writeDependencyEdgesToFile(idCurrentClassNode, idinterfaceNode, "IMPLEMENTS", dependencyFile);
+ 	 	 						writeDependencyEdgesToFile(idCurrentClassNode, idinterfaceNode, "IMPLEMENTS");
  	 	 						
  	 							dpGraph.addImplementsDependencyEdge(graphDb, idinterfaceNode, idCurrentClassNode);
  	 						}//if (idinterfaceNode != -1)
@@ -631,6 +631,8 @@ public class CreateUserArtifactGraph {
 				//	System.out.println("classNodeID::"+ownerClassNode.getId());
 					//System.out.println("classNode::"+r.getOtherNode(attributeNode));
 					otherNodeClassId= searchClassNode(attributeType, nodeHashMap);
+					System.out.println("otherNodeClassId::"+otherNodeClassId);
+					
 					if (otherNodeClassId != -1)
 						{
 							//class node found
@@ -640,7 +642,7 @@ public class CreateUserArtifactGraph {
 						System.out.println("Creating @@@ UsesDependenctEdge::");
 						
 						//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(attributeNodeClassId, otherNodeClassId, "USES", dependencyFile);
+	 					writeDependencyEdgesToFile(attributeNodeClassId, otherNodeClassId, "USES");
 	 					
 							dpGraph.addDependencyEdge(graphDb, otherNodeClassId, attributeNodeClassId, "USES");
 						}//if (idinterfaceNode != -1)
@@ -672,6 +674,7 @@ public class CreateUserArtifactGraph {
 				//	System.out.println("classNodeID::"+ownerClassNode.getId());
 					//System.out.println("classNode::"+r.getOtherNode(attributeNode));
 					otherClassNodeId= searchClassNode(attributeType1, nodeHashMap);
+					System.out.println("otherNodeClassId::"+otherNodeClassId);
 					if (otherClassNodeId != -1)
 						{
 							//class node found
@@ -680,7 +683,7 @@ public class CreateUserArtifactGraph {
 						System.out.println("Creating @@@ UsesDependenctEdge::");
 						
 						//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(attributeMethodNodeId, otherClassNodeId, "USES", dependencyFile);
+	 					writeDependencyEdgesToFile(attributeMethodNodeId, otherClassNodeId, "USES");
 	 					
 							dpGraph.addDependencyEdge(graphDb, otherClassNodeId, attributeMethodNodeId, "USES");
 						}//if (idinterfaceNode != -1)
@@ -726,12 +729,13 @@ public class CreateUserArtifactGraph {
              //      System.out.println("ClassInstanceCreation: "+classInstanceCreation);
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
-	  					currentParentName = className+"."+parentMethodDeclarationNode.getName().toString();
+	  					currentParentName = parse(className)+"."+parentMethodDeclarationNode.getName().toString();
 	  				else
-	  					currentParentName = className;
+	  					currentParentName = parse(className);
 
 	  			//	System.out.println("currentParentName: "+currentParentName);
 	  				//create node from currentParentname to node.getType() if exists
+	  				writeDependencyEdgesToFile(currentParentName, classInstanceCreation, "USES");
 	  				
 	  				Long invokeClassNodeId = searchNode(graphDb, dGraphNodeType.CLASS, "canonicalName", classInstanceCreation);
 	  				Long currentNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentParentName);
@@ -744,7 +748,7 @@ public class CreateUserArtifactGraph {
 	  					System.out.println("Creating @@@ UsesDependenctEdge::");
 	  					
 	  				//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(currentNodeId, invokeClassNodeId, "USES", dependencyFile);
+	 					writeDependencyEdgesToFile(currentNodeId, invokeClassNodeId, "USES");
 	  					dpGraph.addDependencyEdge(graphDb, invokeClassNodeId, currentNodeId, "USES");
 	  				}
 	  				return true;
@@ -776,15 +780,23 @@ public class CreateUserArtifactGraph {
 	  				//get parent nodes till you reach the MethodDeclaration node
 	  				MethodDeclaration parentMethodDeclarationNode= (MethodDeclaration) getParentMethodDeclarationNode(node);
 	  				if (parentMethodDeclarationNode !=null)
-		  				currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
-		  				else currentMethodName = className;
+		  				currentMethodName = parse(className)+"."+parentMethodDeclarationNode.getName().toString();
+		  				else currentMethodName = parse(className);
 	  				
 	  				//currentMethodName = className+"."+parentMethodDeclarationNode.getName().toString();
 	  		//		System.out.println("currentMethodName: "+currentMethodName);
 	  	
+	  				System.out.println("Creating CALLS edge:: "+invokedMethodName+ " "+currentMethodName);
+	  				
+	  				if ((invokedMethodName!=null) && (currentMethodName!=null))
+	  				writeDependencyEdgesToFile(invokedMethodName, currentMethodName, "CALLS");
+	  				
 	  				//create calls edge from currentMethodName to invokedMethodName
 	  				Long invokeMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", invokedMethodName);
 	  				Long currentMethodNodeId = searchNode(graphDb, dGraphNodeType.METHOD, "canonicalName", currentMethodName);
+	  				
+	  				System.out.println("invokeMethodNodeId:: "+invokeMethodNodeId);
+	  				System.out.println("currentMethodNodeId:: "+currentMethodNodeId);
 	  				
 	  				if ((invokeMethodNodeId != (long) -1) && (currentMethodNodeId != (long) -1))
 	  				{
@@ -792,7 +804,7 @@ public class CreateUserArtifactGraph {
 	  					System.out.println("Creating @@@ CALLSDependenctEdge::");
 	  					
 	  				//write to dependencyEdge file
-	 					writeDependencyEdgesToFile(currentMethodNodeId, invokeMethodNodeId, "CALLS", dependencyFile);
+	 					writeDependencyEdgesToFile(currentMethodNodeId, invokeMethodNodeId, "CALLS");
 	  					dpGraph.addDependencyEdge(graphDb, invokeMethodNodeId, currentMethodNodeId, "CALLS");
 	  				}
 	  				return true;
@@ -833,7 +845,8 @@ public class CreateUserArtifactGraph {
 	{
 		String fName= null;
 		int i = fileName.indexOf(".java");
-		fName= fileName.substring(0, i);
+		if (i!= -1) fName= fileName.substring(0, i);
+		else fName=fileName;
 		return fName;
 	}
 	
@@ -850,24 +863,24 @@ public class CreateUserArtifactGraph {
 			 
 	 }
 	 
-	   public void initializeDependencyEdgesFile(File dp)
+	   public void initializeDependencyEdgesFile()
 	    {
 	    
 	    	//write hash to file
 	    	try
 			{
-	    	File dependencyfile = new File("neo4jDB/"+collabName+"edges.txt");
+	    		dependencyFile = new File("neo4jDB/"+collabName+"edges.txt");
 	        
-		        if (!dependencyfile.exists()) {
-		        	dependencyfile.createNewFile();
+		        if (!dependencyFile.exists()) {
+		        	dependencyFile.createNewFile();
 		        	}
 		        else {
 		        	//delete existing file and create new
-		        	dependencyfile.delete();
-		        	dependencyfile.createNewFile();
+		        	dependencyFile.delete();
+		        	dependencyFile.createNewFile();
 		        }
 		        
-		    	dp= dependencyfile;
+		    	
 			} catch (IOException e) {
 				e.printStackTrace();
 			} 
@@ -875,16 +888,36 @@ public class CreateUserArtifactGraph {
 	    }
 
 	   
-	   public void writeDependencyEdgesToFile(long fromNode, long toNode, String edgeType, File dependencyfile)
+	   public void writeDependencyEdgesToFile(long fromNode, long toNode, String edgeType)
 	    {
 	    	//write hash to file
     	try{
-			FileWriter fw = new FileWriter(dependencyfile.getAbsoluteFile(), true);
+			FileWriter fw = new FileWriter(dependencyFile.getAbsoluteFile(), true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			
 			System.out.println("Writing artifact dependency edges to file:: "+fromNode+"|"+toNode+"|"+edgeType);
 			  bw.write(fromNode+"|"+toNode+"|"+edgeType+";");
 			  bw.newLine();
+		
+			
+			bw.close();
+			
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
+	    	
+	    }
+	   
+	   public void writeDependencyEdgesToFile(String fromNode, String toNode, String edgeType)
+	    {
+	    	//write hash to file
+   	try{
+			FileWriter fw = new FileWriter(dependencyFile.getAbsoluteFile(), true);
+			BufferedWriter bw = new BufferedWriter(fw);
+			
+			System.out.println("Writing artifact dependency edges to file:: "+fromNode+"|"+toNode+"|"+edgeType);
+			  bw.write(fromNode+"|"+toNode+"|"+edgeType+";");
+			
 		
 			
 			bw.close();

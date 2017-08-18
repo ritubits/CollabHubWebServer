@@ -119,6 +119,7 @@ public class CompareGraphs {
 	        	 compareMainInterfaceNode();
 	        	compareDeletionOfNodes();
 	        	compareDeletionOfMethods();
+	        	compareDependencyEdges();
         	System.out.println("created graph");
             // START SNIPPET: transaction
         	txClient.success();
@@ -652,6 +653,7 @@ public class CompareGraphs {
 			return serverClassNode;
 		 }
 		 else return null;*/
+		 
 		 Node serverNode=null;
 		  ResourceIterator<Node>  serverClassNodes= graphDbServer.findNodes(dGraphNodeType.CLASS);
 
@@ -946,16 +948,91 @@ public class CompareGraphs {
 				}					
 		 }	
 		 
+			public String readFileToString(String filePath) throws IOException 
+			{
+				StringBuilder fileData = new StringBuilder(1000);
+				BufferedReader reader = new BufferedReader(new FileReader(filePath));
+		 
+				char[] buf = new char[10];
+				int numRead = 0;
+				while ((numRead = reader.read(buf)) != -1) {
+		
+					String readData = String.valueOf(buf, 0, numRead);
+					fileData.append(readData);
+					buf = new char[1024];
+				}
+				reader.close();
+				return  fileData.toString();	
+			}
+			
 		 public void compareDependencyEdges()
 		 {
 			 String artifactFileData = null;
 			 String projectFileData=null;
-			 String[] temp1;
+			 
+			 try
+			 {
+			 //read projectFileData
+			 projectFileData= readFileToString("neo4jDB/serverEdges.txt");
+			 artifactFileData= readFileToString("neo4jDB/"+collabName+"edges.txt");
+			 
+			  String[] temp1;
 			  String delimiter1 = "[;]";
 			  temp1 = artifactFileData.split(delimiter1);
 			  for(int i =0; i < temp1.length ; i++)
 			  {
-			  System.out.println("data from compareDependencyEdges" + i + temp1[i]);
+				  System.out.println("data from compareDependencyEdges" + i + temp1[i]);
+				  
+				  if (!projectFileData.contains(temp1[i]))
+				  {
+					  //edge not found 
+					  // report new edge creation
+					  callNewDepedencyEdgeCreation(temp1[i]);
+				  }
 			  }
-		 }
+			 }
+			 catch (IOException e)
+			 {
+				 e.printStackTrace();
+			 }
+		 }//end of method
+		 
+
+		  public void callNewDepedencyEdgeCreation(String dependencyEdgeString)
+		  {
+			 
+			  Node clientNode = null;
+			  long clientNodeID= -1;
+			  long serverNodeID= -1;
+			  
+			  String[] temp1;
+			  String delimiter1 = "[|]";
+			  temp1 = dependencyEdgeString.split(delimiter1);
+			  String fromNodeName= temp1[0];
+			  String toNodeName= temp1[1];
+			  
+			//  Node serverNode= graphDbServer.getNodeById(serverNodeID);
+			  System.out.println("dependencyEdgeString:: "+dependencyEdgeString);
+			  //parse the string for the kind of dependency edge
+			  if (dependencyEdgeString.contains("USES"))
+			  {
+				  System.out.println("Invoking informAdditionOfUsesDependencyEdge ");
+				  communicator.informAdditionOfUsesDependencyEdge(fromNodeName, toNodeName, "USES");
+			  }
+			  else if (dependencyEdgeString.contains("CALLS"))
+			  {
+				  System.out.println("Invoking informAdditionOfCallsDependencyEdge ");
+				  communicator.informAdditionOfCallsDependencyEdge(toNodeName, fromNodeName,"CALLS");
+			  }
+			  else if (dependencyEdgeString.contains("IMPLEMENTS"))
+			  {
+				  communicator.informAdditionOfImplementsDependencyEdge(fromNodeName, toNodeName, "IMPLEMENTS");
+			  }
+			  else if (dependencyEdgeString.contains("IMPORTS"))
+			  {
+				  communicator.informAdditionOfImportsDependencyEdge(fromNodeName, toNodeName, "IMPORTS");
+			  }
+		  }
+		 
+		  
 }
