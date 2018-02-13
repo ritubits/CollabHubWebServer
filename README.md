@@ -3,6 +3,7 @@ Collaboration Over GitHub (COG)
 
 This repository hosts the implementation of the UserCollaboration Engine and its various components. 
 The CollabHubWebServer codebase consists of the implementation of the following:
+
 •	GitHubCollaborator Component: Implemented using Java, this component clones the remote GitHub repository at regular intervals (CloneRemoteRepo.java), and invokes the User ActivityContext Analyzer Component which is responsible for creating the project dependency graph.
 
 •	User ActivityContext Analyzer Component: Creates the project dependency graph (CreateDependencyGraph.java) and stores it with the server. On receiving current artifact content from the collaborating client, creates the current artifact dependency graph (CreateUserArtifactGraph.java) and compares it with the current project graph (CompareGraphs.java) stored with the server. Information regarding each conflicting node is sent forward to the InconsistencyCommunicator Component.
