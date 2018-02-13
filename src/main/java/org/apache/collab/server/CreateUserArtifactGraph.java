@@ -4,22 +4,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Map.Entry;
-
-import org.apache.collab.server.Comparator.CompareGraphs;
-import org.apache.collab.server.CreateDependencyGraph.RelTypes;
-import org.apache.collab.server.CreateDependencyGraph.dGraphNodeType;
-import org.apache.collab.server.CreateDependencyGraph.dMethodNodeType;
-import org.apache.collab.server.CreateDependencyGraph.methodRelTypes;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -54,6 +44,14 @@ import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.io.fs.FileUtils;
 
+/**
+ * This class converts the file content received as a String, and creates the
+ * client artifact graph and stores it with the server. It is an important part of the
+ * UserActivityAnalyzer component. The connecting graph is created and all the dependency
+ * edges are written in a file.
+ * @author Ritu Arora
+ *
+ */
 public class CreateUserArtifactGraph {
 
 	String fileContent=null;
@@ -90,7 +88,7 @@ public class CreateUserArtifactGraph {
 	    }
 	    
 	public CreateUserArtifactGraph(String file, String fName, String cName) {
-		// TODO Auto-generated constructor stub
+
 		fileContent = file;
 		fileName= fName;
 		collabName= cName;
@@ -126,7 +124,6 @@ public class CreateUserArtifactGraph {
 			createDB();
 			shutDown(graphDb);	
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	System.out.println("Out of DB");
@@ -148,7 +145,6 @@ public class CreateUserArtifactGraph {
         	 createConnectingGraph();
         	 createDependencyGraph();
     	System.out.println("created graph");
-        // START SNIPPET: transaction
         tx.success();
     }
     catch (Exception e)

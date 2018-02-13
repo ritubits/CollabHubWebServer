@@ -9,16 +9,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Enumeration;
-import java.util.Vector;
 
 public class LivePreviewServlet  extends HttpServlet{
 	
-
-    String ipAddSQL= null;
+	private static final long serialVersionUID = 1L;
+	String ipAddSQL= null;
 	Connection con=null;
     String DEBUG=null;
 

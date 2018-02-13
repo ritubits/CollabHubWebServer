@@ -7,13 +7,20 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * This class is used only for simulation/testing purposes.
+ * @author Ritu Arora
+ *
+ */
 public class CompareGraphsServlet extends HttpServlet {
 
-	 public void doGet(HttpServletRequest request, HttpServletResponse response)
+	private static final long serialVersionUID = 1L;
+
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			    throws IOException, ServletException
 			    {
 			    
-		 CompareGraphs db= new CompareGraphs();
+	//	 CompareGraphs db= new CompareGraphs();
 	//	 db.initializeDB("CollabClient", "loclahost:3306");
 			    }
 }

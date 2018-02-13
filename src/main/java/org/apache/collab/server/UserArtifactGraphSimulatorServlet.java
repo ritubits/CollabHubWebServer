@@ -11,11 +11,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Random;
-
-import org.apache.collab.server.Comparator.CompareGraphs;
-
-
+/**
+ * This class is used only for simulation/testing purposes.
+ * @author Ritu Arora
+ *
+ */
 public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -43,9 +43,6 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		int randomNumber;
-	//	for (int i=0; i<5; i++)
-	//	{
 			readFileContent();
 		//	System.out.println(fileContent);	
 			fileName= "CloneRemoteRepo.java";
@@ -58,9 +55,7 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	    	difference = lEndTime - lStartTime;
 	
 	    	System.out.println("Elapsed milliseconds after creation of user Graph: " + difference);
-	
-		    CompareGraphs db= new CompareGraphs();
-		//	db.initializeDB("CollabClient", ipAddSQL);
+
 			
 			//System.out.println(getRandomNumberInRange(20, 60));
 		    lEndTime = System.currentTimeMillis();
@@ -81,7 +76,7 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 	//	}
 	}
 
-	private  int getRandomNumberInRange(int min, int max) {
+/*	private  int getRandomNumberInRange(int min, int max) {
 
 		if (min >= max) {
 			throw new IllegalArgumentException("max must be greater than min");
@@ -90,7 +85,7 @@ public class UserArtifactGraphSimulatorServlet extends HttpServlet {
 		Random r = new Random();
 		return r.nextInt((max - min) + 1) + min;
 	}
-	
+	*/
 	public void readFileContent()
 	{
 		BufferedReader br = null;

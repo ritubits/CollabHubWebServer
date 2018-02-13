@@ -1,282 +1,312 @@
 package org.apache.collab.server;
 
-
 import javax.servlet.*;
 import javax.servlet.http.*;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
-//import java.io.PrintWriter;
-//import java.sql.PreparedStatement;
-//import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class RegisterProjectServlet extends HttpServlet{
+/**
+ * This servlet is invoked by the COGEclipseClient and gets invoked when the
+ * project owner invokes the project registration menu. It registers the project
+ * with the MySQL DB server and creates the required tables.
+ * 
+ * @author Ritu Arora
+ * 
+ */
+public class RegisterProjectServlet extends HttpServlet {
 
-	//this servlet will connect to DB and create the regProject_projectName table
-	String projectName =null;
-    String ownerName= null;
-	String levelNumber =null;
-    String collabNumber= null;
-    String ipAddTomcat= null;
-    String ipAddSQL= null;
-    PrintWriter out =null;
-    String DEBUG=null;
-    
-    public void init(ServletConfig config) throws ServletException  
-    {
-    
-    	//read parameters from web.xml
-    	//read ipAddTomcat and ipAddSQL
-    	super.init(config);
-    	ipAddTomcat = getServletContext().getInitParameter("ipAddTomcat");
-    	ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
-     	DEBUG = getServletContext().getInitParameter("DEBUG");
-    }
-    
-	 public void doGet(HttpServletRequest request, HttpServletResponse response)
-			    throws IOException, ServletException
-			    {
-		 
-		 	response.setContentType("text/html");
-	 //       PrintWriter out = response.getWriter();
-	  
-		 	if (DEBUG.contains("TRUE")) System.out.println(" In the RegisterProjectServlet ");
-	        projectName= request.getParameter("pName");
-	        ownerName = request.getParameter("oName");
-	        levelNumber = request.getParameter("levelNumber");
-	        collabNumber = request.getParameter("collabNumber");
-//	        ipAddTomcat = request.getParameter("ipAddT");
-//	        ipAddSQL = request.getParameter("ipAddSQL");
-	        
-	        //check if the configProject file exists
-	        //if yes, append, else create and append
-	        if (DEBUG.contains("TRUE"))
-	        {	        	
-	        System.out.println("projectName: "+projectName);	        
-	        System.out.println("ownerName: "+ownerName);
-	        System.out.println("ipAddress Tomcat: "+ipAddTomcat);
-	        System.out.println("ipAddress SQL: "+ipAddSQL);
-	        }
-	        //make connection to DB
-	        //create table regproject_projectName
-	        // columns: ProjectName, OwnerName and Tomcat_IP
-	       Connection con= LoadDriver.createConnection(ipAddSQL);
-	       createTableRegProject(con);
-	       addDatatoTable(con);
-	       createTableUserDetails(con);
-	       
-	       //create a table for storing messages, if not already exist
-	       createTableConflictMessages(con); // with Project Name
-	       LoadDriver.closeConnection();
-		  }//doGet 
-	 
-	 public void addDatatoTable(Connection conn)
-	 {
-		  Statement statement = null;
+	private static final long serialVersionUID = 1L;
 
-			 //insert data here
-			 try {
-		        	
-				 if (DEBUG.contains("TRUE")) System.out.println("inserting data in table in given database...");
-				 statement = conn.createStatement();
-			      
-				 String sql = "INSERT INTO regProject"+//+projectName+
-		                   " VALUES ('"+projectName+"','"+ownerName+"','"+ipAddTomcat+"','"+levelNumber+"','"+collabNumber+"');";
-				 if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
-				 statement.executeUpdate(sql);
-			   	   		            
-				 if (DEBUG.contains("TRUE"))  System.out.println("inserted data...");
-			      
-		          
-		        } catch (SQLException ex) {
-		            // handle any errors
-		            System.out.println("SQLException: " + ex.getMessage());
-		            System.out.println("SQLState: " + ex.getSQLState());
-		            System.out.println("VendorError: " + ex.getErrorCode());
-		            out.print("Exception:"+ex.getMessage());
-		        }
-		    	
-	  	 }
-	 
-	 public void createTableRegProject(Connection conn)
-	 {
-		  Statement statement = null;
-	  
-		  deleteFromRegProjectTable(conn);
-		  
-		 //create table here
-		 try {
-	        	
-			 if (DEBUG.contains("TRUE")) System.out.println("Creating table in given database...");
-			 statement = conn.createStatement();
-		      
-		   /*   String sql = "CREATE TABLE regProject_"+projectName+
-		                   "(projectname VARCHAR(30) not NULL, " +
-		                   " ownerName VARCHAR(30), " + 
-		                   " ipAddTomcat VARCHAR(30), " + 
-		                   " PRIMARY KEY ( projectname ))"; */
-		      String sql = "CREATE TABLE IF NOT EXISTS regProject"+
-	                   "(projectName VARCHAR(30) not NULL, " +
-	                   " ownerName VARCHAR(30), " + 
-	                   " ipAddTomcat VARCHAR(30), " + 
-	                   " levelNumber VARCHAR(10), " + 
-	                   " allowedCollab VARCHAR(2), " + 
-	                   " PRIMARY KEY ( projectname ))"; 
-		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
+	String projectName = null;
+	String ownerName = null;
+	String levelNumber = null;
+	String collabNumber = null;
+	String ipAddTomcat = null;
+	String ipAddSQL = null;
+	PrintWriter out = null;
+	String DEBUG = null;
 
-		      statement.executeUpdate(sql);
-		      if (DEBUG.contains("TRUE")) System.out.println("Created table in given database...");
-		      
-	          
-	        } catch (SQLException ex) {
-	            // handle any errors
-	            System.out.println("SQLException: " + ex.getMessage());
-	            System.out.println("SQLState: " + ex.getSQLState());
-	            System.out.println("VendorError: " + ex.getErrorCode());
-	            out.print("Exception:"+ex.getMessage());
-	        }
-	    	
-	 }
-	 
-		public void deleteFromRegProjectTable(Connection conn) {
+	/**
+	 * Initializes the servlet with the required parameters from the web.xml
+	 * file.
+	 */
+	public void init(ServletConfig config) throws ServletException {
 
-			Statement statement = null;
-			java.sql.DatabaseMetaData meta;
-			String sql=null;
-			try {
-				meta = conn.getMetaData();
-				String tableName = null;
-				ResultSet res = meta.getTables(null, null, null,
-						new String[] { "TABLE" });
-				System.out.println("List of tables: ");
-				while (res.next()) {
+		// read parameters from web.xml
+		// read ipAddTomcat and ipAddSQL
+		super.init(config);
+		ipAddTomcat = getServletContext().getInitParameter("ipAddTomcat");
+		ipAddSQL = getServletContext().getInitParameter("ipAddSQL");
+		DEBUG = getServletContext().getInitParameter("DEBUG");
+	}
 
-					tableName = res.getString("TABLE_NAME");
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws IOException, ServletException {
 
-					if (tableName.contains("regproject")) {
-						// regproject Table exists
-						// delete * from it
-						statement = conn.createStatement();
-						sql = "DELETE FROM " + tableName;
+		response.setContentType("text/html");
+		// PrintWriter out = response.getWriter();
 
-						statement.executeUpdate(sql);
+		if (DEBUG.contains("TRUE"))
+			System.out.println(" In the RegisterProjectServlet ");
+		projectName = request.getParameter("pName");
+		ownerName = request.getParameter("oName");
+		levelNumber = request.getParameter("levelNumber");
+		collabNumber = request.getParameter("collabNumber");
 
-					}// if
-				}// while
-				res.close();
+		// check if the configProject file exists
+		// if yes, append, else create and append
+		if (DEBUG.contains("TRUE")) {
+			System.out.println("projectName: " + projectName);
+			System.out.println("ownerName: " + ownerName);
+			System.out.println("ipAddress Tomcat: " + ipAddTomcat);
+			System.out.println("ipAddress SQL: " + ipAddSQL);
+		}
+		// make connection to DB
+		// create table regproject_projectName
+		// columns: ProjectName, OwnerName and Tomcat_IP
+		Connection con = LoadDriver.createConnection(ipAddSQL);
+		createTableRegProject(con);
+		addDatatoTable(con);
+		createTableUserDetails(con);
 
-			} catch (SQLException ex) {
-				// handle any errors
-				System.out.println("SQLException: " + ex.getMessage());
-				System.out.println("SQLState: " + ex.getSQLState());
-				System.out.println("VendorError: " + ex.getErrorCode());
+		// create a table for storing conflict messages, if not already exist
+		createTableConflictMessages(con);
+		LoadDriver.closeConnection();
+	}// doGet
 
-			}
+	/**
+	 * Inserts data into the project registration table.
+	 * 
+	 * @param conn
+	 */
+	public void addDatatoTable(Connection conn) {
+		Statement statement = null;
 
+		try {
 
-		}// delete if exists
-		
-	 public void createTableUserDetails(Connection conn)
-	 {
-		  Statement statement = null;
-	  
-		 //create table here
-		 try {
-			 deleteFromUserDetailsTable(conn);
-			 if (DEBUG.contains("TRUE")) System.out.println("Creating table user details in given database...");
-			 statement = conn.createStatement();
-		      
-		      String sql = "CREATE TABLE IF NOT EXISTS userdetails_"+projectName+
-		                   "(projectname VARCHAR(30) not NULL, " +
-		                   " collabName VARCHAR(30), " + 
-		                   " action VARCHAR(30))"; 
-		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
+			if (DEBUG.contains("TRUE"))
+				System.out
+						.println("inserting data in table in given database...");
+			statement = conn.createStatement();
 
-		      statement.executeUpdate(sql);
-		      if (DEBUG.contains("TRUE")) System.out.println("Created table user details in given database...");
-		      
-	          
-	        } catch (SQLException ex) {
-	            // handle any errors
-	            System.out.println("SQLException: " + ex.getMessage());
-	            System.out.println("SQLState: " + ex.getSQLState());
-	            System.out.println("VendorError: " + ex.getErrorCode());
-	            out.print("Exception:"+ex.getMessage());
-	        }
-	    	
-	 }
-	 
-		public void deleteFromUserDetailsTable(Connection conn) {
+			String sql = "INSERT INTO regProject"
+					+ // +projectName+
+					" VALUES ('" + projectName + "','" + ownerName + "','"
+					+ ipAddTomcat + "','" + levelNumber + "','" + collabNumber
+					+ "');";
+			if (DEBUG.contains("TRUE"))
+				System.out.println("SQL: " + sql);
+			statement.executeUpdate(sql);
 
-			Statement statement = null;
-			java.sql.DatabaseMetaData meta;
-			String sql=null;
-			try {
-				meta = conn.getMetaData();
-				String tableName = null;
-				ResultSet res = meta.getTables(null, null, null,
-						new String[] { "TABLE" });
-				System.out.println("List of tables: ");
-				while (res.next()) {
+			if (DEBUG.contains("TRUE"))
+				System.out.println("inserted data...");
 
-					tableName = res.getString("TABLE_NAME");
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			out.print("Exception:" + ex.getMessage());
+		}
 
-					if (tableName.contains("userdetails_")) {
-						// regproject Table exists
-						// delete * from it
-						statement = conn.createStatement();
-						sql = "DELETE FROM " + tableName;
+	}
 
-						statement.executeUpdate(sql);
+	/**
+	 * Creates the project registration table.
+	 * 
+	 * @param conn
+	 */
+	public void createTableRegProject(Connection conn) {
+		Statement statement = null;
 
-					}// if
-				}// while
-				res.close();
+		deleteFromRegProjectTable(conn);
 
-			} catch (SQLException ex) {
-				// handle any errors
-				System.out.println("SQLException: " + ex.getMessage());
-				System.out.println("SQLState: " + ex.getSQLState());
-				System.out.println("VendorError: " + ex.getErrorCode());
+		// create table here
+		try {
 
-			}
+			if (DEBUG.contains("TRUE"))
+				System.out.println("Creating table in given database...");
+			statement = conn.createStatement();
 
+			String sql = "CREATE TABLE IF NOT EXISTS regProject"
+					+ "(projectName VARCHAR(30) not NULL, "
+					+ " ownerName VARCHAR(30), " + " ipAddTomcat VARCHAR(30), "
+					+ " levelNumber VARCHAR(10), "
+					+ " allowedCollab VARCHAR(2), "
+					+ " PRIMARY KEY ( projectname ))";
+			if (DEBUG.contains("TRUE"))
+				System.out.println("SQL: " + sql);
 
-		}// delete if exists
-		
-	 public void createTableConflictMessages(Connection conn)
-	 {
-		  Statement statement = null;
-	  
-		 //create table here
-		 try {
-	        	
-			 if (DEBUG.contains("TRUE")) System.out.println("Creating conflictMessages table in given database...");
-			 statement = conn.createStatement();
-		      
-		      String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"+
-		                   "(sentNode VARCHAR(30) not NULL, " +
-		                   " message VARCHAR(200), " + 
-		                   " collabName VARCHAR(30), " + 
-		                   " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) "; 
-		      
-		      if (DEBUG.contains("TRUE")) System.out.println("SQL: "+sql);
+			statement.executeUpdate(sql);
+			if (DEBUG.contains("TRUE"))
+				System.out.println("Created table in given database...");
 
-		      statement.executeUpdate(sql);
-		      if (DEBUG.contains("TRUE")) System.out.println("Created table in given database...");
-		      
-	          
-	        } catch (SQLException ex) {
-	            // handle any errors
-	            System.out.println("SQLException: " + ex.getMessage());
-	            System.out.println("SQLState: " + ex.getSQLState());
-	            System.out.println("VendorError: " + ex.getErrorCode());
-	            out.print("Exception:"+ex.getMessage());
-	        }
-	    	
-	 }
+		} catch (SQLException ex) {
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			out.print("Exception:" + ex.getMessage());
+		}
+
+	}
+
+	/**
+	 * Deletes data from the project registration table if it already exists.
+	 * 
+	 * @param conn
+	 */
+	public void deleteFromRegProjectTable(Connection conn) {
+
+		Statement statement = null;
+		java.sql.DatabaseMetaData meta;
+		String sql = null;
+		try {
+			meta = conn.getMetaData();
+			String tableName = null;
+			ResultSet res = meta.getTables(null, null, null,
+					new String[] { "TABLE" });
+			System.out.println("List of tables: ");
+			while (res.next()) {
+
+				tableName = res.getString("TABLE_NAME");
+
+				if (tableName.contains("regproject")) {
+					// regproject Table exists
+					// delete * from it
+					statement = conn.createStatement();
+					sql = "DELETE FROM " + tableName;
+
+					statement.executeUpdate(sql);
+
+				}// if
+			}// while
+			res.close();
+
+		} catch (SQLException ex) {
+
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+
+		}
+
+	}// delete if exists
+
+	/**
+	 * Creates user details table in the MySQL DB. This is done at the time of
+	 * registring the project with the server.
+	 * 
+	 * @param conn
+	 */
+	public void createTableUserDetails(Connection conn) {
+		Statement statement = null;
+
+		// create table here
+		try {
+			deleteFromUserDetailsTable(conn);
+			if (DEBUG.contains("TRUE"))
+				System.out
+						.println("Creating table user details in given database...");
+			statement = conn.createStatement();
+
+			String sql = "CREATE TABLE IF NOT EXISTS userdetails_"
+					+ projectName + "(projectname VARCHAR(30) not NULL, "
+					+ " collabName VARCHAR(30), " + " action VARCHAR(30))";
+			if (DEBUG.contains("TRUE"))
+				System.out.println("SQL: " + sql);
+
+			statement.executeUpdate(sql);
+			if (DEBUG.contains("TRUE"))
+				System.out
+						.println("Created table user details in given database...");
+
+		} catch (SQLException ex) {
+
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			out.print("Exception:" + ex.getMessage());
+		}
+
+	}
+
+	/**
+	 * Deletes existing details from all the userdetails tables.
+	 * 
+	 * @param conn
+	 */
+	public void deleteFromUserDetailsTable(Connection conn) {
+
+		Statement statement = null;
+		java.sql.DatabaseMetaData meta;
+		String sql = null;
+		try {
+			meta = conn.getMetaData();
+			String tableName = null;
+			ResultSet res = meta.getTables(null, null, null,
+					new String[] { "TABLE" });
+			System.out.println("List of tables: ");
+			while (res.next()) {
+
+				tableName = res.getString("TABLE_NAME");
+
+				if (tableName.contains("userdetails_")) {
+					statement = conn.createStatement();
+					sql = "DELETE FROM " + tableName;
+
+					statement.executeUpdate(sql);
+
+				}// if
+			}// while
+			res.close();
+
+		} catch (SQLException ex) {
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+
+		}
+
+	}// delete if exists
+
+	/**
+	 * Creates the conflict messages table in the MySQL DB
+	 * 
+	 * @param conn
+	 */
+	public void createTableConflictMessages(Connection conn) {
+		Statement statement = null;
+
+		// create table here
+		try {
+
+			if (DEBUG.contains("TRUE"))
+				System.out
+						.println("Creating conflictMessages table in given database...");
+			statement = conn.createStatement();
+
+			String sql = "CREATE TABLE IF NOT EXISTS conflictMessages"
+					+ "(sentNode VARCHAR(30) not NULL, "
+					+ " message VARCHAR(200), " + " collabName VARCHAR(30), "
+					+ " messagetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ";
+
+			if (DEBUG.contains("TRUE"))
+				System.out.println("SQL: " + sql);
+
+			statement.executeUpdate(sql);
+			if (DEBUG.contains("TRUE"))
+				System.out.println("Created table in given database...");
+
+		} catch (SQLException ex) {
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+			out.print("Exception:" + ex.getMessage());
+		}
+
+	}
 }

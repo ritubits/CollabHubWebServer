@@ -6,6 +6,12 @@ import java.nio.file.attribute.*;
 
 import static java.nio.file.FileVisitResult.*;
 
+/**
+ * This class searches for files with extension ".java" and creates the corresponding
+ * graph for each java file.
+ * @author Ritu Arora
+ *
+ */
 public class Finder extends SimpleFileVisitor<Path> {
     private int numMatches = 0;
     CreateDependencyGraph dSererGraph=null;
@@ -22,12 +28,8 @@ public class Finder extends SimpleFileVisitor<Path> {
             numMatches++;
            // System.out.println(file);
             try {
-            	//writeToFile(name.toString());
 				dSererGraph.createConnectingGraph(file.toFile());
-				
-				//dSererGraph.createDependencyGraph(file.toFile());
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
@@ -50,7 +52,6 @@ public class Finder extends SimpleFileVisitor<Path> {
 
     // Invoke the pattern matching
     // method on each directory.
-
     public FileVisitResult preVisitDirectory(Path dir,
             BasicFileAttributes attrs) {
         find(dir);
@@ -79,10 +80,6 @@ public class Finder extends SimpleFileVisitor<Path> {
 		bw.newLine();
 		bw.close();
 
-		//System.out.println("Done");
-		
-		// update bean here...
-		//updateConfigBean(content);
 		
 		} catch (IOException e) {
 			e.printStackTrace();

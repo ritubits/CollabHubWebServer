@@ -1,57 +1,79 @@
 package org.apache.collab.server;
 
-/* IMPORTANT
- * This code clones the repository from github
- * works fine
-
- * clones at d:\apache..\temp
- * */
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 
+/**
+ * This thread belongs to the GitHubCollaborator Component of the
+ * UserCollaborationEngine of COG. It is the main class responsible for cloning
+ * remote project repository from GitHub. The InitiateCollabHub HttpServlet
+ * creates an instance of this class and invokes the run() method.
+ * 
+ * @author Ritu Arora
+ * @version 1.1
+ * 
+ */
 public class CloneRemoteRepo implements Runnable {
 
-	//private static final String REMOTE_URL = "https://github.com/ritubits/CQPAss1.git";
-//	private static final String REMOTE_URL = "https://github.com/ritubits/MathTutorialProject.git";
-//	private static final String PATH_URL = "D:\\TestGitProjectRepo";
-//	private static final String SRC_URL = "D:\\TestGitProjectRepo\\MathProject\\src\\twoDShapes";
+	// private static final String REMOTE_URL =
+	// "https://github.com/ritubits/CQPAss1.git";
+	// private static final String REMOTE_URL =
+	// "https://github.com/ritubits/MathTutorialProject.git";
+	// private static final String PATH_URL = "D:\\TestGitProjectRepo";
+	// private static final String SRC_URL =
+	// "D:\\TestGitProjectRepo\\MathProject\\src\\twoDShapes";
 
 	private String REMOTE_URL = null;
 	private String PATH_URL = null;
-	private String SRC_URL = null; 
+	private String SRC_URL = null;
 
 	private String ipAddSQL;
 	private String projectName;
 	Connection con;
 
-	public CloneRemoteRepo(String pName, String ipAddDB, String rPath, String tPath, String sPath) {
+	/**
+	 * 
+	 * @param pName
+	 *            Name of the Java Project to be cloned
+	 * @param ipAddDB
+	 *            IPAddress of the MySQL database
+	 * @param rPath
+	 *            URL of the remote GitHub repository
+	 * @param tPath
+	 *            Path where the repository is to be cloned
+	 * @param sPath
+	 *            Path of the src folder for cloning the repository
+	 */
+	public CloneRemoteRepo(String pName, String ipAddDB, String rPath,
+			String tPath, String sPath) {
 		ipAddSQL = ipAddDB;
-		REMOTE_URL= rPath;
-		PATH_URL= tPath;
-		SRC_URL= sPath;
-		
+		REMOTE_URL = rPath;
+		PATH_URL = tPath;
+		SRC_URL = sPath;
 		projectName = pName;
 
-	try {
+		try {
 			con = LoadDriver.createConnection(ipAddSQL);
 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * This method clones the remote GitHub repository from Remote_URL to a
+	 * temporary location and then copies the same to PATH_URL and deletes from
+	 * temporary location. It then creates an object of CreateDependencyGraph
+	 * and calls the initializeDB() method for creating the dependency graph of
+	 * the cloned repository using Neo4j Graph DB.
+	 */
 	public void run() {
-		// TODO Auto-generated method stub
-
 		File filePath = null;
 		try {
 			System.out.println("in clone::");
@@ -64,7 +86,7 @@ public class CloneRemoteRepo implements Runnable {
 				filePath.delete();
 				System.out.println("filePath: " + filePath.toString());
 
-				// then clone
+				// cloning
 				System.out.println("Cloning from " + REMOTE_URL + " to "
 						+ filePath);
 				Git result = Git.cloneRepository().setURI(REMOTE_URL)
@@ -77,24 +99,23 @@ public class CloneRemoteRepo implements Runnable {
 
 				copyToProjectRepo(filePath, con);
 
-				CreateDependencyGraph dbGraph= new CreateDependencyGraph();
-			    try {
-			    	System.out.println("Going to create DB");
+				CreateDependencyGraph dbGraph = new CreateDependencyGraph();
+				try {
+					System.out.println("Going to create DB");
 					dbGraph.initializeDB(projectName, SRC_URL);
 
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
-				// delet contents of the directory filePath
+
+				// delete contents of the directory filePath
 				removeDirectory(filePath);
 
-				//  this is 2 hours (1s= 1000ms)
-				Thread.sleep(1000*60*60*2);
+				// this is 2 hours (1s= 1000ms)
+				Thread.sleep(1000 * 60 * 60 * 2);
 
 			}// for
-			
+
 		}// try
 		catch (Exception e) {
 			e.printStackTrace();
@@ -102,11 +123,14 @@ public class CloneRemoteRepo implements Runnable {
 
 	}// run
 
+	/**
+	 * Copies repository files to the specified location.
+	 * 
+	 * @param source
+	 * @param conn
+	 */
 	public void copyToProjectRepo(File source, Connection conn) {
 		File dest = new File(PATH_URL);
-
-		// delete the content if they exist
-		// if (dest!= null && dest.exists()) removeDirectory(dest);
 
 		try {
 			System.out.println("Copying files from: " + source.toString()
@@ -117,17 +141,20 @@ public class CloneRemoteRepo implements Runnable {
 			// create graph and delete the folder
 			// create table here
 			createArtifactTable(conn);
-			System.out.println("Going yo create DB");
+			System.out.println("Going to create DB");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	/**
+	 * 
+	 * @param dir
+	 */
 	public void removeDirectory(File dir) {
 		// remove all files and folders in the specified file path and the
 		// directory also
-		// System.out.println("Deleting files from: "+ dir.toString());
 		if (dir.isDirectory()) {
 			File[] files = dir.listFiles();
 			if (files != null && files.length > 0) {
@@ -141,11 +168,18 @@ public class CloneRemoteRepo implements Runnable {
 		}
 	}
 
+	/**
+	 * This method creates the tabke named artifact_projectName in MySQL DB and
+	 * fills it with the names of all Java files in the project.
+	 * 
+	 * @param conn
+	 *            Connection to the MySQL DB
+	 */
 	public void createArtifactTable(Connection conn) {
 
 		Statement statement = null;
 		java.sql.DatabaseMetaData meta;
-		String sql=null;
+		String sql = null;
 		try {
 			meta = conn.getMetaData();
 			String tableName = null;
@@ -178,7 +212,7 @@ public class CloneRemoteRepo implements Runnable {
 			statement.executeUpdate(sql);
 
 		} catch (SQLException ex) {
-			// handle any errors
+
 			System.out.println("SQLException: " + ex.getMessage());
 			System.out.println("SQLState: " + ex.getSQLState());
 			System.out.println("VendorError: " + ex.getErrorCode());
@@ -192,16 +226,15 @@ public class CloneRemoteRepo implements Runnable {
 
 	}// create
 
+	/**
+	 * This method parses the directory structure of the cloned repository to
+	 * obtain the names of all Java files. These are entered into the
+	 * artifact_projectName table in the MySQL DB.
+	 * 
+	 * @param conn
+	 *            Connection to the MySQL DB
+	 */
 	public void enterDataInArtifactTable(Connection conn) {
-
-		/*
-		 * File dirs = new File(PATH_URL); String dirPath= null;
-		 * 
-		 * try { dirPath = dirs.getCanonicalPath() +
-		 * File.separator+"src"+File.separator+"gitHubConnectGraph\\"; } catch
-		 * (IOException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); }
-		 */
 
 		// enter data into artifact_projectname
 		File root = new File(SRC_URL);
@@ -242,10 +275,13 @@ public class CloneRemoteRepo implements Runnable {
 		}
 	}
 
+	/**
+	 * Drops the associated tables from MySQL DB, it they exist
+	 */
 	public void destroy() {
 		try {
 			// drop table if exists
-			// DROP TABLE IF EXISTS AgentDetail
+			// DROP TABLE IF EXISTS
 
 			if (con != null) {
 				Statement statement = con.createStatement();
@@ -262,7 +298,7 @@ public class CloneRemoteRepo implements Runnable {
 				con.close();
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	}
